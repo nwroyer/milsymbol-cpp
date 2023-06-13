@@ -53,3 +53,8 @@ install_headers(
     'include/Constants.hpp',
     subdir: 'milsymbol'
 )
+
+milsymbol_cpp = declare_dependency(
+    link_with: library_target,
+    include_directories: include_directories
+)
