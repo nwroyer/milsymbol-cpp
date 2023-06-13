@@ -1,0 +1,112 @@
+{
+	"set": "06",
+	"name": "space missile",
+	"IC": {
+		"110000": {
+			"names": ["missile", "space missile"],
+			"icon": [
+				{"d": "M90,135 l0,-10 5,-5 0,-55 5,-5 5,5 0,55 5,5 0,10 -10,-10 z", "fill": "yellow"}
+			]
+		}
+	},
+	"M1": {
+		"01": {
+			"names": ["ballistic"],
+			"icon": [{"text": "B", "pos": [68, 110], "fontsize": 30}]
+		},
+		"02": {
+			"names": ["space"],
+			"icon": [
+				{"text": "S", "pos": [68, 95], "fontsize": 30},
+				{"text": "P", "pos": [68, 125], "fontsize": 30}
+			]
+		},
+		"03": {
+			"names": ["interceptor"],
+			"icon": [{"text": "I", "pos": [68, 110], "fontsize": 30}]
+		}
+	}, 
+	"M2": {
+		"01": {
+			"names": ["short range"],
+			"icon": [
+				{"text": "S", "pos": [132, 95], "fontsize": 30},
+				{"text": "R", "pos": [132, 125], "fontsize": 30}
+			]
+		},
+		"02": {
+			"names": ["medium range"],
+			"icon": [
+				{"text": "M", "pos": [132, 95], "fontsize": 30},
+				{"text": "R", "pos": [132, 125], "fontsize": 30}
+			]
+		},		
+		"03": {
+			"names": ["intermediate range"],
+			"icon": [
+				{"text": "I", "pos": [132, 95], "fontsize": 30},
+				{"text": "R", "pos": [132, 125], "fontsize": 30}
+			]
+		},
+		"04": {
+			"names": ["long range"],
+			"icon": [
+				{"text": "L", "pos": [132, 95], "fontsize": 30},
+				{"text": "R", "pos": [132, 125], "fontsize": 30}
+			]
+		},
+		"05": {
+			"names": ["intercontinental"],
+			"icon": [
+				{"text": "I", "pos": [132, 95], "fontsize": 30},
+				{"text": "C", "pos": [132, 125], "fontsize": 30}
+			]
+		},
+		"06": {
+			"names": ["Arrow"],
+			"icon": [
+				{"text": "A", "pos": [132, 95], "fontsize": 30},
+				{"text": "R", "pos": [132, 125], "fontsize": 30}
+			]
+		},		
+		"07": {
+			"names": ["ground-based interceptor", "GBI"],
+			"icon": [
+				{"text": "G", "pos": [132, 110], "fontsize": 30}
+			]
+		},		
+		"08": {
+			"names": ["Patriot"],
+			"icon": [
+				{"text": "P", "pos": [132, 110], "fontsize": 30}
+			]
+		},		
+		"09": {
+			"names": ["standard missile - terminal phase", "SM-T"],
+			"icon": [
+				{"text": "S", "pos": [132, 95], "fontsize": 30},
+				{"text": "T", "pos": [132, 125], "fontsize": 30}
+			]
+		},
+		"10": {
+			"names": ["standard missile - 3", "SM-3"],
+			"icon": [
+				{"text": "S", "pos": [132, 95], "fontsize": 30},
+				{"text": "3", "pos": [132, 125], "fontsize": 30}
+			]
+		},
+		"11": {
+			"names": ["terminal high-altitude area defense", "THAAD"],
+			"icon": [
+				{"text": "T", "pos": [132, 110], "fontsize": 30}
+			]
+		},	
+		"12": {
+			"names": ["space"],
+			"icon": [
+				{"text": "S", "pos": [132, 95], "fontsize": 30},
+				{"text": "P", "pos": [132, 125], "fontsize": 30}
+			]
+		}		
+	}
+}
