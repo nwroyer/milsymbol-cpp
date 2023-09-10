@@ -886,6 +886,13 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
         }
     }
 
+    // Handle non-default sizes
+    if (style.has_non_default_size()) {
+        std::vector<DrawCommand> interior_components = std::move(components);
+        components = std::vector<DrawCommand>();
+        components.push_back(DrawCommand::scale(style.get_icon_internal_scale_factor(), std::move(interior_components)));
+    }
+
     // Execute the context
     _impl::Style context;
     context.affiliation = affiliation;
@@ -893,6 +900,7 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     context.color_mode = style.color_mode;
     context.use_color_override = style.use_color_override;
     context.color_override = style.color_override;
+    context.stroke_width_override = (style.uses_stroke_width_override() ? style.get_stroke_width_override() : -1);
 
     std::stringstream ss;
     for (const auto& comp : components) {
@@ -910,6 +918,10 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
         bbox.x2 + style.frame_stroke_width + style.padding,
         bbox.y2 + style.frame_stroke_width + style.padding
     };
+
+    if (style.has_non_default_size()) {
+        result.svg_bounding_box = result.svg_bounding_box.scaled_to_center(style.get_icon_internal_scale_factor());
+    }
 
     std::stringstream ret_stream;
     ret_stream << "<svg width=\"" << result.svg_bounding_box.width() << "\" " <<
@@ -940,6 +952,27 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     }
 
     return result;
+}
+
+std::vector<Symbol::entity_t> Symbol::get_all_entities(SymbolSet symbol_set) noexcept {
+    return _impl::get_available_symbols(symbol_set, _impl::IconType::ENTITY);
+}
+
+std::vector<Symbol::entity_t> Symbol::get_all_modifier_1s(SymbolSet symbol_set) noexcept {
+    return _impl::get_available_symbols(symbol_set, _impl::IconType::MODIFIER_1);
+}
+
+std::vector<Symbol::entity_t> Symbol::get_all_modifier_2s(SymbolSet symbol_set) noexcept {
+    return _impl::get_available_symbols(symbol_set, _impl::IconType::MODIFIER_2);
+}
+
+std::vector<Symbol::entity_t> Symbol::get_all_symbol_sets() noexcept {
+    std::vector<Symbol::entity_t> ret;
+    ret.reserve(SYMBOL_SETS.size());
+    for (SymbolSet sym_set : SYMBOL_SETS) {
+        ret.push_back(static_cast<entity_t>(sym_set));
+    }
+    return ret;
 }
 
 }

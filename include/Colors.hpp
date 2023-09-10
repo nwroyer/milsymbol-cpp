@@ -56,30 +56,54 @@ static constexpr std::array<std::array<Color, COLOR_SUB_INDEX_COUNT>, COLOR_INDE
         Color{255, 255, 0  }, // Unknown
         Color{255, 0,   255}  // Civilian
     },
-    // Colors::LIGHT
+    // Colors::LIGHT for Pineland
     std::array<Color, COLOR_SUB_INDEX_COUNT>{
-        Color{255, 128, 128}, // Hostile
-        Color{128, 224, 255}, // Friend
-        Color{170, 255, 170}, // Neutral
-        Color{255, 255, 128}, // Unknown
+        Color{237,  87,  94}, // Hostile
+        Color{ 44, 174, 255}, // Friend
+        Color{ 53, 212, 116}, // Neutral
+        Color{249, 240, 107}, // Unknown
         Color{255, 161, 255}  // Civilian
     },
-    // Colors::MEDIUM
+//    // Colors::LIGHT
+//    std::array<Color, COLOR_SUB_INDEX_COUNT>{
+//        Color{255, 128, 128}, // Hostile
+//        Color{128, 224, 255}, // Friend
+//        Color{170, 255, 170}, // Neutral
+//        Color{255, 255, 128}, // Unknown
+//        Color{255, 161, 255}  // Civilian
+//    },
+    // Colors::MEDIUM for Pineland
     std::array<Color, COLOR_SUB_INDEX_COUNT>{
-        Color{255, 48,  49 }, // Hostile
-        Color{0,   168, 220}, // Friend
-        Color{0,   226, 110}, // Neutral
-        Color{255, 255, 0  }, // Unknown
+        Color{224,  27, 36 }, // Hostile
+        Color{28,  113, 216}, // Friend
+        Color{0,  194, 76}, // Neutral
+        Color{246, 211, 45 }, // Unknown
         Color{128, 0,   128}  // Civilian
     },
-    // Colors::DARK
+//    // Colors::MEDIUM
+//    std::array<Color, COLOR_SUB_INDEX_COUNT>{
+//        Color{255, 48,  49 }, // Hostile
+//        Color{0,   168, 220}, // Friend
+//        Color{0,   226, 110}, // Neutral
+//        Color{255, 255, 0  }, // Unknown
+//        Color{128, 0,   128}  // Civilian
+//    },
+    // Colors::DARK for Pineland
     std::array<Color, COLOR_SUB_INDEX_COUNT>{
-        Color{200, 0,   0  }, // Hostile
-        Color{0,   107, 140}, // Friend
-        Color{0,   160, 0  }, // Neutral
-        Color{225, 220, 0  }, // Unknown
+        Color{175, 16,   28}, // Hostile
+        Color{26,  95, 180}, // Friend
+        Color{0,   172, 68  }, // Neutral
+        Color{245, 194, 17  }, // Unknown
         Color{80,  0,   80 }  // Civilian
     },
+//    // Colors::DARK
+//    std::array<Color, COLOR_SUB_INDEX_COUNT>{
+//        Color{200, 0,   0  }, // Hostile
+//        Color{0,   107, 140}, // Friend
+//        Color{0,   160, 0  }, // Neutral
+//        Color{225, 220, 0  }, // Unknown
+//        Color{80,  0,   80 }  // Civilian
+//    },
     // Colors::WHITE
     std::array<Color, COLOR_SUB_INDEX_COUNT>{
         Color{255, 255, 255}, // Hostile

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cmath>
+#include <iostream>
+#include <ostream>
 namespace milsymbol {
 
 /**
@@ -113,6 +116,22 @@ struct BoundingBox {
     /// Return the upper right corner
     inline constexpr Vector2 point_2() const noexcept {
         return Vector2{x2, y2};
+    }
+
+    inline BoundingBox scaled_to_center(float scale) const noexcept {
+        // return *this;
+        Vector2 scaled_size{std::ceil(width() * scale), std::ceil(height() * scale)};
+        Vector2 center_offset = center() - Vector2{100, 100};
+
+        return from_center_and_size(Vector2{100 +(center().x - 100) * scale, 100 + (center().y - 100) * scale}, scaled_size);
+    }
+
+    inline static BoundingBox from_center_and_size(const Vector2& center, const Vector2& size) noexcept {
+        return BoundingBox{center.x - size.x / 2,
+                           center.y - size.y / 2,
+                           center.x + (size.x - size.x / 2),
+                           center.y + (size.y - size.y / 2)
+        };
     }
 };
 
