@@ -32,6 +32,11 @@ struct Vector2 {
     inline constexpr Vector2 operator-(const Vector2& other) const noexcept {
         return Vector2{x - other.x, y - other.y};
     }
+
+    /// Scalar multiplication
+    inline constexpr Vector2 operator*(const base_t fac) const noexcept {
+        return Vector2{x * fac, y * fac};
+    }
 };
 
 /**

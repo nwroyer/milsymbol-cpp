@@ -761,6 +761,9 @@ Symbol Symbol::from_sidc(std::string_view sidc) noexcept {
     return symbol;
 }
 
+inline Vector2 scaled_to_center(const Vector2& vec, float scale) noexcept {
+    return Vector2{100 +(vec.x - 100) * scale, 100 + (vec.y - 100) * scale};
+}
 
 Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     using namespace _impl;
@@ -945,10 +948,10 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
 
     if (headquarters) {
         // Tip of the staff
-        result.symbol_anchor = hq_staff_base - result.svg_bounding_box.point_1();
+        result.symbol_anchor = scaled_to_center(hq_staff_base, style.get_icon_internal_scale_factor()) - result.svg_bounding_box.point_1();
     } else {
         // Center of the frame
-        result.symbol_anchor = Vector2{100, 100} - result.svg_bounding_box.point_1();;
+        result.symbol_anchor = scaled_to_center(Vector2{100, 100}, style.get_icon_internal_scale_factor()) - result.svg_bounding_box.point_1();
     }
 
     return result;
