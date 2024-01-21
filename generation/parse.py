@@ -599,7 +599,7 @@ Generates the C++ headers for the combined symbol sets.
 	which may be desirable for some use cases.
 """
 def create_schema(symbol_sets:list, schema_filename:str, constant_filename:str, use_text_paths:bool=False,
-	text_path_font:str=DEFAULT_FONT_FILE) -> None:
+	text_path_font:str=DEFAULT_FONT_FILE, include_enumerator:bool=True, godot_filename:str = '') -> None:
 
 	def sanitize_constant(constant:str) -> str:
 		return re.sub('[\s,/\(\)\-\[\]]+', '_', constant).upper()
@@ -677,10 +677,84 @@ def create_schema(symbol_sets:list, schema_filename:str, constant_filename:str, 
 		schema += '\t}\n\n'
 
 	schema +=  "\n\t// Default to nothing\n\treturn {};\n" + "}\n"
+
+	# Create the enumerator
+	if include_enumerator:
+		schema += "static constexpr std::vector<int32_t> get_available_symbols(SymbolSet symbol_set, IconType symbol_type) {\n"
+
+		for index, symbol_set in enumerate(symbol_sets):
+			schema += '\t{}if (symbol_set == SymbolSet::{}) {{\n'.format('else ' if index > 0 else '', sanitize_constant(symbol_set.name))
+
+			SYMBOL_TYPE_HEADERS = ['ENTITY', 'MODIFIER_1', 'MODIFIER_2']
+
+			for symtype_index, sym_type in enumerate([symbol_set.icons, symbol_set.m1, symbol_set.m2]):
+				schema += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 else '', SYMBOL_TYPE_HEADERS[symtype_index])
+
+				# Iterate through symbols
+				schema += 'return {{{}}};'.format(', '.join(
+					[f'{int(sym.uid)} /*{sym.names[0]}*/' for sym in sym_type.values()]
+				))
+
+				# schema += '\t\t\tconst auto {} = mapbox::eternal::map<int32_t, SymbolLayer>({{\n'.format(map_title)
+				# schema += ',\n'.join(['\t\t\t\t{{{}{:02}, {}}} /* {} */'.format(int(symbol_set.id), int(sym.uid), sym.cpp(output_style=output_style), sym.names[0]) for sym_code, sym in sym_type.items()]) + '\n'
+				# schema += '\t\t\t});\n'
+
+				# schema += "\t\t\tauto it = {}.find(code);\n".format(map_title) + \
+				# 	f"\t\t\treturn (it != {map_title}.end() ? it->second : SymbolLayer{{}});\n"
+
+				schema += '\t\t}\n' # Close if block for symbol type
+
+			schema += '\t}\n\n' # Close if block for symbol set
+
+		schema +=  "\n\t// Default to nothing\n\treturn {};\n" + "}\n" # Close function
+
+	# Close the namespace
 	schema += '}'
 
 	with open(schema_filename, 'w') as schema_file:
 		schema_file.write(schema)
+
+	if len(godot_filename) > 0:
+		symbol_set_name_key:str = "SYMBOL_SET_NAME"
+		entity_key:str = "ENTITIES"
+		modifier_1_key:str = "MODIFIER_1"
+		modifier_2_key:str = "MODIFIER_2"
+		# Create Godot constants
+		godot_file = 'class_name SIDCConstants\n'
+
+		godot_file += f'const {symbol_set_name_key}:StringName = &"{symbol_set_name_key}"\n'
+		godot_file += f'const {entity_key}:StringName = &"{entity_key}"\n'
+		godot_file += f'const {modifier_1_key}:StringName = &"{modifier_1_key}"\n'
+		godot_file += f'const {modifier_2_key}:StringName = &"{modifier_2_key}"\n'
+
+		# Create the constants
+		godot_file += 'const SYMBOL_SETS:Dictionary = {\n'
+		for index, symbol_set in enumerate(symbol_sets):
+			godot_file += f'\t{int(symbol_set.id)}: {{\n'
+
+			godot_file += f'\t\t{symbol_set_name_key}: "{symbol_set.name}",\n'
+
+			# Add in entities and modifiers
+			SYMBOL_TYPE_HEADERS = [entity_key, modifier_1_key, modifier_2_key]
+
+			for symtype_index, sym_type in enumerate([symbol_set.icons, symbol_set.m1, symbol_set.m2]):
+				godot_file += '\t\t{}: {{\n'.format(SYMBOL_TYPE_HEADERS[symtype_index])
+
+				godot_file += ',\n'.join(['\t\t\t{}: [{}]'.format(
+					int(sym.uid),
+					', '.join([f'\"{name}\"' for name in sym.names])
+				) for sym in sym_type.values()]) + '\n'
+
+				godot_file += '\t\t}}{}\n'.format(',' if symtype_index != (len(SYMBOL_TYPE_HEADERS) - 1) else '')
+
+			godot_file += '\t}}{}\n'.format(',' if index != (len(symbol_sets) - 1) else '')
+			pass
+
+		godot_file += '}' # Close the dict
+
+		# Write the file
+		with open(godot_filename, 'w') as godot_file_object:
+			godot_file_object.write(godot_file)
 
 """
 Main command line interface. The only option is -p or --text-paths for using paths for text.
@@ -709,7 +783,9 @@ if __name__ == '__main__':
 	parser.add_argument('-f', '--text-path-font', dest='text_path_font', action='store',
 		default=DEFAULT_FONT_FILE,
 		help='Font to use when creating a text path; only applicable when -p or --text-paths is passes as well')
+	parser.add_argument('-g', '--godot_file_name', dest='godot_file_name', action='store', default='')
 	arguments = parser.parse_args()
+
 
 	print(f"Outputting C++ headers, using {'path' if arguments.use_text_paths else 'text'} elements for text...")
 	create_schema(
@@ -717,7 +793,8 @@ if __name__ == '__main__':
 		use_text_paths=arguments.use_text_paths,
 		text_path_font=arguments.text_path_font,
 		constant_filename=os.path.join(cwd, '..', 'include', 'Constants.hpp'),
-		schema_filename=os.path.join(cwd, '..', 'include', 'Schema.hpp'))
+		schema_filename=os.path.join(cwd, '..', 'include', 'Schema.hpp'),
+		godot_filename = os.path.join(cwd, '..', 'include', 'SIDCConstants.gd'))
 
 
 	if True:

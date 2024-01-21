@@ -207,71 +207,71 @@
 	"M2": {
 		"01": {
 			"names": ["air independent propulsion"],
-			"icon": [{"textm1": "AI"}]
+			"icon": [{"textm2": "AI"}]
 		},
 		"02": {
 			"names": ["diesel electric, general"],
-			"icon": [{"textm1": "D"}]
+			"icon": [{"textm2": "D"}]
 		},
 		"03": {
 			"names": ["diesel type 1"],
-			"icon": [{"textm1": "D1"}]
+			"icon": [{"textm2": "D1"}]
 		},
 		"04": {
 			"names": ["diesel type 2"],
-			"icon": [{"textm1": "D2"}]
+			"icon": [{"textm2": "D2"}]
 		},
 		"05": {
 			"names": ["diesel type 3"],
-			"icon": [{"textm1": "D3"}]
+			"icon": [{"textm2": "D3"}]
 		},
 		"06": {
 			"names": ["nuclear powered, general"],
-			"icon": [{"textm1": "N"}]
+			"icon": [{"textm2": "N"}]
 		},
 		"07": {
 			"names": ["nuclear type 1"],
-			"icon": [{"textm1": "N1"}]
+			"icon": [{"textm2": "N1"}]
 		},
 		"08": {
 			"names": ["nuclear type 2"],
-			"icon": [{"textm1": "N2"}]
+			"icon": [{"textm2": "N2"}]
 		},
 		"09": {
 			"names": ["nuclear type 3"],
-			"icon": [{"textm1": "N3"}]
+			"icon": [{"textm2": "N3"}]
 		},
 		"10": {
 			"names": ["nuclear type 4"],
-			"icon": [{"textm1": "N4"}]
+			"icon": [{"textm2": "N4"}]
 		},
 		"11": {
 			"names": ["nuclear type 5"],
-			"icon": [{"textm1": "N5"}]
+			"icon": [{"textm2": "N5"}]
 		},
 		"12": {
 			"names": ["nuclear type 6"],
-			"icon": [{"textm1": "N6"}]
+			"icon": [{"textm2": "N6"}]
 		},
 		"13": {
 			"names": ["nuclear type 7"],
-			"icon": [{"textm1": "N7"}]
+			"icon": [{"textm2": "N7"}]
 		},
 		"14": {
 			"names": ["autonomous control"],
-			"icon": [{"textm1": "AUT"}]
+			"icon": [{"textm2": "AUT"}]
 		},
 		"15": {
 			"names": ["remotely-piloted"],
-			"icon": [{"textm1": "RP"}]
+			"icon": [{"textm2": "RP"}]
 		},
 		"16": {
 			"names": ["expendable"],
-			"icon": [{"textm1": "EXP"}]
+			"icon": [{"textm2": "EXP"}]
 		},
 		"17": {
 			"names": ["cyberspace", "cyber"],
-			"icon": [{"textm1": "CYB"}]
+			"icon": [{"textm2": "CYB"}]
 		}
 	}
 }
