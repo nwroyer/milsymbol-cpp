@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <array>
+
 namespace milsymbol {
 enum class SymbolSet {
 	UNDEFINED = -1,
@@ -15,7 +17,23 @@ enum class SymbolSet {
 	SEA_SUBSURFACE = 35,
 	ACTIVITIES = 40
 };
+
 static constexpr int SYMBOL_SET_COUNT = 11;
+static constexpr int NOMINAL_ICON_SIZE = 200; /// The default icon size
+
+static constexpr std::array<SymbolSet, SYMBOL_SET_COUNT> SYMBOL_SETS = {
+    SymbolSet::AIR,
+    SymbolSet::AIR_MISSILE,
+    SymbolSet::SPACE,
+    SymbolSet::SPACE_MISSILE,
+    SymbolSet::LAND_UNIT,
+    SymbolSet::LAND_CIVILIAN_UNIT_ORGANIZATION,
+    SymbolSet::LAND_EQUIPMENT,
+    SymbolSet::LAND_INSTALLATION,
+    SymbolSet::SEA_SURFACE,
+    SymbolSet::SEA_SUBSURFACE,
+    SymbolSet::ACTIVITIES
+};
 
 enum Entities : int32_t {
 	AIR_MILITARY = 1110000,

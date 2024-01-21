@@ -35,7 +35,7 @@ SVGString DrawInstructionPath::get_svg_string(const Style& context) const noexce
     ss << "stroke=\"" << color_to_string(context.get_color(stroke_color)) << "\" " <<
         "d = \"" << (dynamic_path.empty() ? d : dynamic_path) << "\" ";
 
-    ss << "stroke-width=\"" << stroke_width << "\" ";
+    ss << "stroke-width=\"" << (context.stroke_width_override >= 0 ? context.stroke_width_override : stroke_width) << "\" ";
 
     if (stroke_color != ColorType::NONE && stroke_style != StrokeStyle::SOLID) {
         ss << "stroke-dasharray=\"" << dash_style_to_SVG(stroke_style) << "\" ";
@@ -50,7 +50,7 @@ SVGString DrawInstructionCircle::get_svg_string(const Style& context) const noex
     ss << "<circle cx=\"" << center.x << "\" cy=\"" << center.y << "\" r=\"" << radius << "\" fill=\"" <<
         color_to_string(context.get_color(fill_color)) << "\" stroke=\"" <<
         color_to_string(context.get_color(stroke_color)) << "\" ";
-    ss << "stroke-width=\"" << stroke_width << "\"";
+    ss << "stroke-width=\"" << (context.stroke_width_override >= 0 ? context.stroke_width_override : stroke_width) << "\"";
 
     if (stroke_color != ColorType::NONE && stroke_style != StrokeStyle::SOLID) {
         ss << "stroke-dasharray=\"" << dash_style_to_SVG(stroke_style) << "\" ";
@@ -69,7 +69,7 @@ SVGString DrawInstructionText::get_svg_string(const Style& context) const noexce
     ss << "stroke=\"" << color_to_string(context.get_color(stroke_color)) << "\" ";
 
     if (stroke_color != ColorType::NONE) {
-        ss << "stroke-width=\"" << stroke_width << "\" ";
+        ss << "stroke-width=\"" << (context.stroke_width_override >= 0 ? context.stroke_width_override : stroke_width) << "\" ";
 
         if (stroke_style != StrokeStyle::SOLID) {
             ss << "stroke-dasharray=\"" << dash_style_to_SVG(stroke_style) << "\" ";

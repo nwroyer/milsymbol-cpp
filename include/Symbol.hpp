@@ -22,6 +22,9 @@ namespace milsymbol {
  */
 struct Symbol {
 
+    using entity_t = int32_t;
+    using modifier_t = int16_t;
+
     /**
      * @brief Constructs a default symbol.
      */
@@ -213,10 +216,12 @@ struct Symbol {
 
     inline constexpr SymbolSet get_symbol_set() const noexcept {return symbol_set_from_entity(entity);}
 
-private:
+    static std::vector<entity_t> get_all_entities(SymbolSet symbol_set) noexcept;
+    static std::vector<entity_t> get_all_modifier_1s(SymbolSet symbol_set) noexcept;
+    static std::vector<entity_t> get_all_modifier_2s(SymbolSet symbol_set) noexcept;
+    static std::vector<entity_t> get_all_symbol_sets() noexcept;
 
-    using entity_t = int32_t;
-    using modifier_t = int16_t;
+private:
 
     static constexpr entity_t ENTITY_SYMBOL_SET_OFFSET = 1000000;
     static constexpr modifier_t MODIFIER_SYMBOL_SET_OFFSET = 100;

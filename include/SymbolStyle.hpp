@@ -5,6 +5,7 @@
  */
 
 #include "Types.hpp"
+#include "Constants.hpp"
 
 namespace milsymbol {
 
@@ -13,6 +14,16 @@ namespace milsymbol {
  * object and passing it as a parameter lets you alter the representation of generated symbols.
  */
 struct SymbolStyle {
+private:
+    real_t stroke_width_override = 0;
+    bool use_stroke_width_override = false;
+    int icon_size = NOMINAL_ICON_SIZE; /// The icon size
+
+public:
+
+    inline constexpr bool uses_stroke_width_override() const noexcept {return use_stroke_width_override;}
+    inline constexpr real_t get_stroke_width_override() const noexcept {return stroke_width_override;}
+
     /**
      * @brief 2525D lets you choose between MEDAL icons (true) and alternate MEDAL icons (false) for Mines; default is set to MEDAL.
      * Since support for mine warfare icons isn't implemented yet, this doesn't do anything.
@@ -24,6 +35,7 @@ struct SymbolStyle {
 
     real_t frame_stroke_width = 4; /// Numbers less than or equal to 0 will default back to this
 
+
     real_t hq_staff_length = 50; // The default length of the HQ staf
     real_t padding = 0; /// Extra padding around the symbol
 
@@ -34,6 +46,25 @@ struct SymbolStyle {
 
     bool use_color_override = false; /// Whether to use a color override
     Color color_override; /// The color override to use
+
+    inline constexpr int get_icon_size() const noexcept {return icon_size;} /// Getter for the icon size to render
+    inline void set_icon_size(int icon_size) noexcept {this->icon_size = std::max<int>(1, icon_size);} /// Setter for the icon size to render
+
+    /**
+     * Returns whether this style use an icon size different than the nominal value,
+     * and thus requires scaling during rendering.
+     */
+    inline constexpr bool has_non_default_size() const noexcept {
+        return icon_size != NOMINAL_ICON_SIZE;
+    }
+
+    /**
+     * @brief Returns the icon scale factor used for internal rendering
+     */
+    inline constexpr double get_icon_internal_scale_factor() const noexcept {
+        int icon_size_to_use = icon_size < 1 ? 1 : icon_size;
+        return static_cast<double>(icon_size_to_use) / static_cast<double>(NOMINAL_ICON_SIZE);
+    }
 
     /**
      * @brief Sets the style to use a color override and the color to override with
@@ -52,6 +83,25 @@ struct SymbolStyle {
      */
     inline constexpr SymbolStyle& without_color_override() noexcept {
         use_color_override = false;
+        return *this;
+    }
+
+    /**
+     * @brief Sets the style to use a stroke override
+     * @return
+     */
+    inline constexpr SymbolStyle& with_stroke_width_override(float override_value) noexcept {
+        use_stroke_width_override = true;
+        stroke_width_override = override_value;
+        return *this;
+    }
+
+    /**
+     * @brief Sets the style to use a stroke override
+     * @return
+     */
+    inline constexpr SymbolStyle& without_stroke_width_override() noexcept {
+        use_stroke_width_override = false;
         return *this;
     }
 };

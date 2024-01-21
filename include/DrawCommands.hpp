@@ -65,11 +65,14 @@ static constexpr const char* get_font_alignment_string(TextAlignment alignment) 
  * @brief Represents a style with which to draw a symbol element
  */
 struct Style {
+    static constexpr real_t DEFAULT_STROKE_WIDTH = 4;
+
     Affiliation affiliation = Affiliation::UNKNOWN;
     bool civilian = false;
     ColorMode color_mode = ColorMode::LIGHT;
     bool use_color_override = false;
     Color color_override = Color{255, 255, 0};
+    float stroke_width_override = -1;
 
     inline constexpr Color get_color(ColorType color_type) const noexcept {
         if (use_color_override) {
@@ -90,12 +93,10 @@ struct Style {
 template<typename Derived>
 struct DrawInstructionBase {
 
-    static constexpr real_t DEFAULT_STROKE_WIDTH = 4;
-
     // Fill color override
     ColorType fill_color = ColorType::ICON;
     ColorType stroke_color = ColorType::NONE;
-    real_t stroke_width = DEFAULT_STROKE_WIDTH;
+    real_t stroke_width = Style::DEFAULT_STROKE_WIDTH;
     StrokeStyle stroke_style = StrokeStyle::SOLID;
 
     /*
@@ -350,7 +351,6 @@ struct DrawCommand {
         DrawCommand ret;
         ret.variant = DrawInstructionScale{scale};
         ret.children = std::vector<DrawCommand>{args...};
-
         return translate(Vector2{100 - scale*100, 100 - scale*100}, ret);
     }
 
@@ -487,7 +487,18 @@ struct DrawCommand {
             break;
         }
         case Type::SCALE: {
-            return BoundingBox{} ; // std::get<DrawInstructionScale>(variant)
+            float scale = std::get<DrawInstructionScale>(variant).scale;
+            BoundingBox box{0, 0, 0, 0};
+            bool box_inited = false;
+            for (const auto& item : children) {
+                if (!box_inited) {
+                    box = item.get_bbox().scaled_to_center(scale);
+                    box_inited = true;
+                } else {
+                    box.merge(item.get_bbox().scaled_to_center(scale));
+                }
+            }
+            return box;
         }
 
         default:

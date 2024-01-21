@@ -167,7 +167,7 @@ inline static constexpr const _impl::DrawCommand get_base_symbol_geometry(Dimens
                 BoundingBox{30.75, 30.75, 30.75 + 138.5, 30.75 + 138.5}).with_fill(ColorType::ICON_FILL),
         },
 
-            /*
+        /*
          * Subsurface units
          */
 
