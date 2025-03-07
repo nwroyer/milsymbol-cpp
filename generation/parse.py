@@ -612,12 +612,17 @@ def create_schema(symbol_sets:list, schema_filename:str, constant_filename:str, 
 
 	constants += '#pragma once\n'
 	constants += '#include <cstdint>\n'
+	constants += '#include <array>\n\n'
 
 	constants += 'namespace milsymbol {\n'
 
 	constants += "enum class SymbolSet {\n"
 	constants += ',\n'.join(['\tUNDEFINED = -1'] + ['\t{} = {}'.format(sanitize_constant(symbol_set.name), int(symbol_set.id)) for symbol_set in symbol_sets]) + '\n'
-	constants += f'}};\nstatic constexpr int SYMBOL_SET_COUNT = {len(symbol_sets)};\n\n'
+	constants += f'}};\n\nstatic constexpr int SYMBOL_SET_COUNT = {len(symbol_sets)};\n'
+	constants += 'static constexpr int NOMINAL_ICON_SIZE = 200; /// The default icon size\n\n'
+	constants += 'static constexpr std::array<SymbolSet, SYMBOL_SET_COUNT> SYMBOL_SETS = {\n'
+	constants += ',\n'.join(['\tSymbolSet::{}'.format(sanitize_constant(symbol_set.name)) for symbol_set in symbol_sets]) + '\n'
+	constants += '};\n\n'
 
 	constants += 'enum Entities : int32_t {\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.icons.values()]
@@ -796,8 +801,7 @@ if __name__ == '__main__':
 		schema_filename=os.path.join(cwd, '..', 'include', 'Schema.hpp'),
 		godot_filename = os.path.join(cwd, '..', 'include', 'SIDCConstants.gd'))
 
-
-	if True:
+	if False:
 		# Generate examples
 		identity:int = 3 # Friend
 		sidcs:list = []

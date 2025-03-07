@@ -17,11 +17,13 @@ int main(int argc, const char** argv) {
      * style.
      */
 
-    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("30031000141106000060")
-                                   .with_affiliation(milsymbol::Affiliation::NEUTRAL)
-                                   .as_headquarters(true);
+    milsymbol::SymbolStyle alt_style;
+    alt_style.use_modifiers = true;
 
-    milsymbol::Symbol::RichOutput results = symbol.get_svg();
+    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130305000011020000100000000000")
+                                   .with_affiliation(milsymbol::Affiliation::NEUTRAL);
+
+    milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
     std::cout << "Viewbox: " << results.svg_bounding_box.x1 << ", " << results.svg_bounding_box.y1 <<
         " to " << results.svg_bounding_box.x2 << ", " << results.svg_bounding_box.y2 << std::endl;
     std::cout << "Symbol anchor: " << results.symbol_anchor.x << ", " << results.symbol_anchor.y <<
@@ -31,6 +33,8 @@ int main(int argc, const char** argv) {
         std::endl;
 
     std::ofstream example_1_file;
+    std::cout << "Modifier 1: " << symbol.get_modifier(1) << std::endl;
+    std::cout << "Modifier 2: " << symbol.get_modifier(2) << std::endl;
 
     example_1_file.open("example_1.svg", std::ios_base::out);
     example_1_file << results.svg;
@@ -46,7 +50,7 @@ int main(int argc, const char** argv) {
      */
 
     // Create the appropriate style
-    milsymbol::SymbolStyle alt_style;
+    alt_style;
     alt_style.hq_staff_length = 200;
     alt_style.color_mode = milsymbol::ColorMode::DARK;
     alt_style.with_color_override(milsymbol::Color{12, 100, 96});

@@ -174,7 +174,7 @@ const SYMBOL_SETS:Dictionary = {
 			111700: ["tethered satellite"],
 			111800: ["weather satellite"],
 			111900: ["space-launched vehicle", "space launched vehicle", "SLV"],
-			120000: ["civilian space vehicle"],
+			120000: ["civilian space"],
 			120100: ["civilian orbiter shuttle"],
 			120200: ["civilian capsule"],
 			120300: ["civilian satellite"],
@@ -187,6 +187,7 @@ const SYMBOL_SETS:Dictionary = {
 			121000: ["civilian space station"],
 			121100: ["civilian tethered satellite"],
 			121200: ["civilian weather satellite"],
+			121300: ["civilian space vehicle"],
 			130000: ["manual track"]
 		},
 		MODIFIER_1: {
@@ -203,7 +204,14 @@ const SYMBOL_SETS:Dictionary = {
 			2: ["infrared"],
 			3: ["radar"],
 			4: ["signals intelligence"],
-			5: ["cyberspace", "cyber"]
+			5: ["cyberspace", "cyber"],
+			6: ["electromagnetic warfare ASAT", "EW ASAT"],
+			7: ["high power microwave ASAT", "HPM ASAT"],
+			8: ["laser ASAT", "HPM ASAT"],
+			9: ["maintenance"],
+			10: ["mine"],
+			11: ["refuel", "refueling"],
+			12: ["tug"]
 		}
 	},
 	6: {

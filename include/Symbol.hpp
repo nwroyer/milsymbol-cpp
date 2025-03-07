@@ -35,7 +35,7 @@ struct Symbol {
      * in length of all numerals. If a SIDC is less than 20 characters, an empty symbol will be returned. If a SIDC contains
      * non-numeric characters, the behavior will be undefined, but is intended to be exception-safe.
      */
-    static Symbol from_sidc(std::string_view sidc) noexcept;
+    static Symbol from_sidc(const std::string& sidc) noexcept;
 
     /**
      * @brief Helper function to set an affiliation inline
@@ -220,6 +220,9 @@ struct Symbol {
     static std::vector<entity_t> get_all_modifier_1s(SymbolSet symbol_set) noexcept;
     static std::vector<entity_t> get_all_modifier_2s(SymbolSet symbol_set) noexcept;
     static std::vector<entity_t> get_all_symbol_sets() noexcept;
+
+    inline entity_t get_entity() const noexcept {return entity;}
+    modifier_t get_modifier(int mod) const noexcept;
 
 private:
 

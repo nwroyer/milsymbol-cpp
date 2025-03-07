@@ -477,16 +477,24 @@ static void apply_context(Context context, Affiliation affil, Dimension dim, con
 
 }
 
+static int int_substring(const std::string_view& view, int start, int len) {
+    int ret = 0;
+    std::from_chars(&view[start], &view[start + len], ret);
+    return ret;
+}
 
-Symbol Symbol::from_sidc(std::string_view sidc) noexcept {
-    if (sidc.length() < 20) {
+Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
+
+    std::string ret = sidc_raw + '\0';
+    std::string_view sidc = ret;
+
+    if (sidc_raw.length() < 20) {
         std::cerr << "SIDC \"" << sidc << "\" must be at least 20 characters" << std::endl;
         return {};
     }
 
     // Determine version
-    int version = 10;
-    std::from_chars(&sidc[0], &sidc[2], version);
+    int version = int_substring(sidc, 0, 2);
     if (version > 10) {
 //        std::cerr << "Warning: SIDC versions higher than 10 may not be dealt with appropriately (version is " <<
 //            version_str << " -> " << version << ")" << std::endl;
@@ -536,8 +544,7 @@ Symbol Symbol::from_sidc(std::string_view sidc) noexcept {
     }
 
     // Parse the symbol sets
-    int symbol_set_raw = 0;
-    std::from_chars(&sidc[4], &sidc[6], symbol_set_raw);
+    int symbol_set_raw = int_substring(sidc, 4, 2);
 
     SymbolSet symbol_set;
     switch (symbol_set_raw) {
@@ -749,17 +756,25 @@ Symbol Symbol::from_sidc(std::string_view sidc) noexcept {
     modifier_t modifier_1_raw = 0;
     modifier_t modifier_2_raw = 0;
 
-
-    std::from_chars(&sidc[10], &sidc[16], entity_raw);
+    entity_raw = int_substring(sidc, 10, 6);
     symbol.entity = static_cast<int>(symbol_set) * ENTITY_SYMBOL_SET_OFFSET + entity_raw;
 
-    std::from_chars(&sidc[16], &sidc[18], modifier_1_raw);
+    modifier_1_raw = int_substring(sidc, 16, 2);
     symbol.modifier_1 = modifier_1_raw == 0 ? 0 : static_cast<int>(symbol_set) * MODIFIER_SYMBOL_SET_OFFSET + modifier_1_raw;
 
-    std::from_chars(&sidc[18], &sidc[19], modifier_2_raw);
+    modifier_2_raw = int_substring(sidc, 18, 2);
     symbol.modifier_2 = modifier_2_raw == 0 ? 0 : static_cast<int>(symbol_set) * MODIFIER_SYMBOL_SET_OFFSET + modifier_2_raw;
 
     return symbol;
+}
+
+Symbol::modifier_t Symbol::get_modifier(int mod) const noexcept {
+    if (mod < 1 || mod > 2) {
+        std::cerr << "No modifier set " << mod << std::endl;
+        return 0;
+    }
+
+    return mod == 1 ? modifier_1 : modifier_2;
 }
 
 inline Vector2 scaled_to_center(const Vector2& vec, float scale) noexcept {

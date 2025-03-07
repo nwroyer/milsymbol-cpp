@@ -100,11 +100,8 @@
 			"icon": [{"text": "SLV"}]
 		},
 
-
-
-
 		"120000": {
-			"names": ["civilian space vehicle"],
+			"names": ["civilian space"],
 			"civ": true,
 			"icon": [{"text": "CIV", "fill": "white", "stroke": true}]
 		},
@@ -188,7 +185,16 @@
 			]
 		},
 
-
+		"121300": {
+			"names": ["civilian planetary lander"],
+			"civ": true,
+			"icon": [{"text": "PL", "fill": "white", "stroke": true}]
+		},
+		"121300": {
+			"names": ["civilian space vehicle"],
+			"civ": true,
+			"icon": [{"text": "SV", "fill": "white", "stroke": true}]
+		},
 
 		"130000": {
 			"names": ["manual track"],
@@ -246,6 +252,40 @@
 		"05": {
 			"names": ["cyberspace", "cyber"],
 			"icon": [{"textm2": "CYB"}]
+		},
+		"06": {
+			"names": ["electromagnetic warfare ASAT", "EW ASAT"],
+			"icon": [{"textm2": "EW"}]
+		},
+		"07": {
+			"names": ["high power microwave ASAT", "HPM ASAT"],
+			"icon": [{"textm2": "EW"}]
+		},
+		"08": {
+			"names": ["laser ASAT", "HPM ASAT"],
+			"icon": [{"d": "m 130,129 h -17 l -3,7 -3,-13 -4,13 -3.1,-13 -3.4,6 h -9.9 l -3.3,7 -3.3,-13 -3.3,13 -3.3,-13 -3.3,13  m 52.9,-13 7,6 -7,7"}]
+		},
+		"09": {
+			"names": ["maintenance"],
+			"icon": [{"d": "M75,125 c8,0 8,16 0,16 m8,-8 l35,0 m8,-8 c-8,0 -8,16 0,16"}]
+		},
+		"10": {
+			"names": ["mine"],
+			"icon": [
+				{
+					"d": "m 111,133 c 0,4 -5,6 -11,6 -6.3,0 -11.4,-2 -11.4,-6 0,-2 5.1,-5 11.4,-5 6,0 11,3 11,5 z  m -2,-11 -17.5,23  m 0,-23 17.5,23  m -9,-23 v 23",
+					"fill": true
+				}
+			]
+		},
+		"11": {
+			"names": ["refuel", "refueling"],
+			"icon": [{"textm2": "K"}]
+		},
+		"12": {
+			"names": ["tug"],
+			"icon": [{"textm2": "tug"}]
 		}
 	}
 }
+
