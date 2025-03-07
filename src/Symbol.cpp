@@ -749,13 +749,14 @@ Symbol Symbol::from_sidc(std::string_view sidc) noexcept {
     modifier_t modifier_1_raw = 0;
     modifier_t modifier_2_raw = 0;
 
+
     std::from_chars(&sidc[10], &sidc[16], entity_raw);
     symbol.entity = static_cast<int>(symbol_set) * ENTITY_SYMBOL_SET_OFFSET + entity_raw;
 
     std::from_chars(&sidc[16], &sidc[18], modifier_1_raw);
     symbol.modifier_1 = modifier_1_raw == 0 ? 0 : static_cast<int>(symbol_set) * MODIFIER_SYMBOL_SET_OFFSET + modifier_1_raw;
 
-    std::from_chars(&sidc[18], &sidc[20], modifier_2_raw);
+    std::from_chars(&sidc[18], &sidc[19], modifier_2_raw);
     symbol.modifier_2 = modifier_2_raw == 0 ? 0 : static_cast<int>(symbol_set) * MODIFIER_SYMBOL_SET_OFFSET + modifier_2_raw;
 
     return symbol;
@@ -790,7 +791,7 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
                                                 get_base_affiliation(affiliation),
                                                 position_only);
     if (!base.is_defined()) {
-        std::cout << "Undefined base" << std::endl;
+        std::cerr << "Undefined base" << std::endl;
         return {};
     }
 
