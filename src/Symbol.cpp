@@ -483,11 +483,6 @@ static int int_substring(const std::string_view& view, int start, int len) {
     return ret;
 }
 
-static Context context_from_sidc(const std::string& sidc) {
-    // We assume the SIDC has already been vetted for the right length
-
-}
-
 Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
 
     /*

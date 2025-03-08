@@ -672,7 +672,14 @@ def create_schema(symbol_sets:list, schema_filename:str, constant_filename:str, 
 
 			# Iterate through symbols
 			schema += '\t\t\tconst auto {} = mapbox::eternal::map<int32_t, SymbolLayer>({{\n'.format(map_title)
-			schema += ',\n'.join(['\t\t\t\t{{{}{:02}, {}}} /* {} */'.format(int(symbol_set.id), int(sym.uid), sym.cpp(output_style=output_style), sym.names[0]) for sym_code, sym in sym_type.items()]) + '\n'
+
+			out_symbols = []
+			for sym_code, symbol in sym_type.items():
+				mod_code = f'M{symtype_index}_' if symtype_index > 0 else ''
+				sanitized_name = sanitize_constant(f"{symbol_set.name}_{mod_code}{symbol.names[0]}")
+				out_symbols.append((sanitized_name, symbol.cpp(output_style=output_style), symbol.names[0]))
+
+			schema += ',\n'.join([f'\t\t\t\t{{static_cast<int32_t>({constant_name}), {draw_commands}}} /* {comment} */' for constant_name, draw_commands, comment in out_symbols]) + '\n'
 			schema += '\t\t\t});\n'
 
 			schema += "\t\t\tauto it = {}.find(code);\n".format(map_title) + \
