@@ -250,6 +250,7 @@ class Constants:
 		self.affiliations:dict = {}
 		self.statuses:dict = {}
 		self.hqtfds:dict = {}
+		self.full_frame_ordering:list = []
 
 	def print_self(self):
 		print("Constants set")
@@ -292,7 +293,7 @@ def parse_constant_file(filepath:str) -> Constants:
 	print(f'Parsing constant file \"{filepath}\"')
 		
 	# Validate required keys
-	REQUIRED_KEYS:list = ['contexts', 'affiliations', 'color modes', 'dimensions']
+	REQUIRED_KEYS:list = ['contexts', 'affiliations', 'color modes', 'dimensions', 'full frame ordering']
 	for required_key in REQUIRED_KEYS:
 		if required_key not in json_dict:
 			print(f"Required key \"{required_key}\" not found in constants.json", file=sys.stderr)
@@ -309,6 +310,13 @@ def parse_constant_file(filepath:str) -> Constants:
 	# Load affiliations
 	for aff_id, aff_dict in json_dict["affiliations"].items():
 		affiliation = Affiliation.from_dict(aff_id, aff_dict, constants)
+
+	# Load full frame ordering
+	constants.full_frame_ordering = []
+	for item in json_dict["full frame ordering"]:
+		base_affiliations = constants.get_base_affiliations()
+		index = [aff.names[0] for aff in base_affiliations].index(item)
+		constants.full_frame_ordering.append(base_affiliations[index])
 
 	# Load dimension
 	for dim_id, dim_dict in json_dict["dimensions"].items():

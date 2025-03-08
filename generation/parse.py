@@ -425,6 +425,16 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 
 	schema += '\t}\n}\n\n'
 
+	# Create full frame ordering
+	schema += 'static constexpr int get_full_frame_ordering(Affiliation affiliation) noexcept {\n'
+	schema += f'\tswitch(get_frame_affiliation(affiliation)) {{\n'
+	for index, affiliation in enumerate(constants.full_frame_ordering):
+		schema += f'\t\tcase Affiliation::{sanitize_constant(affiliation.names[0])}:\n\t\t\treturn {index};\n'
+	unknown_index = [a.names[0] for a in constants.full_frame_ordering].index('unknown')
+	schema += f'\t\tdefault:\n\t\t\treturn {unknown_index};\n'
+
+	schema += '\t}\n}\n\n'
+
 	# Create the master list of symbol sets
 	schema += "static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code, IconType symbol_type) {\n"
 

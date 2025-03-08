@@ -98,5 +98,16 @@ int main(int argc, const char** argv) {
     example_4_file << example_4_symbol.get_svg_string(example_4_style);
     example_4_file.close();
 
+    // Example 5
+    example_3_symbol = milsymbol::Symbol{}
+                                             .with_affiliation(milsymbol::Affiliation::HOSTILE)
+                                             .with_entity(milsymbol::Entities::LAND_UNIT_INFANTRY)
+                                             .with_echelon(milsymbol::Echelon::BATTALION);
+
+    std::ofstream example_5_file;
+    example_3_file.open("example_5.svg", std::ios_base::out);
+    example_3_file << example_3_symbol.get_svg_string(example_3_style);
+    example_3_file.close();
+
     return 0;
 }

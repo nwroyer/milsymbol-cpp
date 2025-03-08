@@ -444,7 +444,12 @@ struct DrawCommand {
     /**
      * Create a variant command for different affiliations
      */
-    inline static constexpr DrawCommand full_frame(const DrawCommand& hostile, const DrawCommand& friendly, const DrawCommand& neutral, const DrawCommand& unknown) {
+    inline static constexpr DrawCommand full_frame(
+        const DrawCommand& hostile,
+        const DrawCommand& friendly,
+        const DrawCommand& neutral,
+        const DrawCommand& unknown
+    ) {
         DrawCommand ret;
         ret.variant = AffiliationSet{hostile, friendly, neutral, unknown};
         return ret;

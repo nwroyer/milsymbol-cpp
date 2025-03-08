@@ -1,4 +1,5 @@
 #include "DrawCommands.hpp"
+#include "Schema.hpp"
 #include "eternal.hpp"
 #include <iostream>
 
@@ -127,7 +128,7 @@ SVGString DrawCommand::get_svg_string(const Style& context) const noexcept {
         break;
     case Type::FULL_FRAME: {
         std::stringstream ss;
-        return std::get<AffiliationSet>(variant)[static_cast<int>(context.affiliation)].get_svg_string(context) + SVGString{""};
+        return std::get<AffiliationSet>(variant)[get_full_frame_ordering(context.affiliation)].get_svg_string(context) + SVGString{""};
         break;
     }
     default:

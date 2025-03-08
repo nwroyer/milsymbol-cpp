@@ -102,13 +102,20 @@ class SymbolElement:
 			}
 
 		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False):
+			ordering = [affiliation.id_code for affiliation in constants.full_frame_ordering]
+			elements_ordered = [(item, self.elements[item]) for item in ordering]
+
 			ret = 'DrawCommand::full_frame('
-			ret += ', '.join([', '.join([e.cpp(constants=constants, output_style=output_style) for e in self.elements[affil.id_code]]) for affil in constants.get_base_affiliations()])
+
+			items = []
+			for affiliation in constants.full_frame_ordering:
+				items.append('{' + ', '.join([e.cpp(constants=constants, output_style=output_style) for e in self.elements[affiliation.id_code]]) + '}')
+
+			#print(constants.full_frame_ordering)
+
+			ret += ', '.join(items)
 			ret += ')'
 			return ret
-			# return 'DrawCommand::full_frame({}, {}, {}, {})'.format(
-			# 	*['{}'.format(', '.join([e.cpp(constants=constants, output_style=output_style) for e in self.elements[affiliation.id_code] for affiliation in constants.get_base_affiliations()]))]
-			# )
 
 	"""
 	Represents a path command

@@ -12,6 +12,7 @@
 	},
 
 	"color modes": ["light", "medium", "dark", "unfilled"],
+	"full frame ordering": ["hostile", "friend", "neutral", "unknown"],
 
 	"affiliations": {
 		"0": {
