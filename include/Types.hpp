@@ -79,7 +79,14 @@ enum class Status {
 enum class Context {
     REALITY = 0,   /// 0 in SIDC
     EXERCISE = 1,  /// 1 in SIDC
-    SIMULATION = 2 /// 2 in SIDC
+    SIMULATION = 2, /// 2 in SIDC
+
+    RESTRICTED_TARGET_REALITY = 3,
+    NO_STRIKE_ENTITY_REALITY = 4,
+    RESTRICTED_TARGET_EXERCISE = 5,
+    NO_STRIKE_ENTITY_EXERCISE = 6,
+    RESTRICTED_TARGET_SIMULATION = 7,
+    NO_STRIKE_ENTITY_SIMULATION = 8
 };
 
 /**

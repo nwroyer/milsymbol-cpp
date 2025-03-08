@@ -1,0 +1,166 @@
+{
+	"contexts": {
+		"0": {"names": ["reality"]},
+		"1": {"names": ["exercise"]},
+		"2": {"names": ["simulation"]},
+		"3": {"names": ["restricted target - reality"], "base context": "0"},
+		"4": {"names": ["no-strike entity - reality"], "base context": "0"},
+		"5": {"names": ["restricted target - exercise"], "base context": "1"},
+		"6": {"names": ["no-strike entity - exercise"], "base context": "1"},
+		"7": {"names": ["restricted target - simulation"], "base context": "2"},
+		"8": {"names": ["no-strike entity - simulation"], "base context": "2"}
+	},
+
+	"affiliations": {
+		"0": {
+			"names": ["pending"],
+			"color base": "1",
+			"frame base": "1",
+			"dashed": true
+		},
+		"1": {
+			"names": ["unknown"],
+			"has civilian variant": true,
+			"colors": {
+				"light":    [255, 255, 128],
+				"medium":   [255, 255,   0],
+				"dark":     [225, 220,   0],
+				"unfilled": [255, 255,   0]
+			}
+		},
+		"2": {
+			"names": ["assumed friend"],
+			"color base": "3",
+			"frame base": "3",
+			"dashed": true
+		},
+		"3": {
+			"names": ["friend", "friendly"],
+			"has civilian variant": true,
+			"colors": {
+				"light":    [128, 255, 255],
+				"medium":   [  0, 168, 220],
+				"dark":     [  0, 107, 140],
+				"unfilled": [  0, 255, 255]
+			}
+		},
+		"4": {
+			"names": ["neutral"],
+			"has civilian variant": true,
+			"colors": {
+				"light":    [170, 255, 170],
+				"medium":   [  0, 226,   0],
+				"dark":     [  0, 160,   0],
+				"unfilled": [  0, 255,   0]
+			}
+		},
+		"5": {
+			"names": ["suspect", "joker"],
+			"frame base": "6",
+			"colors": {
+				"light":    [255, 229, 153],
+				"medium":   [255, 217, 107],
+				"dark":     [255, 188,   1],
+				"unfilled": [255, 188,   1]
+			}
+		},
+		"6": {
+			"names": ["hostile", "faker", "enemy"],
+			"colors": {
+				"light":    [255, 128, 128],
+				"medium":   [255,  48,  49],
+				"dark":     [200,   0,   0],
+				"unfilled": [255,   0,   0]
+			}
+		}
+	},
+
+	"dimensions": {
+		"air": {
+			"frames": {
+				"unknown": [{"d": "M 65,150 c -55,0 -50,-90 0,-90 0,-50 70,-50 70,0 50,0 55,90 0,90", "fill": "icon_fill", "bbox": [45, 20, 155, 150]}],
+				"friend":  [{"d": "M 155,150 C 155,50 115,30 100,30 85,30 45,50 45,150", "fill": "icon_fill", "bbox": [45, 30, 155, 150]}],
+				"neutral": [{"d": "M 45,150 L 45,30,155,30,155,150", "fill": "icon_fill", "bbox": [45, 30, 155, 150]}],
+				"hostile": [{"d": "M 45,150 L45,70 100,20 155,70 155,150", "fill": "icon_fill", "bbox": [25, 20, 175, 150]}]
+			}
+		},
+		"space": {
+			"frame base": "air",
+			"decorators": {
+				"unknown": [{"d": "M 100 22.5 C 85 22.5 70 31.669211 66 50 L 134 50 C 130 31.669204 115 22.5 100 22.5 z", "fill": true, "stroke": false}],
+				"friend":  [{"d": "M 100,30 C 90,30 80,35 68.65625,50 l 62.6875,0 C 120,35 110,30 100,30", "fill": true, "stroke": false}],
+				"neutral": [{"d": "M45,50 l0,-20 110,0 0,20 z", "fill": true, "stroke": false}],
+				"hostile": [{"d": "M67,50 L100,20 133,50 z", "fill": true, "stroke": false}]
+			}
+		},
+		"land unit": {
+			"frames": {
+				"unknown": [{"d": "M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", "fill": "icon_fill", "bbox": [30.75, 30.75, 169.25, 169.25]}],
+				"friend":  [{"d": "M25,50 l150,0 0,100 -150,0 z", "fill": "icon_fill", "bbox": [25, 50, 175, 150]}],
+				"neutral": [{"d": "M45,45 l110,0 0,110 -110,0 z", "fill": "icon_fill", "bbox": [45, 45, 155, 155]}],
+				"hostile": [{"d": "M 100,28 L172,100 100,172 28,100 100,28 Z", "fill": "icon_fill", "bbox": [28, 28, 172, 172]}]
+			}
+		},
+		"land equipment": {
+			"frame base": "land unit",
+			"frames": {
+				"friend":  [{"d": "M25,50 l150,0 0,100 -150,0 z", "fill": "icon_fill", "bbox": [25, 50, 175, 150]}]
+			}
+		},
+		"land installation": {
+			"frame base": "land unit"
+		},
+		"dismounted individual": {
+			"frame base": "land unit",
+			"frames": {
+				"friend":  [{"d": "m 100,45 55,25 0,60 -55,25 -55,-25 0,-60 z", "fill": "icon_fill", "bbox": [45, 45, 155, 155]}]
+			}
+		},
+		"sea surface": {
+			"frame base": "land equipment"
+		},
+		"sea subsurface": {
+			"frames": {
+				"unknown": [{"d": "m 65,50 c -55,0 -50,90 0,90 0,50 70,50 70,0 50,0 55,-90 0,-90", "fill": "icon_fill", "bbox": [25, 50, 175, 180]}],
+				"friend":  [{"d": "m 45,50 c 0,100 40,120 55,120 15,0 55,-20 55,-120", "fill": "icon_fill", "bbox": [45, 50, 155, 170]}],
+				"neutral": [{"d": "M45,50 L45,170 155,170 155,50", "fill": "icon_fill", "bbox": [45, 50, 155, 170]}],
+				"hostile": [{"d": "M45,50 L45,130 100,180 155,130 155,50", "fill": "icon_fill", "bbox": [45, 50, 155, 170]}]
+			}
+		},
+		"cyberspace": {
+			"frame base": "land unit"
+		},
+
+		"position marker": {
+			"frames": {
+				"unknown": [{"r": 15, "pos": [100, 100], "fill": "icon_fill"}],
+				"friend": [{"r": 15, "pos": [100, 100], "fill": "icon_fill"}],
+				"neutral": [{"r": 15, "pos": [100, 100], "fill": "icon_fill"}],
+				"hostile": [{"r": 15, "pos": [100, 100], "fill": "icon_fill"}]
+			}
+		}
+	},
+
+	"statuses": {
+		"0": {
+			"names": ["present"]
+		},
+		"1": {
+			"names": ["planned", "anticipated", "suspect"],
+			"dashed": true 
+		},
+		"2": {
+			"names": ["fully capable"]
+		},
+		"3": {
+			"names": ["damaged"]
+		},
+		"4": {
+			"names": ["destroyed"]
+		},
+		"5": {
+			"names": ["full to capacity"]
+		}
+	}
+}
+

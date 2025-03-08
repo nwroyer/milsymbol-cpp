@@ -4,6 +4,7 @@ import sys
 import re
 import glob
 import argparse
+import copy
 
 from font_rendering import Font
 DEFAULT_FONT_FILE:str = 'SimplySans-Bold.ttf'
@@ -541,7 +542,7 @@ be of the form:
 }
 ```
 """
-def parse_file(filepath:str) -> dict:
+def parse_symbol_set_file(filepath:str) -> dict:
 	if not os.path.exists(filepath):
 		print(f'No file "{filepath}"')
 		return
@@ -602,7 +603,7 @@ def create_schema(symbol_sets:list, schema_filename:str, constant_filename:str, 
 	text_path_font:str=DEFAULT_FONT_FILE, include_enumerator:bool=True, godot_filename:str = '') -> None:
 
 	def sanitize_constant(constant:str) -> str:
-		return re.sub('[\s,/\(\)\-\[\]]+', '_', constant).upper()
+		return re.sub(r'[\s,/\(\)\-\[\]]+', '_', constant).upper()
 
 	output_style = OutputStyle()
 	output_style.use_text_paths = use_text_paths
@@ -761,22 +762,178 @@ def create_schema(symbol_sets:list, schema_filename:str, constant_filename:str, 
 		with open(godot_filename, 'w') as godot_file_object:
 			godot_file_object.write(godot_file)
 
-"""
-Main command line interface. The only option is -p or --text-paths for using paths for text.
-This is useful for rendering in some instances (e.g., the rendering library used for the end 
-application doesn't support text elements). Otherwise, you'll generally get better quality
-from leaving the arguments as default and thus using SVG text elements.
-"""
-if __name__ == '__main__':
+def is_valid_hex_key(key:str, required_length:int=-1) -> bool:
+	if len(key) < 1:
+		return False
+	if required_length > 0 and len(key) != required_length:
+		return False
+	for k in key.upper():
+		if k not in '0123456789ABCDEF':
+			return False
+	return True
+
+class Context:
+	"""
+	Represents a standard identity context
+	"""
+	def __init__(self):
+		self.id_code:str = ""      # The ID code of the context, a 1-digit hexadecimal 
+		self.names:list  = []      # The names of the context
+		self.base_context:str = "" # The base context this belongs to (reality, exercise, or simulation)
+
+	def __repr__(self):
+		return f"Context {self.id_code} [{self.base_context}]: (" + ', '.join([f'\"{f}\"' for f in self.names]) + ")"
+
+class Affiliation:
+	"""
+	Represents a standard identity affiliation
+	"""
+
+	REQUIRED_COLORS = ['light', 'medium', 'dark', 'unfilled']
+
+	def __init__(self):
+		self.id_code:str = ""                 # A 1-digit hexadecimal
+		self.names:list = []                  # The names of the affiliation
+		self.colors:dict = {}                 # Should contain the keys ['light', 'medium', 'dark', 'unfilled']
+		self.dashed:bool = False              # Whether this renders the frame dashed
+		self.has_civilian_variant:bool = True # Whether this affiliation allows civilian coloring
+		self.frame_id:str = ""                # The affiliation code to use the frames from. If not set this is assumed to be its own base
+		self.color_id:str = ""                # The affiliation code to use the colors from. If not set this is assumed to be its own base.
+
+	def __repr__(self):
+		ret = f"Context {self.id_code}: (" + ', '.join([f'\"{f}\"' for f in self.names]) + ")"
+		if len(self.frame_id) > 0:
+			ret += f' [Uses frame {self.frame_id}]'
+		if len(self.color_id) > 0:
+			ret += f' [Uses color {self.color_id}]'
+		if self.has_civilian_variant:
+			ret += ' +C'
+		return ret
+
+class Dimension:
+	""" 
+	Represents a dimension, which sets the frame type
+	"""
+
+	def __init__(self):
+		self.id_code:str = ""  # Human readable name for the dimension
+		self.frames:dict = {}  # Dictionary of frames for IDs
+
+	def __repr__(self):
+		return f'Dimension \"{self.id_code}\"'
+
+def parse_constant_file(filepath:str) -> None:
+	if not os.path.exists(filepath):
+		print(f'No constant file "{filepath}"')
+		return
+
+	json_str:str = ''
+	with open(filepath, 'r') as json_file:
+		json_str = json_file.read()
+		json_str = re.sub('#[.]*\n', '', json_str)
+
+	json_dict = json.loads(json_str)
+
+	print(f'Parsing constant file \"{filepath}\"')
+	# Parse contexts
+	
+	# Validate required keys
+	REQUIRED_KEYS:list = ['contexts', 'affiliations']
+	for required_key in REQUIRED_KEYS:
+		if required_key not in json_dict:
+			print(f"Required key \"{required_key}\" not found in constants.json", file=sys.stderr)
+			return None
+
+	# Load contexts
+	contexts = []
+	print("Loading contexts")
+	for context_id, context_dict in json_dict["contexts"].items():
+		if not is_valid_hex_key(context_id, 1):
+			print(f'Bad context ID {context_id}')
+			return None
+
+		context:Context = Context()
+		context.id_code = context_id
+		context.names = context_dict['names']
+		context.base_context = context_dict.get('base context', context_id)
+		print(f'\tLoaded context {context}')
+		contexts.append(context) 
+
+	# Load affiliations
+	print("Loading affiliations")
+	affiliations = []
+	for aff_id, aff_dict in json_dict["affiliations"].items():
+		if not is_valid_hex_key(aff_id, 1):
+			print(f'Bad affiliation ID {aff_id}', file=sys.stderr)
+			return None
+
+		affiliation:Affiliation = Affiliation()
+		affiliation.id_code = aff_id
+		affiliation.names = aff_dict["names"]
+		affiliation.has_civilian_variant = bool(aff_dict.get("has civilian variant", True))
+		affiliation.dashed = bool(aff_dict.get('dashed', False))
+		affiliation.frame_id = aff_dict.get("frame base", "")
+		affiliation.color_id = aff_dict.get("color base", "")
+
+		if 'colors' in aff_dict:
+			if len([c for c in Affiliation.REQUIRED_COLORS if c in aff_dict['colors']]) != len(Affiliation.REQUIRED_COLORS):
+				print(f'Not all colors [{",".join(Affiliation.REQUIRED_COLORS)}] found for {affiliation.id_code}', file=sys.stderr)
+				return None
+
+			affiliation.colors = {color_id: aff_dict['colors'][color_id] for color_id in Affiliation.REQUIRED_COLORS}
+
+		affiliations.append(affiliation)
+		print(f'\tLoaded {affiliation}')
+
+	# Load dimension
+	dimensions:dict = {}
+	print('Loading dimensions')
+	for dim_id, dim_dict in json_dict["dimensions"].items():
+		dimension:Dimension = Dimension()
+		dimension.id_code = dim_id
+
+		if 'frame base' in dim_dict:
+			if dim_dict['frame base'] not in json_dict['dimensions']:
+				print(f"Unknown frame base \"{dim_dict['frame base']}\" for dimension \"{dim_id}\"", file=sys.stderr)
+				return None
+			
+			base_dim = json_dict['dimensions'][dim_dict['frame base']]
+			for frame_key, frame_list in base_dim['frames'].items():
+				dimension.frames[frame_key] = [i for i in frame_list]
+
+		# Apply base frame
+		for frame_key, frame_list in dim_dict.get("frames", {}).items():
+			dimension.frames[frame_key] = frame_list
+
+		# Apply frame decorators
+		for frame_key, frame_list in dim_dict.get("decorators", {}).items():
+			if frame_key in dimension.frames:
+				dimension.frames[frame_key].extend(frame_list)
+			else:
+				dimension.frames[frame_key] = frame_list
+
+		# Print
+		dimensions[dim_id] = dimension
+		print(f"\tLoaded {dimension}")
+
+def main() -> None:
 	# Gather the JSON files to parse - all .json files in this directory
 	cwd = os.path.dirname(__file__)
 	files = glob.glob(os.path.join(cwd, '*.json'))
 
+	# Parse the constant file
+	constant_files = [f for f in files if os.path.basename(f) == 'constants.json']
+	if len(constant_files) < 1:
+		print("No constant file \"constants.json\" found", file=sys.stderr)
+		return
+
+	constants = parse_constant_file(filepath=constant_files[0])
+
 	# Parse all the JSON files
 	symbol_sets = []
-	for filename in files:
+	for filename in [f for f in files if os.path.basename(f) != 'constants.json']:
 		print(f'Parsing "{filename}"...')
-		items = parse_file(filename)
+		items = parse_symbol_set_file(filename)
 		symbol_sets.append(items)
 	symbol_sets = sorted(symbol_sets)
 
@@ -816,3 +973,13 @@ if __name__ == '__main__':
 			len(sidcs),
 			',\n'.join([f'\t"{sidc}"' for sidc in sidcs])
 		))
+
+"""
+Main command line interface. The only option is -p or --text-paths for using paths for text.
+This is useful for rendering in some instances (e.g., the rendering library used for the end 
+application doesn't support text elements). Otherwise, you'll generally get better quality
+from leaving the arguments as default and thus using SVG text elements.
+"""
+if __name__ == '__main__':
+	main()
+

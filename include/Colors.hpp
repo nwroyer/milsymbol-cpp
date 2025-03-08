@@ -125,6 +125,26 @@ static constexpr ColorSubIndex get_color_sub_index(Affiliation aff) {
     }
 }
 
+static constexpr Context get_base_context(Context context) {
+    switch(context) {
+    case Context::REALITY:
+    case Context::RESTRICTED_TARGET_REALITY:
+    case Context::NO_STRIKE_ENTITY_REALITY:
+    default:
+        return Context::REALITY;
+
+    case Context::EXERCISE:
+    case Context::RESTRICTED_TARGET_EXERCISE:
+    case Context::NO_STRIKE_ENTITY_EXERCISE:
+        return Context::EXERCISE;
+
+    case Context::SIMULATION:
+    case Context::RESTRICTED_TARGET_SIMULATION:
+    case Context::NO_STRIKE_ENTITY_SIMULATION:
+        return Context::SIMULATION;
+    }
+}
+
 /**
  * @brief get_base_affiliation Returns the base affiliation whose frame to use for the given affiliation and context.
  * @param aff The affiliation to return the base of.
@@ -142,7 +162,7 @@ static constexpr Affiliation get_frame_affiliation(Affiliation aff, Context cont
         break;
     case Affiliation::SUSPECT:
     case Affiliation::HOSTILE:
-        return context != Context::SIMULATION ? Affiliation::HOSTILE : Affiliation::FRIEND;
+        return get_base_context(context) != Context::SIMULATION ? Affiliation::HOSTILE : Affiliation::FRIEND;
         break;
     case Affiliation::PENDING:
     case Affiliation::UNKNOWN:

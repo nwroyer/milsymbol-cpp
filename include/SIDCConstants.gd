@@ -1503,5 +1503,68 @@ const SYMBOL_SETS:Dictionary = {
 			1: ["cyberspace"],
 			2: ["security force assistance"]
 		}
+	},
+	99: {
+		SYMBOL_SET_NAME: "cyberspace",
+		ENTITIES: {
+			110000: ["military space platform", "military"],
+			110100: ["military space vehicle", "space vehicle"],
+			110200: ["military re-entry vehicle", "re-entry vehicle"],
+			110300: ["planet lander", "military planet lander"],
+			110400: ["orbiter shuttle"],
+			110500: ["capsule"],
+			110600: ["general satellite"],
+			110700: ["satellite"],
+			110800: ["anti-satellite weapon", "antisatellite weapon"],
+			110900: ["astronomical satellite"],
+			111000: ["biosatellite"],
+			111100: ["communications satellite"],
+			111200: ["earth observation satellite"],
+			111300: ["miniaturized satellite"],
+			111400: ["navigational satellite"],
+			111500: ["reconnaissance satellite"],
+			111600: ["space station"],
+			111700: ["tethered satellite"],
+			111800: ["weather satellite"],
+			111900: ["space-launched vehicle", "space launched vehicle", "SLV"],
+			120000: ["civilian space"],
+			120100: ["civilian orbiter shuttle"],
+			120200: ["civilian capsule"],
+			120300: ["civilian satellite"],
+			120400: ["civilian astronomical satellite"],
+			120500: ["civilian biosatellite"],
+			120600: ["civilian communications satellite"],
+			120700: ["civilian earth observation satellite"],
+			120800: ["civilian miniaturized satellite"],
+			120900: ["civilian navigational satellite"],
+			121000: ["civilian space station"],
+			121100: ["civilian tethered satellite"],
+			121200: ["civilian weather satellite"],
+			121300: ["civilian space vehicle"],
+			130000: ["manual track"]
+		},
+		MODIFIER_1: {
+			1: ["low earth orbit", "LEO"],
+			2: ["medium earth orbit", "MEO"],
+			3: ["high earth orbit", "HEO"],
+			4: ["geosynchronous orbit", "GSO"],
+			5: ["geostationary orbit", "GO"],
+			6: ["Molniya orbit", "MO"],
+			7: ["cyberspace", "cyber"]
+		},
+		MODIFIER_2: {
+			1: ["optical"],
+			2: ["infrared"],
+			3: ["radar"],
+			4: ["signals intelligence"],
+			5: ["cyberspace", "cyber"],
+			6: ["electromagnetic warfare ASAT", "EW ASAT"],
+			7: ["high power microwave ASAT", "HPM ASAT"],
+			8: ["laser ASAT", "HPM ASAT"],
+			9: ["maintenance"],
+			10: ["mine"],
+			11: ["refuel", "refueling"],
+			12: ["tug"]
+		}
 	}
 }

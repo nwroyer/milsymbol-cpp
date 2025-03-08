@@ -133,7 +133,7 @@ inline static constexpr const _impl::DrawCommand get_base_symbol_geometry(Dimens
             // Land dismounted friend
             DrawCommand::path(
                 "m 100,45 55,25 0,60 -55,25 -55,-25 0,-60 z",
-                BoundingBox{45, 45, 45 + 1-0, 45 + 110}).with_fill(ColorType::ICON_FILL),
+                BoundingBox{45, 45, 45 + 110, 45 + 110}).with_fill(ColorType::ICON_FILL),
 
             // Land dismounted neutral
             DrawCommand::path(
@@ -152,7 +152,7 @@ inline static constexpr const _impl::DrawCommand get_base_symbol_geometry(Dimens
         std::array<DrawCommand, SYMBOL_GEOMETRY_SUBINDEX_COUNT>{
             // Sea hostile
             DrawCommand::path(
-                "M100,28 L172,100 100,172 28,100 100,28 Z",
+                "M 100,28 L172,100 100,172 28,100 100,28 Z",
                 BoundingBox{28, 28, 28 + 144, 28 + 144}).with_fill(ColorType::ICON_FILL),
 
             // Sea friend

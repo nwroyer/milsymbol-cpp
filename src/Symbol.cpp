@@ -483,21 +483,55 @@ static int int_substring(const std::string_view& view, int start, int len) {
     return ret;
 }
 
+static Context context_from_sidc(const std::string& sidc) {
+    // We assume the SIDC has already been vetted for the right length
+
+}
+
 Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
+
+    /*
+     * The SIDC is a 30-position string, with each character being a hexadecimal character (0-9, A-F).
+     *
+     * The first 20 digits are the same as the MIL-STD-2525D codes.
+     *
+     * - [0-1]:   SIDC version
+     * - [2]:     Context
+     * - [4]:     Affiliation
+     * - [4-5]:   Symbol set
+     * - [6]:     Status
+     * - [7]:     Task force / headquarters / dummy
+     * - [8-9]:   Amplifier / descriptor
+     * - [10-11]: Entity
+     * - [12-13]: Entity type
+     * - [14-15]: Entity subtype
+     * - [16-17]: Sector 1 modifier
+     * - [18-19]: Sector 2 modifier
+     *
+     *  The following 10 digits are new for MIL-STD-2525E.
+     *
+     * - [20]:    Sector 1 common identity modifier
+     * - [21]:    Sector 2 common identity modifier
+     * - [22]:    Frame shape
+     * - [23-26]: Reserved for future use
+     * - [27-29]: Nationality / country / geopolitical identifier
+     */
+
+
 
     std::string ret = sidc_raw + '\0';
     std::string_view sidc = ret;
 
-    if (sidc_raw.length() < 20) {
-        std::cerr << "SIDC \"" << sidc << "\" must be at least 20 characters" << std::endl;
+    if (sidc_raw.length() < 2) {
+        std::cerr << "SIDC \"" << sidc << "\" must be at least 20 characters; can't determine version" << std::endl;
         return {};
     }
 
     // Determine version
     int version = int_substring(sidc, 0, 2);
-    if (version > 10) {
-//        std::cerr << "Warning: SIDC versions higher than 10 may not be dealt with appropriately (version is " <<
-//            version_str << " -> " << version << ")" << std::endl;
+    if (version != 13) {
+        std::cerr << "Warning: SIDC versions not equal to 13 (MIL-STD-2525E) may not be dealt with appropriately (version is " <<
+            version << " -> " << version << ")" << std::endl;
     }
 
     Symbol symbol;
@@ -505,6 +539,9 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
     /*
      * Parse standard identity
      */
+
+
+    // Part 1: Parse standard identity
     char context_int = sidc[2];
     switch(context_int) {
     case '2':
