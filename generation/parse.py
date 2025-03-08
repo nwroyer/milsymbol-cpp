@@ -293,8 +293,14 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 	const_text += '#include <cstdint>\n'
 	const_text += '#include <array>\n\n'
 
-	const_text += 'namespace milsymbol {\n'
+	const_text += 'namespace milsymbol {\n\n'
 
+	# Create color mode constants
+	const_text += 'enum class ColorMode {\n'
+	const_text += ',\n'.join([f'\t{sanitize_constant(color_mode)} = {color_index}' for color_index, color_mode in enumerate(constants.color_modes)])
+	const_text += '\n};\n\n'
+
+	# Create symbol set enums
 	const_text += "enum class SymbolSet {\n"
 	const_text += ',\n'.join(['\tUNDEFINED = -1'] + ['\t{} = {}'.format(sanitize_constant(symbol_set.name), int(symbol_set.id)) for symbol_set in symbol_sets]) + '\n'
 	const_text += f'}};\n\nstatic constexpr int SYMBOL_SET_COUNT = {len(symbol_sets)};\n'

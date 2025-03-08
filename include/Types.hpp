@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Constants.hpp"
+
 /*
  * This file defines enumerations and typedefs for the library.
  */
@@ -7,16 +9,6 @@
 namespace milsymbol {
 
 using real_t = float;
-
-/**
- * @brief Which color mode to use. Options are light (default), medium, dark, and unfilled.
- */
-enum class ColorMode {
-    LIGHT = 0,
-    MEDIUM,
-    DARK,
-    UNFILLED
-};
 
 /**
  * @brief The affiliation of a symbol. Options are pending, hostile,

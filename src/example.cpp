@@ -50,7 +50,6 @@ int main(int argc, const char** argv) {
      */
 
     // Create the appropriate style
-    alt_style;
     alt_style.hq_staff_length = 200;
     alt_style.color_mode = milsymbol::ColorMode::DARK;
     alt_style.with_color_override(milsymbol::Color{12, 100, 96});

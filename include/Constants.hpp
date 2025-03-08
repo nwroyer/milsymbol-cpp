@@ -3,6 +3,14 @@
 #include <array>
 
 namespace milsymbol {
+
+enum class ColorMode {
+	LIGHT = 0,
+	MEDIUM = 1,
+	DARK = 2,
+	UNFILLED = 3
+};
+
 enum class SymbolSet {
 	UNDEFINED = -1,
 	AIR = 1,
