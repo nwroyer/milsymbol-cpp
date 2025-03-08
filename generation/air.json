@@ -1,6 +1,7 @@
 {
 	"set": "01",
 	"name": "air",
+	"dimension": "air",
 	"IC": {
 		"110000": {
 			"names": ["military"],

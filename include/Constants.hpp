@@ -11,6 +11,83 @@ enum class ColorMode {
 	UNFILLED = 3
 };
 
+enum class Affiliation {
+	PENDING = 0,
+	UNKNOWN = 1,
+	ASSUMED_FRIEND = 2,
+	FRIEND = 3,
+	NEUTRAL = 4,
+	SUSPECT = 5,
+	HOSTILE = 6
+};
+
+static constexpr bool is_affiliation_dashed(Affiliation affiliation) noexcept {
+	if(affiliation == Affiliation::PENDING || affiliation == Affiliation::ASSUMED_FRIEND || affiliation == Affiliation::SUSPECT) {
+		return true;
+	}
+	return false;
+}
+
+static constexpr Affiliation get_frame_base_affiliation(Affiliation affiliation) noexcept {
+	switch(affiliation) {
+		case Affiliation::PENDING:
+		case Affiliation::UNKNOWN:
+		default:
+			return Affiliation::UNKNOWN;
+		case Affiliation::ASSUMED_FRIEND:
+		case Affiliation::FRIEND:
+			return Affiliation::FRIEND;
+		case Affiliation::NEUTRAL:
+			return Affiliation::NEUTRAL;
+		case Affiliation::SUSPECT:
+		case Affiliation::HOSTILE:
+			return Affiliation::HOSTILE;
+	}
+}
+
+enum class Dimension {
+	UNDEFINED = -1,
+	AIR = 0,
+	SPACE = 1,
+	LAND_UNIT = 2,
+	LAND_EQUIPMENT = 3,
+	LAND_INSTALLATION = 4,
+	ACTIVITIES = 5,
+	DISMOUNTED_INDIVIDUAL = 6,
+	SEA_SURFACE = 7,
+	SEA_SUBSURFACE = 8,
+	CYBERSPACE = 9,
+	POSITION_MARKER = 10
+};
+
+enum class Context {
+	REALITY = 0,
+	EXERCISE = 1,
+	SIMULATION = 2,
+	RESTRICTED_TARGET_REALITY = 3,
+	NO_STRIKE_ENTITY_REALITY = 4,
+	RESTRICTED_TARGET_EXERCISE = 5,
+	NO_STRIKE_ENTITY_EXERCISE = 6,
+	RESTRICTED_TARGET_SIMULATION = 7,
+	NO_STRIKE_ENTITY_SIMULATION = 8
+};
+
+enum class Status {
+	PRESENT = 0,
+	PLANNED = 1,
+	FULLY_CAPABLE = 2,
+	DAMAGED = 3,
+	DESTROYED = 4,
+	FULL_TO_CAPACITY = 5
+};
+
+static constexpr bool is_status_dashed(Status status) noexcept {
+	if(status == Status::PLANNED) {
+		return true;
+	}
+	return false;
+}
+
 enum class SymbolSet {
 	UNDEFINED = -1,
 	AIR = 1,

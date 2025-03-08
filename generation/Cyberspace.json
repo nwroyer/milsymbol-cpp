@@ -1,6 +1,7 @@
 {
 	"set": "99",
 	"name": "cyberspace",
+	"dimension": "cyberspace",
 	"IC": {
 		"110000": {
 			"names": ["military space platform", "military"],

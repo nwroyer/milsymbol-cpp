@@ -1,6 +1,7 @@
 {
 	"set": "02",
 	"name": "air missile",
+	"dimension": "air",
 	"IC": {
 		"110000": {
 			"names": ["missile"],

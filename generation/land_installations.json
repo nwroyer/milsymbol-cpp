@@ -1,6 +1,7 @@
 {
 	"set": "20",
 	"name": "land installation",
+	"dimension": "land installation",
 	"IC": {
 		"110000": {
 			"names": ["military/civilian"],

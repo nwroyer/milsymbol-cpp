@@ -59,6 +59,7 @@
 		"5": {
 			"names": ["suspect", "joker"],
 			"frame base": "6",
+			"dashed": true,
 			"colors": {
 				"light":    [255, 229, 153],
 				"medium":   [255, 217, 107],
@@ -110,6 +111,9 @@
 			}
 		},
 		"land installation": {
+			"frame base": "land unit"
+		},
+		"activities": {
 			"frame base": "land unit"
 		},
 		"dismounted individual": {

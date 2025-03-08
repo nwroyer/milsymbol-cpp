@@ -1,6 +1,7 @@
 {
 	"set": "11",
 	"name": "land civilian unit/organization",
+	"dimension": "land unit",
 	"IC": {
 		"110000": {
 			"names": "civilian",

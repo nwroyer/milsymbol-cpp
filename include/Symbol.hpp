@@ -202,9 +202,6 @@ struct Symbol {
     inline constexpr void set_mobility(Mobility mobility) noexcept {this->mobility = mobility;} /// Setter for mobility
     inline constexpr Mobility get_mobility() const noexcept {return mobility;} /// Getter for mobility
 
-    inline constexpr void set_presence(Presence presence) noexcept {this->presence = presence;} /// Setter for presence
-    inline constexpr Presence get_presence() const noexcept {return presence;} /// Getter for presence
-
     inline constexpr void set_feint_or_dummy(bool feint_dummy) noexcept {this->feint_dummy = feint_dummy;} /// Setter for feint/dummy
     inline constexpr bool is_feint_or_dummy() const noexcept {return feint_dummy;} /// Getter for feint/dummy
 
@@ -245,11 +242,10 @@ private:
      */
 
     Affiliation affiliation = Affiliation::UNKNOWN; /// The displayed affiliation. Defaults to unknown.
-    Status status = Status::UNDEFINED; /// Which condition this icon is in, for equipment. Defaults to undefined (no particular status).
+    Status status = Status::PRESENT; /// Which condition this icon is in, for equipment. Defaults to present (no particular status).
     Context context = Context::REALITY; /// The context of the symbol (reality, exercise, or simulation). Defaults to reality.
     Echelon echelon = Echelon::UNDEFINED; /// The echelon of this symbol. Defaults to undefined (no echelon).
     Mobility mobility = Mobility::UNDEFINED; /// The symbol mobility (for equipment)
-    Presence presence = Presence::PRESENT; /// Whether this is present (default), planned, or anticipated
 
     bool feint_dummy = false; /// Whether this is a fake/dummy (true) or not (false)
     bool headquarters = false; /// Whether this is a headquarters (with a staff indicator)

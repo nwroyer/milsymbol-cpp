@@ -1,6 +1,7 @@
 {
 	"set": "40",
 	"name": "activities",
+	"dimension": "activities",
 	"IC": {
 		"110000": {
 			"names": ["incident"],

@@ -20,7 +20,7 @@ int main(int argc, const char** argv) {
     milsymbol::SymbolStyle alt_style;
     alt_style.use_modifiers = true;
 
-    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130305000011020000100000000000")
+    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("131305100011020000100000000000")
                                    .with_affiliation(milsymbol::Affiliation::NEUTRAL);
 
     milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);

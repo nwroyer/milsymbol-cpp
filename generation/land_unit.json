@@ -1,6 +1,7 @@
 {
 	"set": "10",
 	"name": "land unit",
+	"dimension": "land unit",
 	"IC": {
 		".motorized": {
 			"names": [],

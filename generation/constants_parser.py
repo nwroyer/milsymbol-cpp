@@ -112,28 +112,36 @@ class Dimension:
 		dimension:Dimension = Dimension()
 		dimension.id_code = id_code
 
-		if 'frame base' in json:
-			if json['frame base'] not in over_dict['dimensions']:
-				print(f"Unknown frame base \"{json['frame base']}\" for dimension \"{id_code}\"", file=sys.stderr)
-				return None
-			
-			base_dim = over_dict['dimensions'][json['frame base']]
-			for frame_key, frame_list in base_dim['frames'].items():
-				dimension.frames[frame_key] = [i for i in frame_list]
+		def create_base_frames(json:dict, over_dict:dict) -> dict:
+			ret = {}
+			if 'frame base' in json:
+				base_dim:str = json['frame base']
+				if json['frame base'] not in over_dict:
+					raise Exception(f"No dimension \"{json['frame_base']}\" defined")
+					return None
 
-		# Apply base frame
-		for frame_key, frame_list in json.get("frames", {}).items():
-			dimension.frames[frame_key] = frame_list
+				ret = create_base_frames(json=over_dict[base_dim], over_dict=over_dict)
 
-		# Apply frame decorators
-		for frame_key, frame_list in json.get("decorators", {}).items():
-			if frame_key in dimension.frames:
-				dimension.frames[frame_key].extend(frame_list)
-			else:
-				dimension.frames[frame_key] = frame_list
+			# Apply base frame
+			for frame_key, frame_list in json.get("frames", {}).items():
+				ret[frame_key] = [f for f in frame_list]
 
-		# Print
+			# Apply frame decorators
+			for frame_key, frame_list in json.get("decorators", {}).items():
+				if frame_key in dimension.frames:
+					dimension.frames[frame_key].extend(frame_list)
+				else:
+					dimension.frames[frame_key] = [f for f in frame_list]
+
+			return ret
+
+
+		dimension.frames = create_base_frames(json=json, over_dict=over_dict['dimensions'])
+		if dimension.frames is None:
+			raise Exception('Ex')
+			return None
 		constants.dimensions[id_code] = dimension
+		#print(f'Dim {dimension.id_code}: {dimension.frames}')
 		return dimension
 
 class Status:

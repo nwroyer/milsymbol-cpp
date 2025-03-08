@@ -1,6 +1,7 @@
 {
 	"set": "35",
 	"name": "sea subsurface",
+	"dimension": "sea subsurface",
 	"IC": {
 		"110000": {
 			"names": ["military"],

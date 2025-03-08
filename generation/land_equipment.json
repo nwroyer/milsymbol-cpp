@@ -1,6 +1,7 @@
 {
 	"set": "15",
 	"name": "land equipment",
+	"dimension": "land equipment",
 	"IC": {
 		".light": {
 			"names": [".light"],

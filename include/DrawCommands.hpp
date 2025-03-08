@@ -651,6 +651,47 @@ struct SymbolLayer {
         civilian_override = override;
         return *this;
     }
+
+    inline constexpr BoundingBox get_bbox() const noexcept {
+        if (draw_items.empty()) {
+            return {};
+        }
+
+        bool first = true;
+        BoundingBox ret;
+        for (const DrawCommand& cmd : draw_items) {
+            if (first) {
+                ret = cmd.get_bbox();
+                first = false;
+                continue;
+            }
+
+            ret = ret.merge(cmd.get_bbox());
+        }
+        return ret;
+    }
+
+    inline constexpr SymbolLayer& with_fill(const ColorType color) noexcept {
+        for (auto& cmd : draw_items) {
+            cmd.with_fill(color);
+        }
+        return *this;
+    }
+
+    inline constexpr SymbolLayer& with_stroke(const ColorType color) noexcept {
+        for (auto& cmd : draw_items) {
+            cmd.with_stroke(color);
+        }
+        return *this;
+    }
+
+    inline constexpr SymbolLayer copy_with_stroke_width(real_t stroke_width) const noexcept {
+        SymbolLayer ret{*this};
+        for (int i = 0; i < draw_items.size(); i++) {
+            ret.draw_items[i] = draw_items[i].copy_with_stroke_width(stroke_width);
+        }
+        return ret;
+    }
 };
 
 }

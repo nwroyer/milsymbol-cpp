@@ -6,29 +6,6 @@
 
 namespace milsymbol {
 
-static constexpr Dimension dimension_from_symbol_set(SymbolSet set) noexcept {
-    switch(set) {
-    case SymbolSet::AIR:
-    case SymbolSet::AIR_MISSILE:
-        return Dimension::AIR;
-    case SymbolSet::SPACE:
-    case SymbolSet::SPACE_MISSILE:
-        return Dimension::SPACE;
-    case SymbolSet::LAND_UNIT:
-    case SymbolSet::LAND_CIVILIAN_UNIT_ORGANIZATION:
-    case SymbolSet::LAND_INSTALLATION:
-    case SymbolSet::ACTIVITIES:
-        return Dimension::LAND;
-    case SymbolSet::SEA_SURFACE:
-    case SymbolSet::LAND_EQUIPMENT:
-        return Dimension::SEA;
-    case SymbolSet::SEA_SUBSURFACE:
-        return Dimension::SUBSURFACE;
-    default:
-        return Dimension::LAND;
-    }
-}
-
 class DrawInstruction {
     enum class Type {
         PATH = 0,
@@ -290,19 +267,20 @@ _impl::DrawCommand get_symbol_headquarters(Affiliation affiliation, Dimension di
 
 {
     real_t y = 100;
+    // dimension = _impl::get_base_dimension(dimension);
 
     // For air and ground friendly/neutral, and sea/subsurface neutral icons, we start the HQ staff
     // at the bottom left corner, so we adjust the starting point accordingly.
     if (
         (dimension == Dimension::AIR && (affiliation == Affiliation::FRIEND || affiliation == Affiliation::NEUTRAL)) ||
-        (dimension == Dimension::LAND && (affiliation == Affiliation::FRIEND || affiliation == Affiliation::NEUTRAL)) ||
-        ((dimension == Dimension::SEA || dimension == Dimension::SUBSURFACE) && affiliation == Affiliation::NEUTRAL)
+        (dimension == Dimension::LAND_UNIT && (affiliation == Affiliation::FRIEND || affiliation == Affiliation::NEUTRAL)) ||
+        ((dimension == Dimension::SEA_SURFACE || dimension == Dimension::SEA_SUBSURFACE) && affiliation == Affiliation::NEUTRAL)
         ) {
         y = base_bbox.y2;
     }
 
     // For friendly subsurface units, we start at the upper-left corner
-    if (dimension == Dimension::SUBSURFACE && affiliation == Affiliation::FRIEND) {
+    if (dimension == Dimension::SEA_SUBSURFACE && affiliation == Affiliation::FRIEND) {
         y = base_bbox.y1;
     }
 
@@ -327,7 +305,7 @@ static void get_status_modifiers(const Symbol& symbol, const BoundingBox& bbox, 
     real_t y1 = bbox.y1;
     real_t y2 = bbox.y2;
 
-    if (symbol.get_status() != Status::UNDEFINED) {
+    if (symbol.get_status() != Status::PRESENT) {
         // @TODO handle status modifiers
     }
 }
@@ -338,7 +316,7 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style, const Symbol& symb
                                     Vector2& staff_base) {
     BoundingBox base_bbox = base_bbox_raw;
     BoundingBox modifier_bbox = base_bbox;
-    Dimension dimension = dimension_from_symbol_set(symbol.get_symbol_set()); //.get_dimension();
+    Dimension dimension = _impl::dimension_from_symbol_set(symbol.get_symbol_set()); //.get_dimension();
 
     /*
      * Apply headquarters staff
@@ -382,23 +360,23 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style, const Symbol& symb
 
         // Enemey air, ground, and sea symbols
         if (symbol.get_affiliation() == Affiliation::HOSTILE && (dimension == Dimension::AIR ||
-                                                           dimension == Dimension::LAND ||
-                                                           dimension == Dimension::SEA))
+                                                           dimension == Dimension::LAND_UNIT ||
+                                                           dimension == Dimension::SEA_SURFACE))
         {
             gap_filler = 14;
         }
 
         // Unknown air/sea/ground symbols
         if (symbol.get_affiliation() == Affiliation::UNKNOWN && (dimension == Dimension::AIR ||
-                                                           dimension == Dimension::SEA ||
-                                                           dimension == Dimension::LAND))
+                                                           dimension == Dimension::SEA_SURFACE ||
+                                                           dimension == Dimension::LAND_UNIT))
         {
             gap_filler = 2;
         }
 
         // Friendly air/sea symbols
         if (symbol.get_affiliation() == Affiliation::FRIEND && (dimension == Dimension::AIR ||
-                                                          dimension == Dimension::SEA))
+                                                          dimension == Dimension::SEA_SURFACE))
         {
             gap_filler = 2;
         }
@@ -462,7 +440,7 @@ static void apply_context(Context context, Affiliation affil, Dimension dim, con
     using namespace _impl;
 
     real_t spacing = 10;
-    if (affil == Affiliation::UNKNOWN || (affil == Affiliation::HOSTILE && dim == Dimension::SUBSURFACE)) {
+    if (affil == Affiliation::UNKNOWN || (affil == Affiliation::HOSTILE && dim == Dimension::SEA_SUBSURFACE)) {
         spacing = -10;
     }
 
@@ -625,28 +603,22 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
     char status = sidc[6];
     switch(status) {
     case '1':
-        symbol.presence = Presence::PLANNED;
-        symbol.status = Status::UNDEFINED;
+        symbol.status = Status::PLANNED;
         break;
     case '2':
-        symbol.presence = Presence::PLANNED;
         symbol.status = Status::FULLY_CAPABLE;
         break;
     case '3':
-        symbol.presence = Presence::PLANNED;
         symbol.status = Status::DAMAGED;
         break;
     case '4':
-        symbol.presence = Presence::PLANNED;
         symbol.status = Status::DESTROYED;
         break;
     case '5':
-        symbol.presence = Presence::PLANNED;
         symbol.status = Status::FULL_TO_CAPACITY;
         break;
     default:
-        symbol.presence = Presence::PRESENT;
-        symbol.status = Status::UNDEFINED;
+        symbol.status = Status::PRESENT;
         break;
     }
 
@@ -838,39 +810,39 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     DrawCommand base = get_base_symbol_geometry(dimension_from_symbol_set(symbol_set),
                                                 get_frame_affiliation(affiliation, context),
                                                 context,
-                                                position_only);
-    if (!base.is_defined()) {
-        std::cerr << "Undefined base" << std::endl;
-        return {};
-    }
+                                                position_only).draw_items[0];
+    // if (base.empty()) {
+    //     std::cerr << "Undefined base with dimension " << static_cast<int>(dimension_from_symbol_set(symbol_set)) << " and affiliation " <<
+    //         static_cast<int>(get_frame_affiliation(affiliation, context)) << std::endl;
+    //     return {};
+    // }
 
     base_bbox = base.get_bbox();
 
     if (style.use_frame || position_only) {
 
         // Get base symbol
-        _impl::DrawCommand sdc = base.copy_with_stroke_width(style.frame_stroke_width);
+        SymbolLayer sdc = base.copy_with_stroke_width(style.frame_stroke_width);
 
         // Handle unfilled icons
         if (style.color_mode == ColorMode::UNFILLED) {
             sdc.with_fill(ColorType::NONE);
         }
 
-        bool dashed_frame = (affiliation == Affiliation::ASSUMED_FRIEND ||
-                             affiliation == Affiliation::PENDING ||
-                             affiliation == Affiliation::SUSPECT ||
-                             presence != Presence::PRESENT);
+        bool dashed_frame = (is_affiliation_dashed(affiliation) || is_status_dashed(status));
 
         if (dashed_frame) {
             // Apply dashed frame base
             sdc.with_stroke(ColorType::WHITE);
         }
 
-        components.push_back(sdc);
+        for (const auto& cmd : sdc.draw_items) {
+            components.push_back(cmd);
+        }
 
         if (dashed_frame) {
             // Apply dashed frame
-            DrawCommand copy = sdc;
+            DrawCommand copy = sdc.draw_items[0];
             copy.with_stroke(ColorType::ICON).with_stroke_style(StrokeStyle::DASHED).with_fill(ColorType::NONE);
             components.push_back(copy);
         }
@@ -884,11 +856,11 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
             apply_context(context, affiliation, dimension_from_symbol_set(symbol_set), base_bbox, components);
         }
 
-        if (symbol_set == SymbolSet::SPACE || symbol_set == SymbolSet::SPACE_MISSILE) {
-            components.push_back(get_space_modifier(affiliation));
-        } else if (symbol_set == SymbolSet::ACTIVITIES) {
-            components.push_back(get_activity_modifier(affiliation));
-        }
+        // if (symbol_set == SymbolSet::SPACE || symbol_set == SymbolSet::SPACE_MISSILE) {
+        //     components.push_back(get_space_modifier(affiliation));
+        // } else if (symbol_set == SymbolSet::ACTIVITIES) {
+        //     components.push_back(get_activity_modifier(affiliation));
+        // }
     }
 
     /*

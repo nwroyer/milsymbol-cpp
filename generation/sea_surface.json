@@ -1,6 +1,7 @@
 {
 	"set": "30",
 	"name": "sea surface",
+	"dimension": "sea surface",
 	"IC": {
 		"110000": {
 			"names": ["military"],

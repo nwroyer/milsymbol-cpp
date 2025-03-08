@@ -101,7 +101,7 @@ class SymbolElement:
 				affil.id_code: [] for affil in constants.affiliations.values()			
 			}
 
-		def cpp(self, constants:Constants, output_style=OutputStyle()):
+		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False):
 			ret = 'DrawCommand::full_frame('
 			ret += ', '.join([', '.join([e.cpp(constants=constants, output_style=output_style) for e in self.elements[affil.id_code]]) for affil in constants.get_base_affiliations()])
 			ret += ')'
@@ -124,8 +124,8 @@ class SymbolElement:
 		def __repr__(self):
 			return f'<path d="{self.d}" {self.base_params()} />'
 
-		def cpp(self, constants:Constants, output_style=OutputStyle()) -> str:
-			ret:str = 'DrawCommand::path(\"{}\")'.format(self.d)
+		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False) -> str:
+			ret:str = 'DrawCommand::path(\"{}\", BoundingBox({}, {}, {}, {}))'.format(self.d, *self.bbox)
 			if self.fill_color is not None:
 				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
 			if self.stroke_color is None or self.stroke_color != 'icon':
@@ -151,7 +151,7 @@ class SymbolElement:
 		def __repr__(self):
 			return f'<circle cx="{self.pos[0]}" cy="{self.pos[1]}" radius="{self.radius}" {self.base_params()} />'
 
-		def cpp(self, constants:Constants, output_style=OutputStyle()) -> str:
+		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False) -> str:
 			ret:str = 'DrawCommand::circle(Vector2{{{}, {}}}, {})'.format(self.pos[0], self.pos[1], self.radius)
 			if self.fill_color is not None:
 				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
@@ -180,7 +180,7 @@ class SymbolElement:
 		def __repr__(self):
 			return f'<text x="{self.pos[0]}" y="{self.pos[1]}" font-size="{self.font_size}" font-anchor="{self.align}" {self.base_params()}>{self.text}</text>'
 
-		def cpp(self, constants:Constants, output_style=OutputStyle()) -> str:
+		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False) -> str:
 
 			"""
 			If we're supposed to convert text to paths, do so here and
@@ -282,10 +282,10 @@ class SymbolElement:
 				' '.join([str(item) for item in self.items])
 			)
 
-		def cpp(self, constants:Constants, output_style=OutputStyle()) -> str:
+		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False) -> str:
 			return 'DrawCommand::translate(Vector2{{{}, {}}}, {})'.format(
 				self.delta[0], self.delta[1],
-				', '.join([x.cpp(constants=constants, output_style=output_style) for x in self.items])
+				', '.join([x.cpp(constants=constants, output_style=output_style, with_bbox=with_bbox) for x in self.items])
 			)
 
 	"""
@@ -302,10 +302,10 @@ class SymbolElement:
 				' '.join([str(item) for item in self.items])
 			)
 
-		def cpp(self, constants:Constants, output_style=OutputStyle()):
+		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False):
 			return 'DrawCommand::scale({}, {})'.format(
 				self.scale,
-				', '.join([x.cpp(constants=constants, output_style=output_style) for x in self.items])
+				', '.join([x.cpp(constants=constants, output_style=output_style, with_bbox=with_bbox) for x in self.items])
 			)
 
 """
@@ -322,8 +322,8 @@ class SymbolLayer:
 	def __repr__(self):
 		return '{{{}}}'.format(self.uid, self.elements)
 
-	def cpp(self, constants:Constants, output_style=OutputStyle()):
+	def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False):
 		return 'SymbolLayer{{{}}}{}'.format(
-			', '.join([cmd.cpp(output_style=output_style, constants=constants) for cmd in self.elements]),
+			', '.join([cmd.cpp(output_style=output_style, constants=constants, with_bbox=with_bbox) for cmd in self.elements]),
 			'.with_civilian_override(true)' if self.civilian else ''
 		)

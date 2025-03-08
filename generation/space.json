@@ -1,6 +1,7 @@
 {
 	"set": "05",
 	"name": "space",
+	"dimension": "space",
 	"IC": {
 		"110000": {
 			"names": ["military space platform", "military"],

@@ -11,77 +11,6 @@ namespace milsymbol {
 using real_t = float;
 
 /**
- * @brief The affiliation of a symbol. Options are pending, hostile,
- * friend, neutral, unknown, suspect, and assumed friend.
- */
-enum class Affiliation {
-    PENDING = -1,
-    HOSTILE = 0, /// 6 in SIDC
-    FRIEND, /// 3 in SIDC
-    NEUTRAL, /// 4 in SIDC
-    UNKNOWN, /// 1 in SIDC
-
-    SUSPECT, /// 5 in SIDC
-    ASSUMED_FRIEND /// 2 in SIDC
-};
-
-/**
- * @brief The dimension (air, land, sea, etc.) of a symbol. This doesn't map 1:1 with symbol sets,
- * but generally aligns with the symbol frame shape.
- */
-enum class Dimension {
-    UNDEFINED = -1,
-
-    AIR = 0,
-    LAND, // 1
-    LAND_DISMOUNT, // 2
-    SEA, // 3
-    SUBSURFACE, // 4
-
-    SPACE, // 5
-    CYBERSPACE, // 6
-
-    POSITION_MARKER // 7
-};
-
-/**
- * @brief Indicates the present/anticipated/planned status of a symbol. For 2525D, there's only really
- * present and non-present as far as rendering goes.
- */
-enum class Presence {
-    PRESENT = 0, /// 0 in SIDC
-    ANTICIPATED, /// 1 in SIDC
-    PLANNED /// 1 in SIDC
-};
-
-/**
- * @brief The status of a symbol. Usually only applicable for equipment.
- */
-enum class Status {
-    UNDEFINED = -1,
-    FULLY_CAPABLE = 0, /// 2 in SIDC, same as presence
-    DAMAGED, /// 3 in SIDC, same as presence
-    DESTROYED, /// 4 in SIDC, same as presence
-    FULL_TO_CAPACITY /// 5 in SIDC, same as presence
-};
-
-/**
- * @brief The context of a symbol - reality (default), exercise, or simulation.
- */
-enum class Context {
-    REALITY = 0,   /// 0 in SIDC
-    EXERCISE = 1,  /// 1 in SIDC
-    SIMULATION = 2, /// 2 in SIDC
-
-    RESTRICTED_TARGET_REALITY = 3,
-    NO_STRIKE_ENTITY_REALITY = 4,
-    RESTRICTED_TARGET_EXERCISE = 5,
-    NO_STRIKE_ENTITY_EXERCISE = 6,
-    RESTRICTED_TARGET_SIMULATION = 7,
-    NO_STRIKE_ENTITY_SIMULATION = 8
-};
-
-/**
  * @brief The echelon of a symbol. Alternate names for the Marine Corps or foreign
  * echelons (e.g. MEF instead of Corps) aren't provided here.
  */
@@ -106,6 +35,7 @@ enum class Echelon {
 /**
  * @brief Mobility for equipment. Occupies the same digits as echelon for equipment.
  */
+
 enum class Mobility{
     UNDEFINED = 0,
     WHEELED,
