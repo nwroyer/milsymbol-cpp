@@ -19,9 +19,10 @@ int main(int argc, const char** argv) {
 
     milsymbol::SymbolStyle alt_style;
     alt_style.use_modifiers = true;
+    alt_style.color_mode = milsymbol::ColorMode::UNFILLED;
 
     milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("131305100011020000100000000000")
-                                   .with_affiliation(milsymbol::Affiliation::NEUTRAL);
+                                   .with_affiliation(milsymbol::Affiliation::FRIEND);
 
     milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
     std::cout << "Viewbox: " << results.svg_bounding_box.x1 << ", " << results.svg_bounding_box.y1 <<

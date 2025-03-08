@@ -657,6 +657,10 @@ struct SymbolLayer {
         return *this;
     }
 
+    inline constexpr bool empty() const noexcept {
+        return draw_items.empty();
+    }
+
     inline constexpr BoundingBox get_bbox() const noexcept {
         if (draw_items.empty()) {
             return {};

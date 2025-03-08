@@ -14,7 +14,6 @@ cpp_and_c_sources = [
 cpp_and_c_headers = [
     'include/Types.hpp',
     'include/Colors.hpp',
-    'include/SymbolGeometries.hpp',
     'include/BBox.hpp',
     'include/Symbol.hpp',
     'include/DrawCommands.hpp',

@@ -327,7 +327,7 @@ class SymbolLayer:
 		pass
 
 	def __repr__(self):
-		return '{{{}}}'.format(self.uid, self.elements)
+		return '{{{}}} -> {}'.format(self.uid, self.elements)
 
 	def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False):
 		return 'SymbolLayer{{{}}}{}'.format(

@@ -2,7 +2,6 @@
 #include <charconv>
 
 #include "Schema.hpp"
-#include "SymbolGeometries.hpp"
 
 namespace milsymbol {
 
@@ -301,9 +300,6 @@ static void get_status_modifiers(const Symbol& symbol, const BoundingBox& bbox, 
         Color{255, 0, 0}, // Destroyed
         Color{0, 180, 240} // Full to capacity
     };
-
-    real_t y1 = bbox.y1;
-    real_t y2 = bbox.y2;
 
     if (symbol.get_status() != Status::PRESENT) {
         // @TODO handle status modifiers
@@ -807,43 +803,46 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     // Get base symbol_geometry
     BoundingBox base_bbox{100, 100, 100, 100};
 
-    DrawCommand base = get_base_symbol_geometry(dimension_from_symbol_set(symbol_set),
+    SymbolLayer base = get_base_symbol_geometry(dimension_from_symbol_set(symbol_set),
                                                 get_frame_affiliation(affiliation, context),
                                                 context,
-                                                position_only).draw_items[0];
-    // if (base.empty()) {
-    //     std::cerr << "Undefined base with dimension " << static_cast<int>(dimension_from_symbol_set(symbol_set)) << " and affiliation " <<
-    //         static_cast<int>(get_frame_affiliation(affiliation, context)) << std::endl;
-    //     return {};
-    // }
+                                                position_only);
+    if (base.empty()) {
+        std::cerr << "Undefined base with dimension " << static_cast<int>(dimension_from_symbol_set(symbol_set)) << " and affiliation " <<
+            static_cast<int>(get_frame_affiliation(affiliation, context)) << std::endl;
+        return {};
+    }
 
     base_bbox = base.get_bbox();
 
     if (style.use_frame || position_only) {
 
         // Get base symbol
-        SymbolLayer sdc = base.copy_with_stroke_width(style.frame_stroke_width);
+        // Set the width of the frame
+        base.draw_items[0].with_stroke_width(style.frame_stroke_width);
 
         // Handle unfilled icons
         if (style.color_mode == ColorMode::UNFILLED) {
-            sdc.with_fill(ColorType::NONE);
+            base.draw_items[0].with_fill(ColorType::NONE);
+            for (int i = 1; i < base.draw_items.size(); i++) {
+                base.draw_items[i].with_fill(ColorType::ICON);
+            }
         }
 
         bool dashed_frame = (is_affiliation_dashed(affiliation) || is_status_dashed(status));
 
         if (dashed_frame) {
             // Apply dashed frame base
-            sdc.with_stroke(ColorType::WHITE);
+            base.draw_items[0].with_stroke(ColorType::WHITE);
         }
 
-        for (const auto& cmd : sdc.draw_items) {
+        for (const auto& cmd : base.draw_items) {
             components.push_back(cmd);
         }
 
         if (dashed_frame) {
             // Apply dashed frame
-            DrawCommand copy = sdc.draw_items[0];
-            copy.with_stroke(ColorType::ICON).with_stroke_style(StrokeStyle::DASHED).with_fill(ColorType::NONE);
+            DrawCommand copy = base.draw_items[0].copy_with_stroke(ColorType::ICON).with_stroke_style(StrokeStyle::DASHED).with_fill(ColorType::NONE);
             components.push_back(copy);
         }
 

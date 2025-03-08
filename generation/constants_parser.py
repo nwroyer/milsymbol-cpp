@@ -112,12 +112,11 @@ class Dimension:
 		dimension:Dimension = Dimension()
 		dimension.id_code = id_code
 
-		def create_base_frames(json:dict, over_dict:dict) -> dict:
-			ret = {}
+		def create_base_frames(json:dict, over_dict:dict, ret:dict = {}) -> dict:
 			if 'frame base' in json:
 				base_dim:str = json['frame base']
-				if json['frame base'] not in over_dict:
-					raise Exception(f"No dimension \"{json['frame_base']}\" defined")
+				if base_dim not in over_dict:
+					raise Exception(f"No dimension \"{base_dim}\" defined")
 					return None
 
 				ret = create_base_frames(json=over_dict[base_dim], over_dict=over_dict)
@@ -128,10 +127,11 @@ class Dimension:
 
 			# Apply frame decorators
 			for frame_key, frame_list in json.get("decorators", {}).items():
-				if frame_key in dimension.frames:
-					dimension.frames[frame_key].extend(frame_list)
+				if frame_key in ret:
+					ret[frame_key] = ret[frame_key] + frame_list
+					print(ret[frame_key])
 				else:
-					dimension.frames[frame_key] = [f for f in frame_list]
+					ret[frame_key] = [f for f in frame_list]
 
 			return ret
 
@@ -140,8 +140,9 @@ class Dimension:
 		if dimension.frames is None:
 			raise Exception('Ex')
 			return None
+
 		constants.dimensions[id_code] = dimension
-		#print(f'Dim {dimension.id_code}: {dimension.frames}')
+		print(f'Dim {dimension.id_code}: {dimension.frames}')
 		return dimension
 
 class Status:

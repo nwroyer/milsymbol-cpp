@@ -18,7 +18,7 @@ static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension,
 	if (base_affiliation == Affiliation::UNKNOWN) {
 		const auto ENTITY_MAP = mapbox::eternal::map<Dimension, SymbolLayer>({
 			{Dimension::AIR, SymbolLayer{DrawCommand::path("M 65,150 c -55,0 -50,-90 0,-90 0,-50 70,-50 70,0 50,0 55,90 0,90", BoundingBox(45, 20, 155, 150)).with_fill(ColorType::ICON_FILL)}},
-			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 65,150 c -55,0 -50,-90 0,-90 0,-50 70,-50 70,0 50,0 55,90 0,90", BoundingBox(45, 20, 155, 150)).with_fill(ColorType::ICON_FILL)}},
+			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 65,150 c -55,0 -50,-90 0,-90 0,-50 70,-50 70,0 50,0 55,90 0,90", BoundingBox(45, 20, 155, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 100 22.5 C 85 22.5 70 31.669211 66 50 L 134 50 C 130 31.669204 115 22.5 100 22.5 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::LAND_UNIT, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_EQUIPMENT, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
@@ -37,7 +37,7 @@ static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension,
 	if (base_affiliation == Affiliation::FRIEND) {
 		const auto ENTITY_MAP = mapbox::eternal::map<Dimension, SymbolLayer>({
 			{Dimension::AIR, SymbolLayer{DrawCommand::path("M 155,150 C 155,50 115,30 100,30 85,30 45,50 45,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL)}},
-			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 155,150 C 155,50 115,30 100,30 85,30 45,50 45,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL)}},
+			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 155,150 C 155,50 115,30 100,30 85,30 45,50 45,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 100,30 C 90,30 80,35 68.65625,50 l 62.6875,0 C 120,35 110,30 100,30", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::LAND_UNIT, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_EQUIPMENT, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
@@ -56,7 +56,7 @@ static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension,
 	if (base_affiliation == Affiliation::NEUTRAL) {
 		const auto ENTITY_MAP = mapbox::eternal::map<Dimension, SymbolLayer>({
 			{Dimension::AIR, SymbolLayer{DrawCommand::path("M 45,150 L 45,30,155,30,155,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL)}},
-			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 45,150 L 45,30,155,30,155,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL)}},
+			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 45,150 L 45,30,155,30,155,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M45,50 l0,-20 110,0 0,20 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::LAND_UNIT, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_EQUIPMENT, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
@@ -75,7 +75,7 @@ static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension,
 	if (base_affiliation == Affiliation::HOSTILE) {
 		const auto ENTITY_MAP = mapbox::eternal::map<Dimension, SymbolLayer>({
 			{Dimension::AIR, SymbolLayer{DrawCommand::path("M 45,150 L45,70 100,20 155,70 155,150", BoundingBox(25, 20, 175, 150)).with_fill(ColorType::ICON_FILL)}},
-			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 45,150 L45,70 100,20 155,70 155,150", BoundingBox(25, 20, 175, 150)).with_fill(ColorType::ICON_FILL)}},
+			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 45,150 L45,70 100,20 155,70 155,150", BoundingBox(25, 20, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M67,50 L100,20 133,50 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::LAND_UNIT, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_EQUIPMENT, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},
