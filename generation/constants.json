@@ -11,6 +11,8 @@
 		"8": {"names": ["no-strike entity - simulation"], "base context": "2"}
 	},
 
+	"color modes": ["light", "medium", "dark", "unfilled"],
+
 	"affiliations": {
 		"0": {
 			"names": ["pending"],
@@ -146,7 +148,7 @@
 			"names": ["present"]
 		},
 		"1": {
-			"names": ["planned", "anticipated", "suspect"],
+			"names": ["planned", "anticipated", "suspect", "suspected"],
 			"dashed": true 
 		},
 		"2": {
@@ -161,6 +163,60 @@
 		"5": {
 			"names": ["full to capacity"]
 		}
+	},
+
+	"hqtfds": {
+		"0": {"names": ["unknown"]},
+		"1": {"names": ["feint", "decoy", "dummy"], "dashed": true},
+		"2": {"names": ["headquarters", "HQ"]},
+		"3": {"names": ["feint headquarters", "feint HQ", "decoy headquarters", "decoy HQ", "dummy headquarters", "dummy HQ"], "dashed": true},
+		"4": {"names": ["task force", "TF"]},
+		"5": {"names": ["feint task force", "feint TF", "decoy task force", "decoy TF", "dummy task force", "dummy TF"], "dashed": true},
+		"6": {"names": ["task force headquarters", "task force HQ", "TF headquarters", "TF HQ"]},
+		"7": {
+			"names": [
+				"feint task force headquarters", "feint task force HQ", "feint TF headquarters", "feint TF HQ",
+				"decoy task force headquarters", "decoy task force HQ", "decoy TF headquarters", "decoy TF HQ",
+				"dummy task force headquarters", "dummy task force HQ", "dummy TF headquarters", "dummy TF HQ"
+			],
+			"dashed": true
+		}
+	},
+
+	"amplifiers": {
+		"11": {"names": ["team", "crew"], "type": "echelon", "applies to": ["land unit"]}, 
+		"12": {"names": ["squad"], "type": "echelon", "applies to": ["land unit"]},
+		"13": {"names": ["section"], "type": "echelon", "applies to": ["land unit"]},
+		"14": {"names": ["platoon", "detachment"], "type": "echelon", "applies to": ["land unit"]},
+		"15": {"names": ["company", "battery", "troop"], "type": "echelon", "applies to": ["land unit"]},
+		"16": {"names": ["battalion", "squadron"], "type": "echelon", "applies to": ["land unit"]},
+		"17": {"names": ["regiment", "group"], "type": "echelon", "applies to": ["land unit"]},
+		"18": {"names": ["brigade"], "type": "echelon", "applies to": ["land unit"]},
+		"21": {"names": ["division"], "type": "echelon", "applies to": ["land unit"]},
+		"22": {"names": ["corps", "MEB"], "type": "echelon", "applies to": ["land unit"]},
+		"23": {"names": ["army"], "type": "echelon", "applies to": ["land unit"]},
+		"24": {"names": ["army group", "front"], "type": "echelon", "applies to": ["land unit"]},
+		"25": {"names": ["region", "theater"], "type": "echelon", "applies to": ["land unit"]},
+		"26": {"names": ["command"], "type": "echelon", "applies to": ["land unit"]},
+
+		"31": {"names": ["wheeled", "wheeled limited cross country"], "type": "mobility", "applies to": ["land equipment"]},
+		"32": {"names": ["wheeled cross country", "cross country wheeled"], "type": "mobility", "applies to": ["land equipment"]},
+		"33": {"names": ["tracked"], "type": "mobility", "applies to": ["land equipment"]},
+		"34": {"names": ["wheeled and tracked", "tracked and wheeled"], "type": "mobility", "applies to": ["land equipment"]},
+		"35": {"names": ["towed"], "type": "mobility", "applies to": ["land equipment"]},
+		"36": {"names": ["rail"], "type": "mobility", "applies to": ["land equipment"]},
+		"37": {"names": ["pack animals"], "type": "mobility", "applies to": ["land equipment"]},
+
+		"41": {"names": ["over snow", "prime mover"], "type": "mobility", "applies to": ["land equipment"]},
+		"42": {"names": ["sled"], "type": "mobility", "applies to": ["land equipment"]},
+
+		"51": {"names": ["barge"], "type": "mobility", "applies to": ["land equipment"]},
+		"52": {"names": ["amphibious"], "type": "mobility", "applies to": ["land equipment"]},
+
+		"61": {"names": ["short towed array"], "type": "naval towed array", "applies to": ["land equipment"]},
+		"62": {"names": ["long towed array"], "type": "naval towed array", "applies to": ["land equipment"]},
+
+		"71": {"names": ["leader", "leadership"], "type": "dismounted individual leadership", "applies to": ["dismounted individual"]}
 	}
 }
 

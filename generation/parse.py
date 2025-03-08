@@ -6,8 +6,9 @@ import glob
 import argparse
 import copy
 
-from font_rendering import Font
-DEFAULT_FONT_FILE:str = 'SimplySans-Bold.ttf'
+from constants_parser import *
+from drawing_items import *
+
 
 """
 This file generates the actual C++ header files used to define constants
@@ -15,330 +16,6 @@ for entities and modifiers, as well as the actual code used to render
 SVGs for symbols. 
 """
 
-"""
-Acceptable affiliation types. These aren't all the acceptable 
-2525D types, just the ones that form the basis for frame shapes, 
-to allow us to define full-frame icons.
-"""
-AFFILIATION_TYPES:list = ['hostile', 'friend', 'neutral', 'unknown']
-
-"""
-The default stroke to use for symbols
-"""
-DEFAULT_STROKE_WIDTH:float = 4.0
-
-"""
-Converts a color to the appropriate C++ constant
-"""
-def color_type_to_cpp(color_type) -> str:
-	if color_type is None:
-		return 'ColorType::NONE'
-	else:
-		return f'ColorType::{color_type.upper()}'
-
-"""
-Acceptable values for colors in the JSON schema. Right now
-yellow is only used for missile icons and chemical spills.
-"""
-COLORS:list = {
-	'icon', 'icon_fill', 'white', 'yellow'	
-}
-
-"""
-Convert color in the JSON schema to one of our
-defined items from the COLORS constant
-"""
-def convert_color(item):
-	if type(item) is bool:
-		return 'icon' if item else 'none'
-	elif type(item) is str:
-		item = item.lower()
-		if not(item in COLORS):
-			print(f'Unrecognized color "{item}"', file=sys.stderr)
-			return None
-		return item
-	else:
-		print(f"Bad color: {item}", file=sys.stderr)
-		return None
-
-"""
-Class for defining an output style for the generated C++ code
-"""
-class OutputStyle:
-	def __init__(self, use_text_paths:bool = False):
-		self.use_text_paths = use_text_paths
-		self.text_path_font = DEFAULT_FONT_FILE
-
-"""
-A basic symbol element
-"""
-class SymbolElement:
-
-	"""
-	Base class that contains styling elements
-	"""
-	class Base:
-		def __init__(self):
-			self.fill_color:str = None
-			self.stroke_color:str = "icon"
-			self.stroke_width:float = DEFAULT_STROKE_WIDTH
-
-		def base_params(self) -> str:
-			return 'fill="{}" stroke="{}"{}'.format(
-				self.fill_color if self.fill_color is not None and self.fill_color != '' else 'none',
-				self.stroke_color if self.stroke_color is not None and self.fill_color != '' else 'none',
-				f' stroke_width="{self.stroke_width}"' if self.stroke_color is not None and self.stroke_color != '' else ''
-			)
-
-		def parse_basics(self, element) -> None:
-			if 'fill' in element:
-				self.fill_color = element['fill']
-				if type(self.fill_color) == str and self.fill_color.lower() == 'none':
-					self.fill_color = None
-					
-				if type(self.fill_color) == bool:
-					self.fill_color = 'icon' if self.fill_color else None
-
-			if 'stroke' in element:
-				self.stroke_color = element['stroke']
-				if type(self.stroke_color) == bool:
-					self.stroke_color = 'icon' if self.stroke_color else None
-
-			if 'strokewidth' in element:
-				self.stroke_width = float(element['strokewidth'])
-
-	"""
-	Full frame command
-	"""
-	class FullFrame(Base):
-		def __init__(self):
-			super().__init__()
-			self.elements:dict = {
-				affil: [] for affil in AFFILIATION_TYPES			
-			}
-
-		def cpp(self, output_style=OutputStyle()):
-			return 'DrawCommand::full_frame({}, {}, {}, {})'.format(
-				*['{}'.format(', '.join([e.cpp() for e in self.elements[affiliation]])) for affiliation in AFFILIATION_TYPES]
-			)
-
-	"""
-	Represents a path command
-	"""
-	class Path(Base):
-		def __init__(self):
-			super().__init__()
-			self.d:str = '' # The SVG path
-			self.bbox:tuple = (100, 100, 100, 100)
-			self.fill_color = None # Default to an unfilled path
-			self.stroke_color = "icon" # Default to a filled stroke
-
-		def __repr__(self):
-			return f'<path d="{self.d}" {self.base_params()} />'
-
-		def cpp(self, output_style=OutputStyle()) -> str:
-			ret:str = 'DrawCommand::path(\"{}\")'.format(self.d)
-			if self.fill_color is not None:
-				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
-			if self.stroke_color is None or self.stroke_color != 'icon':
-				ret += '.with_stroke({})'.format(color_type_to_cpp(self.stroke_color))
-			if self.stroke_width != DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
-				ret += '.with_stroke_width({})'.format(self.stroke_width)
-
-			return ret
-
-
-
-	"""
-	Represents a circle command
-	"""
-	class Circle(Base):
-		def __init__(self):
-			super().__init__()
-			self.pos:tuple = (100, 100)
-			self.radius:float = 1
-			self.fill_color = None
-			self.stroke_color = "icon"
-
-		def __repr__(self):
-			return f'<circle cx="{self.pos[0]}" cy="{self.pos[1]}" radius="{self.radius}" {self.base_params()} />'
-
-		def cpp(self, output_style=OutputStyle()) -> str:
-			ret:str = 'DrawCommand::circle(Vector2{{{}, {}}}, {})'.format(self.pos[0], self.pos[1], self.radius)
-			if self.fill_color is not None:
-				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
-			if self.stroke_color is None or self.stroke_color != 'icon':
-				ret += '.with_stroke({})'.format(color_type_to_cpp(self.stroke_color))
-			if self.stroke_width != DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
-				ret += '.with_stroke_width({})'.format(self.stroke_width)			
-			return ret
-
-	"""
-	Represents a text command
-	"""
-	class Text(Base):
-		def __init__(self):
-			super().__init__()
-			self.text:str = '' # The actual rendered text
-			self.pos:tuple = (100, 100) # Text origin
-			self.font_size:int = 12
-			self.font_family:str = 'Arial'
-			self.align:str = 'middle' # Can be ['left', 'middle', 'right']
-			self.text_type:str = 'auto' # ['auto', 'manual', 'm1', 'm2']
-			self.fill_color = 'icon' # Default to filled text
-			self.stroke_color = None # Default to no stroke
-			self.text_type = 'manual' # ['normal', 'm1', 'm2', 'manual']
-
-		def __repr__(self):
-			return f'<text x="{self.pos[0]}" y="{self.pos[1]}" font-size="{self.font_size}" font-anchor="{self.align}" {self.base_params()}>{self.text}</text>'
-
-		def cpp(self, output_style=OutputStyle()) -> str:
-
-			"""
-			If we're supposed to convert text to paths, do so here and
-			then return
-			"""
-			if output_style.use_text_paths:
-				font_face = Font(output_style.text_path_font, size = int(self.font_size))
-
-				pos = self.pos
-				size = self.font_size
-
-				if self.text_type == 'normal':
-					size = 42
-					y = 115
-					if len(self.text) == 1:
-						size = 45
-						y = 115
-					elif len(self.text) == 3:
-						size = 35
-						y = 110
-					elif len(self.text) >= 4:
-						size = 32
-						y = 110
-					pos = (100, y)
-				elif self.text_type == 'm1':
-					pos = (100, 77)
-					size = 30
-					if len(self.text) == 3:
-						size = 25
-					elif len(self.text) >= 4:
-						size = 22
-				elif self.text_type == 'm2':
-					y = 145
-					size = 30
-					if len(self.text) == 3:
-						size = 25
-						y = 140
-					elif len(self.text) >= 4:
-						size = 22
-						y = 135
-					pos = (100, y)
-				else:
-					pos = tuple(self.pos)
-					size = self.font_size
-
-				paths = font_face.render_text(
-					text = self.text, 
-					pos = pos,
-					fontsize = int(size),
-					align = self.align)
-				
-				ret_path = ' '.join(paths)
-				path_el = SymbolElement.Path()
-				path_el.fill_color = self.fill_color
-				path_el.stroke_color = self.stroke_color
-				path_el.d = ret_path
-				return path_el.cpp()
-
-			# Default text-as-text rendition
-			ret:str = ''
-			if self.text_type == 'normal':
-				ret = 'DrawCommand::autotext("{}")'.format(self.text)
-			elif self.text_type == 'm1':
-				ret = 'DrawCommand::textm1("{}")'.format(self.text)
-			elif self.text_type == 'm2':
-				ret = 'DrawCommand::textm2("{}")'.format(self.text)
-			else:
-				ret = 'DrawCommand::text("{}", Vector2{{{}, {}}}, {})'.format(self.text, self.pos[0], self.pos[1], self.font_size)
-
-			if self.fill_color is None or self.fill_color != 'icon':
-				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
-			if self.stroke_color is not None:
-				ret += '.with_stroke({})'.format(color_type_to_cpp(self.stroke_color))
-			if self.stroke_width != DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
-				ret += '.with_stroke_width({})'.format(self.stroke_width)
-
-			return ret
-
-	"""
-	Base class for transformation
-	"""
-	class Transformation(Base):
-		def __init__(self):
-			super().__init__()
-			self.items:list = []
-
-	"""
-	Represents a translation
-	"""
-	class Translate(Transformation):
-		def __init__(self):
-			super().__init__()
-			self.delta:tuple = (0, 0)
-
-		def __repr__(self):
-			return '<g transform=\"translate({} {})\">{}</g>'.format(
-				self.delta[0],
-				self.delta[1],
-				' '.join([str(item) for item in self.items])
-			)
-
-		def cpp(self, output_style=OutputStyle()) -> str:
-			return 'DrawCommand::translate(Vector2{{{}, {}}}, {})'.format(
-				self.delta[0], self.delta[1],
-				', '.join([x.cpp() for x in self.items])
-			)
-
-	"""
-	Represents a scaling
-	"""
-	class Scale(Transformation):
-		def __init__(self):
-			super().__init__()
-			self.scale:float = 1.0
-
-		def __repr__(self):
-			return '<g transform=\"scale({})\">{}</g>'.format(
-				self.scale,
-				' '.join([str(item) for item in self.items])
-			)
-
-		def cpp(self, output_style=OutputStyle()):
-			return 'DrawCommand::scale({}, {})'.format(
-				self.scale,
-				', '.join([x.cpp() for x in self.items])
-			)
-
-"""
-A full symbol component (e.g. an entity or modifier)
-"""
-class SymbolLayer:
-	def __init__(self):
-		self.uid:str = '' # Canonical unique name
-		self.names:str = [] # Human-readable names
-		self.elements:list = []
-		self.civilian:bool = False
-		pass
-
-	def __repr__(self):
-		return '{{{}}}'.format(self.uid, self.elements)
-
-	def cpp(self, output_style=OutputStyle()):
-		return 'SymbolLayer{{{}}}{}'.format(
-			', '.join([cmd.cpp(output_style=output_style) for cmd in self.elements]),
-			'.with_civilian_override(true)' if self.civilian else ''
-		)
 
 """
 Parse a specific item from JSON as a symbol element (path, text, etc.)
@@ -347,7 +24,7 @@ of all items in this set, to allow for aliases for symbols (e.g. supply units
 have a similar full-frame line; aliasing allows the schema to not repeat
 the entire definition for the line every time).
 """
-def parse_symbol_element(item:dict, full_items:dict) -> list:
+def parse_symbol_element(item:dict, full_items:dict, constants:Constants) -> list:
 	# Parse types
 	new_element = None
 
@@ -390,7 +67,7 @@ def parse_symbol_element(item:dict, full_items:dict) -> list:
 		if not isinstance(item_name, str):
 			print("Bad icon: {}".format(item_name), file=sys.stderr)
 		if item_name in full_items and 'icon' in full_items[item_name]:
-			new_element = parse_item_icon(full_items[item_name]['icon'], full_items=full_items)
+			new_element = parse_item_icon(full_items[item_name]['icon'], full_items=full_items, constants=constants)
 			if new_element is None or len(new_element.elements) < 1:
 				print("Bad new element in icon {}".format(new_element), file=sys.stderr)
 				return None
@@ -406,16 +83,17 @@ def parse_symbol_element(item:dict, full_items:dict) -> list:
 		new_element.scale = float(item['scale'])
 	else:
 		# Test for full-frame
-		for affiliation in AFFILIATION_TYPES:
+		affiliation_dict = constants.get_base_affiliation_dict()
+		for affiliation in affiliation_dict.keys():
 			if affiliation not in item:
-				print("Invalid element type {}".format(item), file=sys.stderr)
+				print("Invalid full-frame element type {} - affiliation \"{}\" not found".format(item, affiliation), file=sys.stderr)
 				return None
 
 		# This is a valid full-frame icon
-		new_element = SymbolElement.FullFrame()
+		new_element = SymbolElement.FullFrame(constants=constants)
 
 		for type_name, type_entry in item.items():
-			if not(type_name in AFFILIATION_TYPES):
+			if not(type_name in affiliation_dict):
 				print('Error: Unrecognized FF type "{}"'.format(type_name), file=sys.stderr)
 				return None
 
@@ -424,15 +102,15 @@ def parse_symbol_element(item:dict, full_items:dict) -> list:
 				return None
 
 			for sub_entry in type_entry:
-				new_subelements:list = parse_symbol_element(sub_entry, full_items=full_items)
-				for new_subelement in new_subelements:
-					new_element.elements[type_name].append(new_subelement)
+				new_subelements:list = parse_symbol_element(sub_entry, full_items=full_items, constants=constants)
+				type_code = affiliation_dict[type_name].id_code
+				new_element.elements[type_code].extend(new_subelements)
 
 	# Parse subitems for transformation
 	if isinstance(new_element, SymbolElement.Transformation):
 		subitems = item['items']
 		for subitem in subitems:
-			new_subelements:list = parse_symbol_element(subitem, full_items=full_items)
+			new_subelements:list = parse_symbol_element(subitem, full_items=full_items, constants=constants)
 			if new_subelements is None:
 				print("Invalid subelements", file=sys.stderr)
 				return None
@@ -460,12 +138,12 @@ return an SymbolLayer object. This only handles the icon itself
 and assumes the item is valid. See `parse_item` for the whole
 parsed item.
 """
-def parse_item_icon(item_icon, full_items:dict) -> SymbolLayer:
+def parse_item_icon(item_icon, full_items:dict, constants:Constants) -> SymbolLayer:
 	if type(item_icon) is list:
 		new_sl:SymbolLayer = SymbolLayer()
 
 		for element in item_icon:
-			new_element_list:list = parse_symbol_element(element, full_items=full_items)
+			new_element_list:list = parse_symbol_element(element, full_items=full_items, constants=constants)
 			if new_element_list is not None:
 				for new_element in new_element_list:
 					new_sl.elements.append(new_element)
@@ -485,14 +163,14 @@ def parse_item_icon(item_icon, full_items:dict) -> SymbolLayer:
 Parse a dict representing a symbol layer from the JSON and 
 return an SymbolLayer object
 """
-def parse_item(uid:str, item:dict, full_items:dict) -> SymbolLayer:
+def parse_item(uid:str, item:dict, full_items:dict, constants:Constants) -> SymbolLayer:
 
 	if 'icon' not in item or 'names' not in item:
 		print('No keys in {}'.format(uid))
 		return None
 
 	item_icon = item['icon']
-	symbol_layer:SymbolLayer = parse_item_icon(item_icon, full_items=full_items)
+	symbol_layer:SymbolLayer = parse_item_icon(item_icon, full_items=full_items, constants=constants)
 	if symbol_layer == None:
 		print(f"Bad symbol {uid}", file=sys.stderr)
 		return None
@@ -542,7 +220,7 @@ be of the form:
 }
 ```
 """
-def parse_symbol_set_file(filepath:str) -> dict:
+def parse_symbol_set_file(filepath:str, constants:Constants) -> dict:
 	if not os.path.exists(filepath):
 		print(f'No file "{filepath}"')
 		return
@@ -575,7 +253,7 @@ def parse_symbol_set_file(filepath:str) -> dict:
 				print(f'Improper indices for {json_dict["set"]}:{item_type}:{item_code}')
 				return None
 
-			new_sl = parse_item(uid=item_code, item=item, full_items=json_dict[item_type])
+			new_sl = parse_item(uid=item_code, item=item, full_items=json_dict[item_type], constants=constants)
 			if new_sl is not None:
 				ret[item_type][item_code] = new_sl
 			else:
@@ -599,7 +277,7 @@ Generates the C++ headers for the combined symbol sets.
 `use_text_paths` indicates whether to replace all text elements with SVG paths,
 	which may be desirable for some use cases.
 """
-def create_schema(symbol_sets:list, schema_filename:str, constant_filename:str, use_text_paths:bool=False,
+def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, constant_filename:str, use_text_paths:bool=False,
 	text_path_font:str=DEFAULT_FONT_FILE, include_enumerator:bool=True, godot_filename:str = '') -> None:
 
 	def sanitize_constant(constant:str) -> str:
@@ -609,40 +287,40 @@ def create_schema(symbol_sets:list, schema_filename:str, constant_filename:str, 
 	output_style.use_text_paths = use_text_paths
 
 	# Create constants
-	constants = ''
+	const_text = ''
 
-	constants += '#pragma once\n'
-	constants += '#include <cstdint>\n'
-	constants += '#include <array>\n\n'
+	const_text += '#pragma once\n'
+	const_text += '#include <cstdint>\n'
+	const_text += '#include <array>\n\n'
 
-	constants += 'namespace milsymbol {\n'
+	const_text += 'namespace milsymbol {\n'
 
-	constants += "enum class SymbolSet {\n"
-	constants += ',\n'.join(['\tUNDEFINED = -1'] + ['\t{} = {}'.format(sanitize_constant(symbol_set.name), int(symbol_set.id)) for symbol_set in symbol_sets]) + '\n'
-	constants += f'}};\n\nstatic constexpr int SYMBOL_SET_COUNT = {len(symbol_sets)};\n'
-	constants += 'static constexpr int NOMINAL_ICON_SIZE = 200; /// The default icon size\n\n'
-	constants += 'static constexpr std::array<SymbolSet, SYMBOL_SET_COUNT> SYMBOL_SETS = {\n'
-	constants += ',\n'.join(['\tSymbolSet::{}'.format(sanitize_constant(symbol_set.name)) for symbol_set in symbol_sets]) + '\n'
-	constants += '};\n\n'
+	const_text += "enum class SymbolSet {\n"
+	const_text += ',\n'.join(['\tUNDEFINED = -1'] + ['\t{} = {}'.format(sanitize_constant(symbol_set.name), int(symbol_set.id)) for symbol_set in symbol_sets]) + '\n'
+	const_text += f'}};\n\nstatic constexpr int SYMBOL_SET_COUNT = {len(symbol_sets)};\n'
+	const_text += 'static constexpr int NOMINAL_ICON_SIZE = 200; /// The default icon size\n\n'
+	const_text += 'static constexpr std::array<SymbolSet, SYMBOL_SET_COUNT> SYMBOL_SETS = {\n'
+	const_text += ',\n'.join(['\tSymbolSet::{}'.format(sanitize_constant(symbol_set.name)) for symbol_set in symbol_sets]) + '\n'
+	const_text += '};\n\n'
 
-	constants += 'enum Entities : int32_t {\n'
+	const_text += 'enum Entities : int32_t {\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.icons.values()]
-	constants += ',\n'.join([f'\t{sanitize_constant(f"{symset.name}_{ent.names[0]}")} = {int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
-	constants += '};\n\n'
+	const_text += ',\n'.join([f'\t{sanitize_constant(f"{symset.name}_{ent.names[0]}")} = {int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
+	const_text += '};\n\n'
 	
-	constants += 'enum Modifier1 : int32_t {\n'
+	const_text += 'enum Modifier1 : int32_t {\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.m1.values()]
-	constants += ',\n'.join([f'\t{f"{sanitize_constant(symset.name)}_M1_{sanitize_constant(ent.names[0])}"} = {int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
-	constants += '};\n\n'
+	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.name)}_M1_{sanitize_constant(ent.names[0])}"} = {int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
+	const_text += '};\n\n'
 	
-	constants += 'enum Modifier2 : int32_t {\n'
+	const_text += 'enum Modifier2 : int32_t {\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.m2.values()]
-	constants += ',\n'.join([f'\t{f"{sanitize_constant(symset.name)}_M2_{sanitize_constant(ent.names[0])}"} = {int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
-	constants += '};\n\n'
+	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.name)}_M2_{sanitize_constant(ent.names[0])}"} = {int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
+	const_text += '};\n\n'
 
-	constants += '}\n'
+	const_text += '}\n'
 	with open(constant_filename, 'w') as constant_file:
-		constant_file.write(constants)
+		constant_file.write(const_text)
 
 	"""
 	Create schema proper
@@ -677,7 +355,7 @@ def create_schema(symbol_sets:list, schema_filename:str, constant_filename:str, 
 			for sym_code, symbol in sym_type.items():
 				mod_code = f'M{symtype_index}_' if symtype_index > 0 else ''
 				sanitized_name = sanitize_constant(f"{symbol_set.name}_{mod_code}{symbol.names[0]}")
-				out_symbols.append((sanitized_name, symbol.cpp(output_style=output_style), symbol.names[0]))
+				out_symbols.append((sanitized_name, symbol.cpp(output_style=output_style, constants=constants), symbol.names[0]))
 
 			schema += ',\n'.join([f'\t\t\t\t{{static_cast<int32_t>({constant_name}), {draw_commands}}} /* {comment} */' for constant_name, draw_commands, comment in out_symbols]) + '\n'
 			schema += '\t\t\t});\n'
@@ -769,160 +447,6 @@ def create_schema(symbol_sets:list, schema_filename:str, constant_filename:str, 
 		with open(godot_filename, 'w') as godot_file_object:
 			godot_file_object.write(godot_file)
 
-def is_valid_hex_key(key:str, required_length:int=-1) -> bool:
-	if len(key) < 1:
-		return False
-	if required_length > 0 and len(key) != required_length:
-		return False
-	for k in key.upper():
-		if k not in '0123456789ABCDEF':
-			return False
-	return True
-
-class Context:
-	"""
-	Represents a standard identity context
-	"""
-	def __init__(self):
-		self.id_code:str = ""      # The ID code of the context, a 1-digit hexadecimal 
-		self.names:list  = []      # The names of the context
-		self.base_context:str = "" # The base context this belongs to (reality, exercise, or simulation)
-
-	def __repr__(self):
-		return f"Context {self.id_code} [{self.base_context}]: (" + ', '.join([f'\"{f}\"' for f in self.names]) + ")"
-
-class Affiliation:
-	"""
-	Represents a standard identity affiliation
-	"""
-
-	REQUIRED_COLORS = ['light', 'medium', 'dark', 'unfilled']
-
-	def __init__(self):
-		self.id_code:str = ""                 # A 1-digit hexadecimal
-		self.names:list = []                  # The names of the affiliation
-		self.colors:dict = {}                 # Should contain the keys ['light', 'medium', 'dark', 'unfilled']
-		self.dashed:bool = False              # Whether this renders the frame dashed
-		self.has_civilian_variant:bool = True # Whether this affiliation allows civilian coloring
-		self.frame_id:str = ""                # The affiliation code to use the frames from. If not set this is assumed to be its own base
-		self.color_id:str = ""                # The affiliation code to use the colors from. If not set this is assumed to be its own base.
-
-	def __repr__(self):
-		ret = f"Context {self.id_code}: (" + ', '.join([f'\"{f}\"' for f in self.names]) + ")"
-		if len(self.frame_id) > 0:
-			ret += f' [Uses frame {self.frame_id}]'
-		if len(self.color_id) > 0:
-			ret += f' [Uses color {self.color_id}]'
-		if self.has_civilian_variant:
-			ret += ' +C'
-		return ret
-
-class Dimension:
-	""" 
-	Represents a dimension, which sets the frame type
-	"""
-
-	def __init__(self):
-		self.id_code:str = ""  # Human readable name for the dimension
-		self.frames:dict = {}  # Dictionary of frames for IDs
-
-	def __repr__(self):
-		return f'Dimension \"{self.id_code}\"'
-
-def parse_constant_file(filepath:str) -> None:
-	if not os.path.exists(filepath):
-		print(f'No constant file "{filepath}"')
-		return
-
-	json_str:str = ''
-	with open(filepath, 'r') as json_file:
-		json_str = json_file.read()
-		json_str = re.sub('#[.]*\n', '', json_str)
-
-	json_dict = json.loads(json_str)
-
-	print(f'Parsing constant file \"{filepath}\"')
-	# Parse contexts
-	
-	# Validate required keys
-	REQUIRED_KEYS:list = ['contexts', 'affiliations']
-	for required_key in REQUIRED_KEYS:
-		if required_key not in json_dict:
-			print(f"Required key \"{required_key}\" not found in constants.json", file=sys.stderr)
-			return None
-
-	# Load contexts
-	contexts = []
-	print("Loading contexts")
-	for context_id, context_dict in json_dict["contexts"].items():
-		if not is_valid_hex_key(context_id, 1):
-			print(f'Bad context ID {context_id}')
-			return None
-
-		context:Context = Context()
-		context.id_code = context_id
-		context.names = context_dict['names']
-		context.base_context = context_dict.get('base context', context_id)
-		print(f'\tLoaded context {context}')
-		contexts.append(context) 
-
-	# Load affiliations
-	print("Loading affiliations")
-	affiliations = []
-	for aff_id, aff_dict in json_dict["affiliations"].items():
-		if not is_valid_hex_key(aff_id, 1):
-			print(f'Bad affiliation ID {aff_id}', file=sys.stderr)
-			return None
-
-		affiliation:Affiliation = Affiliation()
-		affiliation.id_code = aff_id
-		affiliation.names = aff_dict["names"]
-		affiliation.has_civilian_variant = bool(aff_dict.get("has civilian variant", True))
-		affiliation.dashed = bool(aff_dict.get('dashed', False))
-		affiliation.frame_id = aff_dict.get("frame base", "")
-		affiliation.color_id = aff_dict.get("color base", "")
-
-		if 'colors' in aff_dict:
-			if len([c for c in Affiliation.REQUIRED_COLORS if c in aff_dict['colors']]) != len(Affiliation.REQUIRED_COLORS):
-				print(f'Not all colors [{",".join(Affiliation.REQUIRED_COLORS)}] found for {affiliation.id_code}', file=sys.stderr)
-				return None
-
-			affiliation.colors = {color_id: aff_dict['colors'][color_id] for color_id in Affiliation.REQUIRED_COLORS}
-
-		affiliations.append(affiliation)
-		print(f'\tLoaded {affiliation}')
-
-	# Load dimension
-	dimensions:dict = {}
-	print('Loading dimensions')
-	for dim_id, dim_dict in json_dict["dimensions"].items():
-		dimension:Dimension = Dimension()
-		dimension.id_code = dim_id
-
-		if 'frame base' in dim_dict:
-			if dim_dict['frame base'] not in json_dict['dimensions']:
-				print(f"Unknown frame base \"{dim_dict['frame base']}\" for dimension \"{dim_id}\"", file=sys.stderr)
-				return None
-			
-			base_dim = json_dict['dimensions'][dim_dict['frame base']]
-			for frame_key, frame_list in base_dim['frames'].items():
-				dimension.frames[frame_key] = [i for i in frame_list]
-
-		# Apply base frame
-		for frame_key, frame_list in dim_dict.get("frames", {}).items():
-			dimension.frames[frame_key] = frame_list
-
-		# Apply frame decorators
-		for frame_key, frame_list in dim_dict.get("decorators", {}).items():
-			if frame_key in dimension.frames:
-				dimension.frames[frame_key].extend(frame_list)
-			else:
-				dimension.frames[frame_key] = frame_list
-
-		# Print
-		dimensions[dim_id] = dimension
-		print(f"\tLoaded {dimension}")
-
 def main() -> None:
 	# Gather the JSON files to parse - all .json files in this directory
 	cwd = os.path.dirname(__file__)
@@ -940,7 +464,10 @@ def main() -> None:
 	symbol_sets = []
 	for filename in [f for f in files if os.path.basename(f) != 'constants.json']:
 		print(f'Parsing "{filename}"...')
-		items = parse_symbol_set_file(filename)
+		items = parse_symbol_set_file(filename, constants=constants)
+		if items is None:
+			print(f"Bad symbol set file \"{filename}\"", file=sys.stderr)
+
 		symbol_sets.append(items)
 	symbol_sets = sorted(symbol_sets)
 
@@ -958,6 +485,7 @@ def main() -> None:
 
 	print(f"Outputting C++ headers, using {'path' if arguments.use_text_paths else 'text'} elements for text...")
 	create_schema(
+		constants=constants,
 		symbol_sets=symbol_sets, 
 		use_text_paths=arguments.use_text_paths,
 		text_path_font=arguments.text_path_font,
