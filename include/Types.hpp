@@ -46,9 +46,10 @@ enum class Dimension {
     SEA, // 3
     SUBSURFACE, // 4
 
-    SPACE,
+    SPACE, // 5
+    CYBERSPACE, // 6
 
-    POSITION_MARKER
+    POSITION_MARKER // 7
 };
 
 /**
@@ -76,9 +77,9 @@ enum class Status {
  * @brief The context of a symbol - reality (default), exercise, or simulation.
  */
 enum class Context {
-    REALITY = 0, /// 0 in SIDC
-    EXERCISE, /// 1 in SIDC
-    SIMULATION /// 2 in SIDC
+    REALITY = 0,   /// 0 in SIDC
+    EXERCISE = 1,  /// 1 in SIDC
+    SIMULATION = 2 /// 2 in SIDC
 };
 
 /**

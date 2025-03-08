@@ -800,10 +800,12 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
         use_civilian_color = true;
     }
 
+    // Get base symbol_geometry
     BoundingBox base_bbox{100, 100, 100, 100};
 
     DrawCommand base = get_base_symbol_geometry(dimension_from_symbol_set(symbol_set),
-                                                get_base_affiliation(affiliation),
+                                                get_frame_affiliation(affiliation, context),
+                                                context,
                                                 position_only);
     if (!base.is_defined()) {
         std::cerr << "Undefined base" << std::endl;

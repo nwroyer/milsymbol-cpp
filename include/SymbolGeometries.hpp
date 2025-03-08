@@ -46,7 +46,7 @@ inline static constexpr const _impl::DrawCommand get_activity_modifier(Affiliati
 }
 
 inline static constexpr Dimension get_base_dimension(Dimension dim) noexcept {
-    if (dim == Dimension::UNDEFINED) {
+    if (dim == Dimension::UNDEFINED || dim == Dimension::CYBERSPACE) {
         return Dimension::LAND;
     } else if (dim == Dimension::SPACE) {
         return Dimension::AIR;
@@ -56,8 +56,10 @@ inline static constexpr Dimension get_base_dimension(Dimension dim) noexcept {
 
 }
 
-inline static constexpr const _impl::DrawCommand get_base_symbol_geometry(Dimension index, Affiliation subindex,
-    bool position_only = false)
+inline static constexpr const _impl::DrawCommand get_base_symbol_geometry(Dimension index,
+                                                                        Affiliation subindex,
+                                                                        Context context,
+                                                                        bool position_only = false)
 {
 
     if (index == Dimension::UNDEFINED) {
@@ -211,7 +213,11 @@ inline static constexpr const _impl::DrawCommand get_base_symbol_geometry(Dimens
         }
     };
 
-    return SYMBOL_GEOMETRIES[position_only ? SYMBOL_GEOMETRIES.size() - 1 : static_cast<int>(get_base_dimension(index))][static_cast<int>(get_base_affiliation(subindex))];
+    if (position_only) {
+        return SYMBOL_GEOMETRIES[SYMBOL_GEOMETRIES.size() - 1][static_cast<int>(get_frame_affiliation(subindex, context))];
+    }
+
+    return SYMBOL_GEOMETRIES[static_cast<int>(get_base_dimension(index))][static_cast<int>(get_frame_affiliation(subindex, context))];
 }
 
 } // Impl namespace
