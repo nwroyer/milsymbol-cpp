@@ -1450,6 +1450,37 @@ const SYMBOL_SETS:Dictionary = {
 			17: ["cyberspace", "cyber"]
 		}
 	},
+	36: {
+		SYMBOL_SET_NAME: "mine warfare",
+		ENTITIES: {
+			110000: ["sea mine, general", "general sea mine"],
+			110100: ["sea mine, bottom", "bottom sea mine"],
+			110200: ["sea mine, moored", "moored sea mine"],
+			110300: ["sea mine, floating", "floating sea mine"],
+			110400: ["sea mine, rising", "rising sea mine"],
+			110500: ["sea mine, other", "other sea mine"],
+			110600: ["Kingfisher"],
+			110700: ["Small object, mine-like", "mine-like small object"],
+			110800: ["exercise mine, general", "general exercise mine"],
+			110801: ["exercise mine, bottom", "bottom exercise mine"],
+			110802: ["exercise mine, moored", "moored exercise mine"],
+			110803: ["exercise mine, floating", "floating exercise mine"],
+			110804: ["exercise mine, rising", "rising exercise mine"],
+			110900: ["neutralized mine, general", "general neutralized mine"],
+			110901: ["neutralized mine, bottom", "bottom neutralized mine"],
+			110902: ["neutralized mine, moored", "moored neutralized mine"],
+			110903: ["neutralized mine, floating", "floating neutralized mine"],
+			110904: ["neutralized mine, rising", "rising neutralized mine"],
+			110905: ["neutralized mine, other", "other neutralized mine"],
+			120000: ["unexploded ordnance", "UXO"]
+		},
+		MODIFIER_1: {
+
+		},
+		MODIFIER_2: {
+
+		}
+	},
 	40: {
 		SYMBOL_SET_NAME: "activities",
 		ENTITIES: {

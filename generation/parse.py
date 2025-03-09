@@ -442,6 +442,8 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 		SYMBOL_TYPE_HEADERS = ['ENTITY', 'MODIFIER_1', 'MODIFIER_2']
 
 		for symtype_index, sym_type in enumerate([symbol_set.icons, symbol_set.m1, symbol_set.m2]):
+			if len(sym_type) < 1:
+				continue
 			schema += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 else '', SYMBOL_TYPE_HEADERS[symtype_index])
 
 			map_title:str = f'{SYMBOL_TYPE_HEADERS[symtype_index]}_MAP'
@@ -463,6 +465,7 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 
 			schema += '\t\t}\n'
 
+		schema += '\t\telse {\n\t\t\treturn {};\n\t\t}\n'
 		schema += '\t}\n\n'
 
 	schema +=  "\n\t// Default to nothing\n\treturn {};\n" + "}\n"

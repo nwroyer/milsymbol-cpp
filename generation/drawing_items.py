@@ -1,5 +1,6 @@
 from font_rendering import Font
 from constants_parser import Constants
+import re
 
 """
 The default stroke to use for symbols
@@ -18,14 +19,15 @@ def color_type_to_cpp(color_type) -> str:
 	if color_type is None:
 		return 'ColorType::NONE'
 	else:
-		return f'ColorType::{color_type.upper()}'
+		return f'ColorType::{re.sub(r'[\s-]+', '_', color_type.upper())}'
 
 """
 Acceptable values for colors in the JSON schema. Right now
 yellow is only used for missile icons and chemical spills.
 """
 COLORS:list = {
-	'icon', 'icon_fill', 'white', 'yellow'	
+	'icon', 'icon_fill', 'white', 'yellow',
+	"mine red", "mine dark green", "mine bright green"
 }
 
 """
@@ -66,6 +68,7 @@ class SymbolElement:
 			self.fill_color:str = None
 			self.stroke_color:str = "icon"
 			self.stroke_width:float = DEFAULT_STROKE_WIDTH
+			self.stroke_dashed:str = None
 
 		def base_params(self) -> str:
 			return 'fill="{}" stroke="{}"{}'.format(
@@ -80,7 +83,7 @@ class SymbolElement:
 				return None
 
 			if type(element) == str:
-				if element not in ['white', 'icon', 'yellow', 'none', 'icon_fill']:
+				if element not in COLORS:
 					raise Exception(f"Unknown fill color \"{element}\"")
 					return None
 
@@ -104,6 +107,9 @@ class SymbolElement:
 
 			if 'strokewidth' in element:
 				self.stroke_width = float(element['strokewidth'])
+
+			if "strokedashed" in element:
+				self.stroke_dashed = element['strokedashed']
 
 	"""
 	Full frame command
@@ -153,6 +159,8 @@ class SymbolElement:
 				ret += '.with_stroke({})'.format(color_type_to_cpp(self.stroke_color))
 			if self.stroke_width != DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
 				ret += '.with_stroke_width({})'.format(self.stroke_width)
+			if self.stroke_dashed is not None:
+				ret += '.with_stroke_style(StrokeStyle::DASHED)'
 
 			return ret
 
@@ -179,7 +187,9 @@ class SymbolElement:
 			if self.stroke_color is None or self.stroke_color != 'icon':
 				ret += '.with_stroke({})'.format(color_type_to_cpp(self.stroke_color))
 			if self.stroke_width != DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
-				ret += '.with_stroke_width({})'.format(self.stroke_width)			
+				ret += '.with_stroke_width({})'.format(self.stroke_width)
+			if self.stroke_dashed is not None:
+				ret += '.with_stroke_style(StrokeStyle::DASHED)'			
 			return ret
 
 	"""
@@ -277,6 +287,8 @@ class SymbolElement:
 				ret += '.with_stroke({})'.format(color_type_to_cpp(self.stroke_color))
 			if self.stroke_width != DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
 				ret += '.with_stroke_width({})'.format(self.stroke_width)
+			if self.stroke_dashed is not None:
+				ret += '.with_stroke_style(StrokeStyle::DASHED)'				
 
 			return ret
 

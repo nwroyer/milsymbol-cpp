@@ -117,6 +117,7 @@ static constexpr Dimension dimension_from_symbol_set(SymbolSet set) noexcept {
 		case SymbolSet::SEA_SURFACE:
 			return Dimension::SEA_SURFACE;
 		case SymbolSet::SEA_SUBSURFACE:
+		case SymbolSet::MINE_WARFARE:
 			return Dimension::SEA_SUBSURFACE;
 		case SymbolSet::CYBERSPACE:
 			return Dimension::CYBERSPACE;
@@ -263,6 +264,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
 		}
+		else {
+			return {};
+		}
 	}
 
 	else if (symbol_set == SymbolSet::AIR_MISSILE) {
@@ -308,6 +312,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			});
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
+		}
+		else {
+			return {};
 		}
 	}
 
@@ -384,6 +391,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
 		}
+		else {
+			return {};
+		}
 	}
 
 	else if (symbol_set == SymbolSet::SPACE_MISSILE) {
@@ -422,6 +432,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			});
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
+		}
+		else {
+			return {};
 		}
 	}
 
@@ -846,6 +859,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
 		}
+		else {
+			return {};
+		}
 	}
 
 	else if (symbol_set == SymbolSet::LAND_CIVILIAN_UNIT_ORGANIZATION) {
@@ -905,6 +921,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			});
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
+		}
+		else {
+			return {};
 		}
 	}
 
@@ -1186,6 +1205,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
 		}
+		else {
+			return {};
+		}
 	}
 
 	else if (symbol_set == SymbolSet::LAND_INSTALLATION) {
@@ -1361,6 +1383,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
 		}
+		else {
+			return {};
+		}
 	}
 
 	else if (symbol_set == SymbolSet::DISMOUNTED_INDIVIDUAL) {
@@ -1480,6 +1505,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			});
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
+		}
+		else {
+			return {};
 		}
 	}
 
@@ -1636,6 +1664,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
 		}
+		else {
+			return {};
+		}
 	}
 
 	else if (symbol_set == SymbolSet::SEA_SUBSURFACE) {
@@ -1715,6 +1746,41 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			});
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
+		}
+		else {
+			return {};
+		}
+	}
+
+	else if (symbol_set == SymbolSet::MINE_WARFARE) {
+		if (symbol_type == IconType::ENTITY) {
+			const auto ENTITY_MAP = mapbox::eternal::map<int32_t, SymbolLayer>({
+				{static_cast<int32_t>(MINE_WARFARE_SEA_MINE_GENERAL), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN)}} /* sea mine, general */,
+				{static_cast<int32_t>(MINE_WARFARE_SEA_MINE_BOTTOM), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("m 74.8,125.2 50.4,0 0,12.6 -50.4,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN)}} /* sea mine, bottom */,
+				{static_cast<int32_t>(MINE_WARFARE_SEA_MINE_MOORED), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("m 75.5,136.8 49,0 M 100,130.5 l 0,7.3", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN)}} /* sea mine, moored */,
+				{static_cast<int32_t>(MINE_WARFARE_SEA_MINE_FLOATING), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("m 75,140 5,-10 5,10 5,-10 5,10 5,-10 5,10 5,-10 5,10 5,-10 5,10", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN)}} /* sea mine, floating */,
+				{static_cast<int32_t>(MINE_WARFARE_SEA_MINE_RISING), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("m 100,128 -10,15 20,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN)}} /* sea mine, rising */,
+				{static_cast<int32_t>(MINE_WARFARE_SEA_MINE_OTHER), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("m 130,100 15,0 M 70,100 l -15,0", BoundingBox(100, 100, 100, 100))}} /* sea mine, other */,
+				{static_cast<int32_t>(MINE_WARFARE_KINGFISHER), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("M 93.859375,115.0 L 90.34375,115.0 Q 88.578125,115.0 88.578125,113.28125 L 88.578125,83.71875 Q 88.578125,82.0 90.34375,82.0 L 93.859375,82.0 Q 95.609375,82.0 95.609375,83.71875 L 95.609375,95.921875 L 105.609375,83.234375 Q 106.703125,82.0 108.140625,82.0 L 112.03125,82.0 Q 113.140625,82.0 113.140625,82.828125 Q 113.140625,83.21875 112.75,83.671875 L 103.390625,95.53125 L 113.671875,113.265625 Q 113.953125,113.75 113.953125,114.078125 Q 113.953125,115.0 112.6875,115.0 L 108.359375,115.0 Q 106.796875,115.0 105.984375,113.59375 L 98.859375,101.28125 L 95.609375,105.390625 L 95.609375,113.25 Q 95.609375,115.0 93.859375,115.0", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}} /* Kingfisher */,
+				{static_cast<int32_t>(MINE_WARFARE_SMALL_OBJECT_MINE_LIKE), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("M 95.34375,112.0 Q 93.671875,112.0 92.53125,111.0 Q 92.40625,110.890625 92.40625,110.765625 Q 92.40625,110.625 92.625,110.515625 L 93.34375,110.09375 Q 93.515625,110.0 93.65625,110.0 Q 93.875,110.0 94.0,110.0 Q 94.40625,110.0 95.375,110.0 Q 96.125,110.0 96.5625,109.6875 Q 96.953125,109.421875 96.953125,109.015625 Q 96.953125,108.5 96.203125,108.234375 L 94.84375,107.671875 Q 93.109375,107.03125 93.109375,105.65625 Q 93.109375,104.34375 94.046875,103.546875 Q 94.6875,103.0 95.71875,103.0 Q 97.140625,103.0 97.921875,103.828125 Q 98.046875,103.953125 98.046875,104.09375 Q 98.046875,104.265625 97.84375,104.40625 L 97.109375,104.890625 Q 96.953125,105.0 96.796875,105.0 Q 96.578125,105.0 96.46875,105.0 Q 96.21875,105.0 95.71875,105.0 Q 95.328125,105.0 95.140625,105.140625 Q 94.984375,105.265625 94.984375,105.421875 Q 94.984375,105.8125 95.890625,106.09375 L 97.125,106.59375 Q 98.859375,107.3125 98.859375,108.875 Q 98.859375,110.0 98.046875,110.921875 Q 97.09375,112.0 95.34375,112.0 M 103.625,110.0 Q 104.640625,110.0 105.234375,109.34375 Q 105.890625,108.625 105.890625,107.5 Q 105.890625,106.34375 105.234375,105.65625 Q 104.609375,105.0 103.609375,105.0 Q 102.59375,105.0 102.0,105.65625 Q 101.34375,106.375 101.34375,107.5 Q 101.34375,108.65625 102.0,109.34375 Q 102.625,110.0 103.625,110.0 M 106.6875,110.578125 Q 105.53125,112.0 103.609375,112.0 Q 101.6875,112.0 100.53125,110.65625 Q 99.40625,109.359375 99.40625,107.5 Q 99.40625,105.625 100.53125,104.34375 Q 101.6875,103.0 103.609375,103.0 Q 105.53125,103.0 106.6875,104.421875 Q 107.8125,105.8125 107.8125,107.5 Q 107.8125,109.1875 106.6875,110.578125", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}} /* Small object, mine-like */,
+				{static_cast<int32_t>(MINE_WARFARE_EXERCISE_MINE_GENERAL), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("M 98.90625,112.0 L 94.296875,112.0 Q 93.828125,112.0 93.828125,111.53125 L 93.828125,103.46875 Q 93.828125,103.0 94.296875,103.0 L 98.734375,103.0 Q 99.203125,103.0 99.203125,103.53125 L 99.203125,104.46875 Q 99.203125,105.0 98.734375,105.0 L 95.703125,105.0 L 95.703125,107.0 L 97.765625,107.0 Q 98.234375,107.0 98.234375,107.53125 L 98.234375,108.46875 Q 98.234375,109.0 97.765625,109.0 L 95.703125,109.0 L 95.703125,110.0 L 98.90625,110.0 Q 99.375,110.0 99.375,110.53125 L 99.375,111.46875 Q 99.375,112.0 98.90625,112.0 M 101.453125,112.0 L 100.4375,112.0 Q 100.125,112.0 100.125,111.734375 Q 100.125,111.625 100.171875,111.53125 L 102.5625,107.59375 L 100.171875,103.609375 Q 100.125,103.484375 100.125,103.34375 Q 100.125,103.0 100.4375,103.0 L 101.515625,103.0 Q 101.9375,103.0 102.15625,103.546875 L 103.59375,105.921875 L 105.03125,103.53125 Q 105.265625,103.0 105.671875,103.0 L 106.6875,103.0 Q 107.015625,103.0 107.015625,103.34375 Q 107.015625,103.484375 106.953125,103.609375 L 104.5625,107.546875 L 106.953125,111.546875 Q 107.015625,111.640625 107.015625,111.75 Q 107.015625,112.0 106.6875,112.0 L 105.609375,112.0 Q 105.1875,112.0 104.96875,111.625 L 103.546875,109.234375 L 102.09375,111.625 Q 101.859375,112.0 101.453125,112.0", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}} /* exercise mine, general */,
+				{static_cast<int32_t>(MINE_WARFARE_EXERCISE_MINE_BOTTOM), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("m 74.8,125.2 50.4,0 0,12.6 -50.4,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("M 98.90625,112.0 L 94.296875,112.0 Q 93.828125,112.0 93.828125,111.53125 L 93.828125,103.46875 Q 93.828125,103.0 94.296875,103.0 L 98.734375,103.0 Q 99.203125,103.0 99.203125,103.53125 L 99.203125,104.46875 Q 99.203125,105.0 98.734375,105.0 L 95.703125,105.0 L 95.703125,107.0 L 97.765625,107.0 Q 98.234375,107.0 98.234375,107.53125 L 98.234375,108.46875 Q 98.234375,109.0 97.765625,109.0 L 95.703125,109.0 L 95.703125,110.0 L 98.90625,110.0 Q 99.375,110.0 99.375,110.53125 L 99.375,111.46875 Q 99.375,112.0 98.90625,112.0 M 101.453125,112.0 L 100.4375,112.0 Q 100.125,112.0 100.125,111.734375 Q 100.125,111.625 100.171875,111.53125 L 102.5625,107.59375 L 100.171875,103.609375 Q 100.125,103.484375 100.125,103.34375 Q 100.125,103.0 100.4375,103.0 L 101.515625,103.0 Q 101.9375,103.0 102.15625,103.546875 L 103.59375,105.921875 L 105.03125,103.53125 Q 105.265625,103.0 105.671875,103.0 L 106.6875,103.0 Q 107.015625,103.0 107.015625,103.34375 Q 107.015625,103.484375 106.953125,103.609375 L 104.5625,107.546875 L 106.953125,111.546875 Q 107.015625,111.640625 107.015625,111.75 Q 107.015625,112.0 106.6875,112.0 L 105.609375,112.0 Q 105.1875,112.0 104.96875,111.625 L 103.546875,109.234375 L 102.09375,111.625 Q 101.859375,112.0 101.453125,112.0", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}} /* exercise mine, bottom */,
+				{static_cast<int32_t>(MINE_WARFARE_EXERCISE_MINE_MOORED), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("m 75.5,136.8 49,0 M 100,130.5 l 0,7.3", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("M 98.90625,112.0 L 94.296875,112.0 Q 93.828125,112.0 93.828125,111.53125 L 93.828125,103.46875 Q 93.828125,103.0 94.296875,103.0 L 98.734375,103.0 Q 99.203125,103.0 99.203125,103.53125 L 99.203125,104.46875 Q 99.203125,105.0 98.734375,105.0 L 95.703125,105.0 L 95.703125,107.0 L 97.765625,107.0 Q 98.234375,107.0 98.234375,107.53125 L 98.234375,108.46875 Q 98.234375,109.0 97.765625,109.0 L 95.703125,109.0 L 95.703125,110.0 L 98.90625,110.0 Q 99.375,110.0 99.375,110.53125 L 99.375,111.46875 Q 99.375,112.0 98.90625,112.0 M 101.453125,112.0 L 100.4375,112.0 Q 100.125,112.0 100.125,111.734375 Q 100.125,111.625 100.171875,111.53125 L 102.5625,107.59375 L 100.171875,103.609375 Q 100.125,103.484375 100.125,103.34375 Q 100.125,103.0 100.4375,103.0 L 101.515625,103.0 Q 101.9375,103.0 102.15625,103.546875 L 103.59375,105.921875 L 105.03125,103.53125 Q 105.265625,103.0 105.671875,103.0 L 106.6875,103.0 Q 107.015625,103.0 107.015625,103.34375 Q 107.015625,103.484375 106.953125,103.609375 L 104.5625,107.546875 L 106.953125,111.546875 Q 107.015625,111.640625 107.015625,111.75 Q 107.015625,112.0 106.6875,112.0 L 105.609375,112.0 Q 105.1875,112.0 104.96875,111.625 L 103.546875,109.234375 L 102.09375,111.625 Q 101.859375,112.0 101.453125,112.0", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}} /* exercise mine, moored */,
+				{static_cast<int32_t>(MINE_WARFARE_EXERCISE_MINE_FLOATING), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("m 75,140 5,-10 5,10 5,-10 5,10 5,-10 5,10 5,-10 5,10 5,-10 5,10", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("M 98.90625,112.0 L 94.296875,112.0 Q 93.828125,112.0 93.828125,111.53125 L 93.828125,103.46875 Q 93.828125,103.0 94.296875,103.0 L 98.734375,103.0 Q 99.203125,103.0 99.203125,103.53125 L 99.203125,104.46875 Q 99.203125,105.0 98.734375,105.0 L 95.703125,105.0 L 95.703125,107.0 L 97.765625,107.0 Q 98.234375,107.0 98.234375,107.53125 L 98.234375,108.46875 Q 98.234375,109.0 97.765625,109.0 L 95.703125,109.0 L 95.703125,110.0 L 98.90625,110.0 Q 99.375,110.0 99.375,110.53125 L 99.375,111.46875 Q 99.375,112.0 98.90625,112.0 M 101.453125,112.0 L 100.4375,112.0 Q 100.125,112.0 100.125,111.734375 Q 100.125,111.625 100.171875,111.53125 L 102.5625,107.59375 L 100.171875,103.609375 Q 100.125,103.484375 100.125,103.34375 Q 100.125,103.0 100.4375,103.0 L 101.515625,103.0 Q 101.9375,103.0 102.15625,103.546875 L 103.59375,105.921875 L 105.03125,103.53125 Q 105.265625,103.0 105.671875,103.0 L 106.6875,103.0 Q 107.015625,103.0 107.015625,103.34375 Q 107.015625,103.484375 106.953125,103.609375 L 104.5625,107.546875 L 106.953125,111.546875 Q 107.015625,111.640625 107.015625,111.75 Q 107.015625,112.0 106.6875,112.0 L 105.609375,112.0 Q 105.1875,112.0 104.96875,111.625 L 103.546875,109.234375 L 102.09375,111.625 Q 101.859375,112.0 101.453125,112.0", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}} /* exercise mine, floating */,
+				{static_cast<int32_t>(MINE_WARFARE_EXERCISE_MINE_RISING), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("m 100,128 -10,15 20,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_DARK_GREEN), DrawCommand::path("M 98.90625,112.0 L 94.296875,112.0 Q 93.828125,112.0 93.828125,111.53125 L 93.828125,103.46875 Q 93.828125,103.0 94.296875,103.0 L 98.734375,103.0 Q 99.203125,103.0 99.203125,103.53125 L 99.203125,104.46875 Q 99.203125,105.0 98.734375,105.0 L 95.703125,105.0 L 95.703125,107.0 L 97.765625,107.0 Q 98.234375,107.0 98.234375,107.53125 L 98.234375,108.46875 Q 98.234375,109.0 97.765625,109.0 L 95.703125,109.0 L 95.703125,110.0 L 98.90625,110.0 Q 99.375,110.0 99.375,110.53125 L 99.375,111.46875 Q 99.375,112.0 98.90625,112.0 M 101.453125,112.0 L 100.4375,112.0 Q 100.125,112.0 100.125,111.734375 Q 100.125,111.625 100.171875,111.53125 L 102.5625,107.59375 L 100.171875,103.609375 Q 100.125,103.484375 100.125,103.34375 Q 100.125,103.0 100.4375,103.0 L 101.515625,103.0 Q 101.9375,103.0 102.15625,103.546875 L 103.59375,105.921875 L 105.03125,103.53125 Q 105.265625,103.0 105.671875,103.0 L 106.6875,103.0 Q 107.015625,103.0 107.015625,103.34375 Q 107.015625,103.484375 106.953125,103.609375 L 104.5625,107.546875 L 106.953125,111.546875 Q 107.015625,111.640625 107.015625,111.75 Q 107.015625,112.0 106.6875,112.0 L 105.609375,112.0 Q 105.1875,112.0 104.96875,111.625 L 103.546875,109.234375 L 102.09375,111.625 Q 101.859375,112.0 101.453125,112.0", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}} /* exercise mine, rising */,
+				{static_cast<int32_t>(MINE_WARFARE_NEUTRALIZED_MINE_GENERAL), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 135,65 -70,70 m 0,-70 70,70", BoundingBox(100, 100, 100, 100)).with_stroke_width(5.0)}} /* neutralized mine, general */,
+				{static_cast<int32_t>(MINE_WARFARE_NEUTRALIZED_MINE_BOTTOM), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 74.8,125.2 50.4,0 0,12.6 -50.4,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 135,65 -70,70 m 0,-70 70,70", BoundingBox(100, 100, 100, 100)).with_stroke_width(5.0)}} /* neutralized mine, bottom */,
+				{static_cast<int32_t>(MINE_WARFARE_NEUTRALIZED_MINE_MOORED), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 75.5,136.8 49,0 M 100,130.5 l 0,7.3", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 135,65 -70,70 m 0,-70 70,70", BoundingBox(100, 100, 100, 100)).with_stroke_width(5.0)}} /* neutralized mine, moored */,
+				{static_cast<int32_t>(MINE_WARFARE_NEUTRALIZED_MINE_FLOATING), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 75,140 5,-10 5,10 5,-10 5,10 5,-10 5,10 5,-10 5,10 5,-10 5,10", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 135,65 -70,70 m 0,-70 70,70", BoundingBox(100, 100, 100, 100)).with_stroke_width(5.0)}} /* neutralized mine, floating */,
+				{static_cast<int32_t>(MINE_WARFARE_NEUTRALIZED_MINE_RISING), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 100,128 -10,15 20,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 135,65 -70,70 m 0,-70 70,70", BoundingBox(100, 100, 100, 100)).with_stroke_width(5.0)}} /* neutralized mine, rising */,
+				{static_cast<int32_t>(MINE_WARFARE_NEUTRALIZED_MINE_OTHER), SymbolLayer{DrawCommand::path("M 115.9,73 126.5,62.4 137.1,73 126.5,83.6 m -53,0 L 62.9,73 73.5,62.4 84.1,73 m 8.4,-3 0,-15 15,0 0,15 m 22.5,30 c 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 C 116.6,70 130,83.4 130,100 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 100,128 -10,15 20,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_BRIGHT_GREEN), DrawCommand::path("m 130,100 15,0 M 70,100 l -15,0", BoundingBox(100, 100, 100, 100)), DrawCommand::path("m 135,65 -70,70 m 0,-70 70,70", BoundingBox(100, 100, 100, 100)).with_stroke_width(5.0)}} /* neutralized mine, other */,
+				{static_cast<int32_t>(MINE_WARFARE_UNEXPLODED_ORDNANCE), SymbolLayer{DrawCommand::path("m 85,65 30,0 20,20 0,30 -20,20 -30,0 -20,-20 0,-30 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_RED), DrawCommand::path("M 94.09375,109.171875 Q 93.203125,110.0 91.75,110.0 Q 90.296875,110.0 89.40625,109.171875 Q 88.328125,108.171875 88.328125,106.6875 L 88.328125,101.46875 Q 88.328125,101.0 88.796875,101.0 L 89.734375,101.0 Q 90.203125,101.0 90.203125,101.453125 L 90.203125,106.40625 Q 90.203125,107.21875 90.6875,107.625 Q 91.15625,108.0 91.75,108.0 Q 92.34375,108.0 92.8125,107.625 Q 93.296875,107.234375 93.296875,106.40625 L 93.296875,101.453125 Q 93.296875,101.0 93.765625,101.0 L 94.703125,101.0 Q 95.171875,101.0 95.171875,101.46875 L 95.171875,106.6875 Q 95.171875,108.171875 94.09375,109.171875 M 97.953125,110.0 L 96.9375,110.0 Q 96.625,110.0 96.625,109.734375 Q 96.625,109.625 96.671875,109.53125 L 99.0625,105.59375 L 96.671875,101.609375 Q 96.625,101.484375 96.625,101.34375 Q 96.625,101.0 96.9375,101.0 L 98.015625,101.0 Q 98.4375,101.0 98.65625,101.546875 L 100.09375,103.921875 L 101.53125,101.53125 Q 101.765625,101.0 102.171875,101.0 L 103.1875,101.0 Q 103.515625,101.0 103.515625,101.34375 Q 103.515625,101.484375 103.453125,101.609375 L 101.0625,105.546875 L 103.453125,109.546875 Q 103.515625,109.640625 103.515625,109.75 Q 103.515625,110.0 103.1875,110.0 L 102.109375,110.0 Q 101.6875,110.0 101.46875,109.625 L 100.046875,107.234375 L 98.59375,109.625 Q 98.359375,110.0 97.953125,110.0 M 108.125,108.0 Q 109.140625,108.0 109.734375,107.34375 Q 110.390625,106.625 110.390625,105.5 Q 110.390625,104.34375 109.734375,103.65625 Q 109.109375,103.0 108.109375,103.0 Q 107.09375,103.0 106.5,103.65625 Q 105.84375,104.375 105.84375,105.5 Q 105.84375,106.65625 106.5,107.34375 Q 107.125,108.0 108.125,108.0 M 111.1875,108.578125 Q 110.03125,110.0 108.109375,110.0 Q 106.1875,110.0 105.03125,108.65625 Q 103.90625,107.359375 103.90625,105.5 Q 103.90625,103.625 105.03125,102.34375 Q 106.1875,101.0 108.109375,101.0 Q 110.03125,101.0 111.1875,102.421875 Q 112.3125,103.8125 112.3125,105.5 Q 112.3125,107.1875 111.1875,108.578125", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::MINE_RED).with_stroke(ColorType::NONE)}} /* unexploded ordnance */
+			});
+			auto it = ENTITY_MAP.find(code);
+			return (it != ENTITY_MAP.end() ? it->second : SymbolLayer{});
+		}
+		else {
+			return {};
 		}
 	}
 
@@ -1908,6 +1974,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
 		}
+		else {
+			return {};
+		}
 	}
 
 	else if (symbol_set == SymbolSet::CYBERSPACE) {
@@ -1982,6 +2051,9 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 			});
 			auto it = MODIFIER_2_MAP.find(code);
 			return (it != MODIFIER_2_MAP.end() ? it->second : SymbolLayer{});
+		}
+		else {
+			return {};
 		}
 	}
 
@@ -2087,6 +2159,15 @@ return {110000 /*military*/, 110100 /*submarine*/, 110101 /*submarine, surfaced*
 return {1 /*antisubmarine warfare*/, 2 /*auxiliary*/, 3 /*command and control*/, 4 /*intelligence, surveillance, and reconnaissance*/, 5 /*mine countermeasures*/, 6 /*mine warfare*/, 7 /*surface warfare*/, 8 /*attack*/, 9 /*ballistic missile*/, 10 /*guided missile*/, 11 /*other guided missile*/, 12 /*special operations forces*/, 13 /*possible submarine low 1*/, 14 /*possible submarine low 2*/, 15 /*possible submarine high 3*/, 16 /*possible submarine high 4*/, 17 /*probable submarine*/, 18 /*certain submarine*/, 19 /*anti-torpedo torpedo*/, 20 /*hijacking*/, 21 /*hijacker*/, 22 /*cyberspace*/};		}
 		else if (symbol_type == IconType::MODIFIER_2) {
 return {1 /*air independent propulsion*/, 2 /*diesel electric, general*/, 3 /*diesel type 1*/, 4 /*diesel type 2*/, 5 /*diesel type 3*/, 6 /*nuclear powered, general*/, 7 /*nuclear type 1*/, 8 /*nuclear type 2*/, 9 /*nuclear type 3*/, 10 /*nuclear type 4*/, 11 /*nuclear type 5*/, 12 /*nuclear type 6*/, 13 /*nuclear type 7*/, 14 /*autonomous control*/, 15 /*remotely-piloted*/, 16 /*expendable*/, 17 /*cyberspace*/};		}
+	}
+
+	else if (symbol_set == SymbolSet::MINE_WARFARE) {
+		if (symbol_type == IconType::ENTITY) {
+return {110000 /*sea mine, general*/, 110100 /*sea mine, bottom*/, 110200 /*sea mine, moored*/, 110300 /*sea mine, floating*/, 110400 /*sea mine, rising*/, 110500 /*sea mine, other*/, 110600 /*Kingfisher*/, 110700 /*Small object, mine-like*/, 110800 /*exercise mine, general*/, 110801 /*exercise mine, bottom*/, 110802 /*exercise mine, moored*/, 110803 /*exercise mine, floating*/, 110804 /*exercise mine, rising*/, 110900 /*neutralized mine, general*/, 110901 /*neutralized mine, bottom*/, 110902 /*neutralized mine, moored*/, 110903 /*neutralized mine, floating*/, 110904 /*neutralized mine, rising*/, 110905 /*neutralized mine, other*/, 120000 /*unexploded ordnance*/};		}
+		else if (symbol_type == IconType::MODIFIER_1) {
+return {};		}
+		else if (symbol_type == IconType::MODIFIER_2) {
+return {};		}
 	}
 
 	else if (symbol_set == SymbolSet::ACTIVITIES) {

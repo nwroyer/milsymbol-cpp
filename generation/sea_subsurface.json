@@ -2,6 +2,7 @@
 	"set": "35",
 	"name": "sea subsurface",
 	"dimension": "sea subsurface",
+	"modcats": ["crime", "capability", "ship propulsion"],
 	"IC": {
 		"110000": {
 			"names": ["military"],

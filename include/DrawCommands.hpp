@@ -107,8 +107,9 @@ struct DrawInstructionBase {
         return *static_cast<Derived*>(this);
     }
 
-    inline constexpr Derived& with_stroke(ColorType use_stroke) noexcept {
+    inline constexpr Derived& with_stroke(ColorType use_stroke, StrokeStyle stroke_style) noexcept {
         this->stroke_color = use_stroke;
+        this->stroke_style = stroke_style;
         return *static_cast<Derived*>(this);
     }
 
@@ -541,20 +542,21 @@ struct DrawCommand {
         return *this;
     }
 
-    inline constexpr DrawCommand& with_stroke(ColorType use_stroke) noexcept {
+    inline constexpr DrawCommand& with_stroke(ColorType use_stroke, StrokeStyle stroke_style = StrokeStyle::SOLID) noexcept {
         switch(get_type()) {
         case Type::PATH:
-            std::get<DrawInstructionPath>(variant).with_stroke(use_stroke);
+            std::get<DrawInstructionPath>(variant).with_stroke(use_stroke, stroke_style);
             break;
         case Type::CIRCLE:
-            std::get<DrawInstructionCircle>(variant).with_stroke(use_stroke);
+            std::get<DrawInstructionCircle>(variant).with_stroke(use_stroke, stroke_style);
             break;
         case Type::TEXT:
-            std::get<DrawInstructionText>(variant).with_stroke(use_stroke);
+            std::get<DrawInstructionText>(variant).with_stroke(use_stroke, stroke_style);
             break;
         default:
             break;
         }
+
         return *this;
     }
 

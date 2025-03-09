@@ -13,7 +13,11 @@ enum class ColorType {
     ICON = 0, /// Foreground color for an icon
     ICON_FILL, /// The background full color for an icon
     WHITE, /// A white color for an icon
-    YELLOW /// A yellow color for an icon, used primarily for air/space missile icons
+    YELLOW, /// A yellow color for an icon, used primarily for air/space missile icons
+
+    MINE_RED,
+    MINE_DARK_GREEN,
+    MINE_BRIGHT_GREEN
 };
 
 enum class ColorIndex {
@@ -201,6 +205,15 @@ static constexpr Color get_color(ColorType color_type,
         break;
     case ColorType::YELLOW:
         return color_mode == ColorMode::UNFILLED ? Color{-1, -1, -1} : COLORS[static_cast<int>(ColorIndex::LIGHT)][static_cast<int>(ColorSubIndex::UNKNOWN)];
+        break;
+    case ColorType::MINE_RED:
+        return Color{255, 0, 0};
+        break;
+    case ColorType::MINE_DARK_GREEN:
+        return Color{0, 130, 24};
+        break;
+    case ColorType::MINE_BRIGHT_GREEN:
+        return Color{0, 255, 0};
         break;
     case ColorType::NONE:
     default:
