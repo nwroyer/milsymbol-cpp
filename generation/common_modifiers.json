@@ -96,7 +96,7 @@
 		"142": {"names": ["decontamination", "decon"], "cat": "CBRN", "icon": [{"textm1": "D"}]},
 
 		"143": {"names": ["civilian"], "cat": "organization", "civ": true, "icon": [{"textm1": "CIV"}]},
-		"144": {"names": ["government organization"], "cat": "organization", "icon": [{"textm1": "GO"}]},
+		"144": {"names": ["government organization", "government"], "cat": "organization", "icon": [{"textm1": "GO"}]},
 
 		"145": {"names": ["accident"], "cat": "composite loss", "icon": [{"textm1": "ACC"}]},
 

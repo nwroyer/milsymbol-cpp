@@ -2,6 +2,7 @@
 	"set": "11",
 	"name": "land civilian unit/organization",
 	"dimension": "land unit",
+	"modcats": ["capability"],
 	"IC": {
 		"110000": {
 			"names": "civilian",
@@ -11,7 +12,7 @@
 		"110100": {
 			"names": ["environmental protection"],
 			"civ": true,
-			"icon": [{"d": "m 100,80 -10,15 5,0 -10,10 5,0 -10,10 15,0 0,5 10,0 0,-5 15,0 -10,-10 5,0 -10,-10 5,0 z"}]
+			"icon": [{"fill": "white", "d": "m 100,80 -10,15 5,0 -10,10 5,0 -10,10 15,0 0,5 10,0 0,-5 15,0 -10,-10 5,0 -10,-10 5,0 z"}]
 		},
 		"110200": {
 			"names": ["governmental organization"],
@@ -87,10 +88,16 @@
 	"M1": {
 		"01": {
 			"names": ["assassination"],
+			"cat": "crime",
+			"until": "2525E",
+			"new": "C-1-146",
 			"icon": [{"textm1": "AS"}]
 		},
 		"02": {
-			"names": ["execution (wrongful killing)"],
+			"names": ["execution (wrongful killing)", "execution"],
+			"cat": "crime",
+			"until": "2525E",
+			"new": "C-1-147",
 			"icon": [{"textm1": "EX"}]
 		},
 		"03": {
@@ -99,104 +106,151 @@
 		},
 		"04": {
 			"names": ["hijacking", "hijacked"],
+			"cat": "crime",
+			"until": "2525E",
+			"new": "C-1-150",
 			"icon": [{"textm1": "H"}]
 		},
 		"05": {
 			"names": ["kidnapping"],
+			"cat": "crime",
+			"until": "2525E",
+			"new": "C-1-148",
 			"icon": [{"textm1": "K"}]
 		},
 		"06": {
 			"names": ["piracy"],
+			"cat": "crime",
+			"until": "2525E",
+			"new": "C-1-149",
 			"icon": [{"textm1": "PI"}]
 		},
 		"07": {
 			"names": ["rape"],
+			"cat": "crime",
+			"until": "2525E",
+			"new": "C-1-150",
 			"icon": [{"textm1": "RA"}]
 		},
 		"08": {
 			"names": ["civilian"],
+			"cat": "organization",
+			"until": "2525E",
+			"new": "C-1-143",
 			"icon": [{"textm1": "CIV"}]
 		},
 		"09": {
 			"names": ["displaced persons", "refugees", "evacuees"],
+			"cat": "organization",
 			"icon": [{"textm1": "DPRE"}]
 		},
 		"10": {
-			"names": ["foreigh fighters"],
+			"names": ["foreign fighters", "foreign fighter"],
+			"cat": "organization",
 			"icon": [{"textm1": "FF"}]
 		},
 		"11": {
 			"names": ["gang member", "gang"],
+			"cat": "organization",
 			"icon": [{"textm1": "GANG"}]
 		},
 		"12": {
 			"names": ["government organization", "government"],
+			"until": "2525E",
+			"new": "C-1-144",
+			"cat": "organization",
 			"icon": [{"textm1": "GO"}]
 		},
 		"13": {
-			"names": ["leader"],
+			"names": ["leader", "leadership"],
+			"cat": "organization",
 			"icon": [{"textm1": "LDR"}]
 		},
 		"14": {
 			"names": ["nongovernmental organization"],
+			"cat": "organization",
 			"icon": [{"textm1": "NGO"}]
 		},
 		"15": {
 			"names": ["unwilling recruit", "coerced recruit"],
+			"cat": "organization",
 			"icon": [{"textm1": "C"}]
 		},
 		"16": {
 			"names": ["willing recruit"],
+			"cat": "organization",
 			"icon": [{"textm1": "WR"}]
 		},
 		"17": {
 			"names": ["religious"],
+			"cat": "organization",
 			"icon": [{"textm1": "REL"}]
 		},
 		"18": {
 			"names": ["targeted individual", "targeted organization"],
+			"cat": "organization",
 			"icon": [{"textm1": "TGT"}]
 		},
 		"19": {
 			"names": ["terrorist", "terror"],
+			"cat": "organization",
 			"icon": [{"textm1": "TER"}]
 		},
 		"20": {
 			"names": ["speaker"],
+			"cat": "organization",
 			"icon": [{"textm1": "SPK"}]
 		},
 		"21": {
 			"names": ["accident"],
+			"cat": "composite loss",
+			"until": "2525E",
+			"new": "C-1-145",
 			"icon": [{"textm1": "ACC"}]
 		},
 		"22": {
 			"names": ["combat"],
+			"cat": "composite loss",
+			"until": "2525E",
+			"new": "C-1-121",			
 			"icon": [{"textm1": "CBT"}]
 		},
 		"23": {
 			"names": ["other"],
+			"cat": "organization",
 			"icon": [{"textm1": "OTH"}]
 		},
 		"24": {
 			"names": ["loot", "looting", "looter"],
+			"cat": "organization",
 			"icon": [{"textm1": "LOOT"}]
 		},
 		"25": {
 			"names": ["hijacker"],
+			"cat": "crime",
+			"until": "2525E",
+			"new": "C-1-150",
 			"icon": [{"textm1": "HJ"}]
 		},
 		"26": {
 			"names": ["cyberspace", "cyber"],
+			"cat": "organization",
+			"new": "C-1-115",
+			"until": "2525E",
 			"icon": [{"textm1": "CYB"}]
 		}
 	}, 
 	"M2": {
 		"01": {
 			"names": ["leader"],
+			"cat": "organization",
 			"icon": [{"textm2": "LDR"}]
 		},
 		"02": {
 			"names": ["cyberspace"],
+			"cat": "organization",
+			"new": "C-2-122",
+			"until": "2525E",			
 			"icon": [{"textm2": "CYB"}]
 		}
 	}
