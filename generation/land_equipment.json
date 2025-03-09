@@ -2,6 +2,7 @@
 	"set": "15",
 	"name": "land equipment",
 	"dimension": "land equipment",
+	"modcats": ["capability", "mobility", "crime"],
 	"IC": {
 		".light": {
 			"names": [".light"],
@@ -500,6 +501,7 @@
 		},
 		"120200": {
 			"names": ["tank"],
+			"match weight": 0,
 			"icon": [{"d": "m 70,80 60,0 m -60,40 60,0 m -60,-50 0,60 0,0 m 60,-60 0,60"}]
 		},
 		"120201": {
@@ -516,10 +518,12 @@
 		},
 		"120300": {
 			"names": ["tank recovery vehicle"],
+			"until": "2525E",
 			"icon": [{"icon": "120200"}, {"icon": ".tank_recovery"}]
 		},
 		"120301": {
 			"names": ["light tank recovery vehicle"],
+			"until": "2525E",
 			"icon": [
 				{"icon": "120200"}, 
 				{"icon": ".tank_recovery"},
@@ -528,6 +532,7 @@
 		},
 		"120301": {
 			"names": ["light tank recovery vehicle"],
+			"until": "2525E",
 			"icon": [
 				{"icon": "120200"}, 
 				{"icon": ".tank_recovery"},
@@ -536,6 +541,7 @@
 		},
 		"120302": {
 			"names": ["medium tank recovery vehicle"],
+			"until": "2525E",
 			"icon": [
 				{"icon": "120200"}, 
 				{"icon": ".tank_recovery"},
@@ -544,6 +550,7 @@
 		},
 		"120303": {
 			"names": ["heavy tank recovery vehicle"],
+			"until": "2525E",
 			"icon": [
 				{"icon": "120200"}, 
 				{"icon": ".tank_recovery"},
@@ -553,9 +560,13 @@
 		"130000": {
 			"names": ["engineer vehicle and equipment"],
 			"icon": [
-				{"icon": "120105"},
-				{"scale": "0.7", "items": [
-					{"d": "M60,120 L60,80 140,80 140,120 M100,80 L100,110"}
+				{"d": "m 60,120 80,0 M 120,80 c 25,0.2 25,40 0,40 l -40,0 C 55,120 55,80 80,80 Z"},
+				{"r": 7, "pos": [80, 130]},
+				{"r": 7, "pos": [120, 130]},
+				{"translate": [30, 30], "items": [
+					{"scale": "0.7", "items": [
+						{"d": "M60,120 L60,80 140,80 140,120 M100,80 L100,110"}
+					]}
 				]}
 			]
 		},
@@ -565,6 +576,7 @@
 		},
 		"130200": {
 			"names": ["bridge mounted on utility vehicle"],
+			"until": "2525E",
 			"icon": [
 				{"icon": "140100"},
 				{"scale": 0.8, "items": [{"icon": "130100"}]}
@@ -598,11 +610,11 @@
 			]
 		},
 		"130800": {
-			"names": ["earthmover"],
+			"names": ["earthmover", "dozer", "bulldozer"],
 			"icon": [{"d": "m 100,60 0,20 m -25,-15 5,-5 40,0 5,5 m -55,15 60,0 m -60,40 60,0 m 0,-50 0,60 m -60,-60 0,60 0,0"}]
 		},
 		"130801": {
-			"names": ["multifunctional earthmover/digger"],
+			"names": ["multifunctional earthmover/digger", "multifunctional earthmover", "multifunctional bulldozer"],
 			"icon": [{"icon": "130800"}, {"text": "MF"}]
 		},
 		"130900": {
@@ -611,6 +623,7 @@
 		},
 		"130901": {
 			"names": ["trailer-mounted mine clearing equipment"],
+			"until": "2525E",
 			"icon": [
 				{"icon": "130900"}, 
 				{"translate": [0, -10], "items": [{"icon": ".wheeled_limited"}]}]
@@ -668,7 +681,7 @@
 			]
 		},
 		"131100": {
-			"names": ["dozer", "bulldozer"],
+			"names": ["dozer tank chassis", "bulldozer tank chassis"],
 			"icon": [{"d": "m 90,60 20,0 m -10,0 0,20 m -30,0 60,0 m -60,-10 0,60 0,0 m 60,-60 0,60 m -60,-10 60,0"}]
 		},
 		"131101": {
@@ -794,7 +807,7 @@
 		},
 
 		"140700": {
-			"names": ["limited cross-country truck"],
+			"names": ["limited cross-country truck", "truck"],
 			"icon": [{"icon": "140100"}, {"icon": ".wheeled_limited"}]
 		},
 		"140800": {
@@ -857,6 +870,7 @@
 		},
 		"150200": {
 			"names": ["railcar"],
+			"until": "2525E",
 			"icon": [
 				{"icon": "140100"},
 				{"r": 5, "pos": [75, 135]},
@@ -897,16 +911,19 @@
 
 		"160101": {
 			"names": ["compact car"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160100"}, {"icon": ".civ_vic_light"}]
 		},
 		"160102": {
 			"names": ["midsize car"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160100"}, {"icon": ".civ_vic_medium"}]
 		},
 		"160103": {
 			"names": ["sedan", "heavy car"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160100"}, {"icon": ".civ_vic_heavy"}]
 		},
@@ -921,16 +938,19 @@
 		},
 		"160201": {
 			"names": ["pickup truck", "light truck"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160200"}, {"icon": ".civ_vic_light"}]
 		},
 		"160202": {
 			"names": ["small truck"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160200"}, {"icon": ".civ_vic_medium"}]
 		},
 		"160203": {
 			"names": ["large truck"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160200"}, {"icon": ".civ_vic_heavy"}]
 		},
@@ -944,16 +964,19 @@
 		},
 		"160301": {
 			"names": ["van"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160300"}, {"icon": ".civ_vic_light"}]
 		},
 		"160302": {
 			"names": ["small bus"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160300"}, {"icon": ".civ_vic_medium"}]
 		},
 		"160303": {
 			"names": ["large bus"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160300"}, {"icon": ".civ_vic_heavy"}]
 		},
@@ -968,16 +991,19 @@
 		},
 		"160401": {
 			"names": ["sport utility vehicle", "SUV"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160400"}, {"icon": ".civ_vic_light"}]
 		},
 		"160402": {
 			"names": ["small box truck"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160400"}, {"icon": ".civ_vic_medium"}]
 		},
 		"160403": {
 			"names": ["large box truck"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160400"}, {"icon": ".civ_vic_heavy"}]
 		},
@@ -992,16 +1018,19 @@
 
 		"160501": {
 			"names": ["light jeep type vehicle", "small jeep type vehicle"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160500"}, {"icon": ".civ_vic_light"}]
 		},
 		"160502": {
 			"names": ["medium jeep type vehicle"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160500"}, {"icon": ".civ_vic_medium"}]
 		},
 		"160503": {
 			"names": ["heavy jeep type vehicle", "large jeep type vehicle"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160500"}, {"icon": ".civ_vic_heavy"}]
 		},
@@ -1025,10 +1054,12 @@
 				"small tractor trailer truck with box"
 			],
 			"civ": true,
+			"until": "2525E",
 			"icon": [{"icon": "160600"}, {"icon": ".civ_vic_light"}]
 		},
 		"160602": {
 			"names": ["medium tractor trailer truck with box"],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160600"}, {"icon": ".civ_vic_medium"}]
 		},
@@ -1037,6 +1068,7 @@
 				"heavy tractor trailer truck with box",
 				"large tractor trailer truck with box"
 			],
+			"until": "2525E",
 			"civ": true,
 			"icon": [{"icon": "160600"}, {"icon": ".civ_vic_heavy"}]
 		},
@@ -1055,11 +1087,13 @@
 				"small tractor trailer truck with flatbed"
 			],
 			"civ": true,
+			"until": "2525E",
 			"icon": [{"icon": "160700"}, {"icon": ".civ_vic_light"}]
 		},
 		"160702": {
 			"names": ["medium tractor trailer truck with flatbed"],
 			"civ": true,
+			"until": "2525E",
 			"icon": [{"icon": "160700"}, {"icon": ".civ_vic_medium"}]
 		},
 		"160703": {
@@ -1068,6 +1102,7 @@
 				"large tractor trailer truck with flatbed"
 			],
 			"civ": true,
+			"until": "2525E",
 			"icon": [{"icon": "160700"}, {"icon": ".civ_vic_heavy"}]
 		},
 
@@ -1140,8 +1175,6 @@
 			"names": ["US Marshals Service"],
 			"icon": [{"fill": true, "stroke": false, "d": "m 100,70 7.1,20.3 21.5,0.4 -17.1,13 6.2,20.6 L 100,112 82.4,124.3 88.6,103.7 71.5,90.7 92.9,90.3 z m 0,-5 c -19.3,0 -35,15.7 -35,35 0,19.3 15.7,35 35,35 19.3,0 35,-15.7 35,-35 0,-19.3 -15.7,-35 -35,-35 z m 0,5 c 16.6,0 30,13.4 30,30 0,16.6 -13.4,30 -30,30 -16.6,0 -30,-13.4 -30,-30 0,-16.6 13.4,-30 30,-30 z"}]			
 		},
-
-
 
 
 		"180000": {
@@ -1247,7 +1280,7 @@
 			"icon": [{"d": "m 80,82.4 45,-2 -4,37 m -6,-1 0,-35 -34,9 m 12,21 0,8 M 80,82.4 c 0,25 16,35 41,35"}]
 		},
 		"201000": {
-			"names": ["laser"],
+			"names": ["laser", "directed energy"],
 			"icon": [{"d": "m 100,55 0,25 10,5 -20,5 20,5 -20,5 10,5 0,15 10,5 -20,5 20,5 -20,5 20,5 M 90,65 100,55 110,65"}]
 		},
 		"201100": {
@@ -1264,7 +1297,8 @@
 		},
 		"201301": {
 			"names": ["civilian tent"],
-			"icon": [{"d": "m 75,120 10,-30 15,-10 15,10 10,30 z"}]
+			"civ": true,
+			"icon": [{"fill": "white", "d": "m 75,120 10,-30 15,-10 15,10 10,30 z"}]
 		},
 		"201302": {
 			"names": ["military tent"],
@@ -1280,6 +1314,7 @@
 		},
 		"201501": {
 			"names": ["medical evacuation helicopter"],
+			"until": "2525E",
 			"icon": [{"fill": true, "d": "M60,85 l40,15 40,-15 0,30 -40,-15 -40,15 z M95.5,80 l9,0 0,-9 9,0 0,-9 -9,0 0,-9 -9,0 0,9 -9,0 0,9 9,0 Z"}]
 		},
 
@@ -1288,7 +1323,8 @@
 
 		"210000": {
 			"names": ["land mines"],
-			"icon": []
+			"match weight": -1,
+			"icon": [{"r": 22, "pos": [100, 100]}]
 		},
 		"210100": {
 			"names": ["land mine"],
@@ -1321,7 +1357,8 @@
 
 		"220000": {
 			"names": ["sensors"],
-			"icon": []
+			"icon": [],
+			"match weight": -1
 		},
 		"220100": {
 			"names": ["sensor"],
@@ -1372,43 +1409,65 @@
 	"M1": {
 		"01": {
 			"names": ["biological"],
+			"cat": "sensor type",
 			"icon": [{"textm1": "B"}]
 		},
 		"02": {
 			"names": ["chemical"],
+			"cat": "sensor type",
+			"until": "2525E",
+			"new": "C-1-138",
 			"icon": [{"textm1": "C"}]
 		},
 		"03": {
 			"names": ["early warning radar"],
+			"cat": "sensor type",
 			"icon": [{"textm1": "EWR"}]
 		},
 		"04": {
 			"names": ["intrusion"],
+			"cat": "sensor type",
 			"icon": [{"textm1": "I"}]
 		},
 		"05": {
 			"names": ["nuclear"],
+			"cat": "sensor type",
+			"until": "2525E",
+			"new": "C-1-141",			
 			"icon": [{"textm1": "N"}]
 		},
 		"06": {
 			"names": ["radiological"],
+			"cat": "sensor type",
+			"until": "2525E",
+			"new": "C-1-140",				
 			"icon": [{"textm1": "RAD"}]
 		},
 		"07": {
 			"names": ["upgraded early warning radar"],
+			"cat": "sensor type",
 			"icon": [{"textm1": "UEW"}]
 		},
 		"08": {
 			"names": ["hijacking/hijacked"],
+			"cat": "crime",
+			"until": "2525E",
+			"new": "C-1-150",
 			"icon": [{"textm1": "H"}]
 		},
 		"09": {
 			"names": ["civilian"],
 			"civ": true,
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-143",
 			"icon": [{"textm1": "CIV"}]
 		},
 		"10": {
 			"names": ["tilt-rotor"],
+			"cat": "mobility",
+			"until": "2525E",
+			"new": "C-1-104",			
 			"icon": [{"textm1": "TR"}]
 		},
 		"11": {
@@ -1425,64 +1484,109 @@
 		},
 		"14": {
 			"names": ["bridge"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-109",
 			"icon": [{"d": "m 80,80 5,-5 30,0 5,5 m -40,-20 5,5 30,0 5,-5"}]
 		},
 		"15": {
 			"names": ["cyberspace"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-115",			
 			"icon": [{"textm1": "CYB"}]
 		},
 		"16": {
 			"names": ["armored"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-107",
 			"icon": [{"d": "m 90,60 20,0 c 10,0 10,15 0,15 L 90,75 C 80,75 80,60 90,60"}]
 		},
 		"17": {
 			"names": ["attack"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-106",
 			"icon": [{"textm1": "A"}]
 		},
 		"18": {
 			"names": ["cargo"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-110",
 			"icon": [{"d": "m 100,60 0,15 -15,0 0,-15 30,0 0,15 -15,0"}]
 		},
 		"19": {
 			"names": ["maintenance"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-126",
 			"icon": [{"d": "m 84,70 32,0 m 4,-5 c -5,0 -5,10 0,10 M 80,65 c 5,0 5,10 0,10"}]
 		},
 		"20": {
 			"names": ["medevac"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-127",
 			"icon": [{"stroke": false, "fill": true, "d": "M95.5,80 l9,0 0,-9 9,0 0,-9 -9,0 0,-9 -9,0 0,9 -9,0 0,9 9,0 Z"}]
 		},
 		"21": {
 			"names": ["petroleum, oil, and lubricants", "POL"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-135",
 			"icon": [{"d": "m 100,75 0,-10 -6,-10 12,0 -6,10"}]
 		},
 		"22": {
 			"names": ["utility"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-111",
 			"icon": [{"textm1": "U"}]
 		},
 		"23": {
 			"names": ["water"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-136",
 			"icon": [{"d": "m 90,55 20,0 m -10,10 0,-10 m -25,10 40,0 c 10,0 15,5 15,10"}]
 		},
 		"23": {
 			"names": ["robotic"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-101",
 			"icon": [{"fill": true, "stroke": false, "d": "m 100,52.7 14.9,14.8 c 0.4,-0.3 0.9,-0.4 1.4,-0.4 1.5,0 2.7,1.2 2.7,2.7 0,1.4 -1.2,2.7 -2.7,2.7 -1.5,0 -2.7,-1.3 -2.7,-2.7 0,-0.4 0.1,-0.7 0.2,-1 l -10.4,-5.2 -2.5,8.6 c 0.2,0.1 0.4,0.2 0.6,0.3 0.7,0.5 1.2,1.3 1.2,2.3 0,1.5 -1.2,2.7 -2.7,2.7 -0.55,0 -1.06,-0.2 -1.49,-0.5 -0.73,-0.4 -1.22,-1.3 -1.22,-2.2 0,-1.2 0.77,-2.2 1.85,-2.6 l -2.53,-8.6 -10.42,5.2 c 0.12,0.3 0.18,0.6 0.18,1 0,1.5 -1.21,2.7 -2.7,2.7 -1.49,0 -2.7,-1.2 -2.7,-2.7 0,-1.5 1.21,-2.7 2.7,-2.7 0.52,0 1.01,0.1 1.42,0.4 l 14.9,-14.8 0,0 0,0 z"}]
 		}
 	},
 	"M2": {
 		"01": {
 			"names": ["cyberspace"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-122",
 			"icon": [{"textm2": "CYB"}]
 		},
 		"02": {
 			"names": ["light"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-121",
 			"icon": [{"textm2": "L"}]
 		},
 		"03": {
 			"names": ["medium"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-119",
 			"icon": [{"textm2": "M"}]
 		},
 		"04": {
 			"names": ["railway"],
+			"cat": "mobility",
+			"until": "2525E",
+			"new": "C-1-102",
 			"icon": [
 				{"d": "M60,120 l80,0"},
 				{"r": 5, "pos": [65, 125]},
@@ -1493,10 +1597,14 @@
 		},
 		"05": {
 			"names": ["tracked"],
+			"cat": "mobility",
+			"until": "2525E",
+			"new": "C-1-104",
 			"icon": [{"d": "M 70,120 l 60,0 c10,0 10,10 0,10 l -60,0 c-10,0 -10,-10 0,-10"}]
 		},
 		"06": {
 			"names": ["tractor trailer"],
+			"cat": "mobility",
 			"icon": [
 				{"d": "M60,120 l80,0"},
 				{"r": 5, "pos": [65, 125]},
@@ -1505,14 +1613,20 @@
 			]
 		},
 		"07": {
-			"names": ["wheeled LTD"],
+			"names": ["wheeled LTD", "wheeled limited cross country"],
+			"cat": "mobility",
+			"until": "2525E",
+			"new": "C-1-105",
 			"icon": [
 				{"r": 5, "pos": [65, 125]},
 				{"r": 5, "pos": [135, 125]}				
 			]
 		},
 		"08": {
-			"names": ["wheeled X"],
+			"names": ["wheeled X", "wheeled cross country"],
+			"cat": "mobility",
+			"until": "2525E",
+			"new": "C-1-106",
 			"icon": [
 				{"r": 5, "pos": [65, 125]},
 				{"r": 5, "pos": [100, 125]},
@@ -1521,6 +1635,9 @@
 		},
 		"09": {
 			"names": ["robotic"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-109",
 			"icon": [
 				{"stroke": false, "fill": true, "d": "M100,121.68L114.895,136.459C115.309,136.201 115.798,136.052 116.321,136.052C117.812,136.052 119.022,137.262 119.022,138.753C119.022,140.243 117.812,141.454 116.321,141.454C114.831,141.454 113.62,140.243 113.62,138.753C113.62,138.407 113.686,138.076 113.805,137.772L103.378,132.6L100.851,141.224C101.072,141.298 101.28,141.4 101.471,141.526C102.211,142.008 102.701,142.843 102.701,143.791C102.701,145.281 101.491,146.492 100,146.492C99.451,146.492 98.939,146.327 98.512,146.045C97.776,145.562 97.29,144.73 97.29,143.785C97.29,142.592 98.064,141.579 99.138,141.222L96.613,132.606L86.186,137.778C86.305,138.082 86.37,138.413 86.37,138.759C86.37,140.25 85.16,141.46 83.669,141.46C82.179,141.46 80.969,140.25 80.969,138.759C80.969,137.268 82.179,136.058 83.669,136.058C84.193,136.058 84.681,136.207 85.095,136.465L99.991,121.671L100,121.662L100,121.68Z"}
 			]

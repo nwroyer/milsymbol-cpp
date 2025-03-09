@@ -2,7 +2,7 @@
 	"set": "11",
 	"name": "land civilian unit/organization",
 	"dimension": "land unit",
-	"modcats": ["capability"],
+	"modcats": ["capability", "crime", "organization", "composite loss"],
 	"IC": {
 		"110000": {
 			"names": "civilian",
