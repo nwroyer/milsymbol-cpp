@@ -560,6 +560,7 @@ def main() -> None:
 		items = parse_symbol_set_file(filename, constants=constants)
 		if items is None:
 			print(f"Bad symbol set file \"{filename}\"", file=sys.stderr)
+			continue
 
 		symbol_sets.append(items)
 	symbol_sets = sorted(symbol_sets)

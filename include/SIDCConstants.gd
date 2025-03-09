@@ -24,8 +24,8 @@ const SYMBOL_SETS:Dictionary = {
 			110114: ["vertical take-off and landing", "short take-off and landing", "STOL", "VTOL", "VSTOL"],
 			110115: ["airborne command post", "ACP"],
 			110116: ["airborne early warning", "AEW"],
-			110117: ["anti-surface warfare"],
-			110118: ["anti-submarine warfare"],
+			110117: ["anti-surface warfare", "ASUW"],
+			110118: ["anti-submarine warfare", "ASW"],
 			110119: ["communications"],
 			110120: ["combat search and rescue", "CSAR"],
 			110121: ["electronic support"],
@@ -35,7 +35,7 @@ const SYMBOL_SETS:Dictionary = {
 			110125: ["search and rescue"],
 			110126: ["special operations forces", "SOF"],
 			110127: ["ultralight", "ultra light", "ultra-light"],
-			110128: ["photographic reconnaissance"],
+			110128: ["photographic reconnaissance", "photo recon"],
 			110129: ["very important person", "VIP"],
 			110130: ["suppression of enemy air defense", "SEAD"],
 			110131: ["passenger"],
@@ -94,7 +94,7 @@ const SYMBOL_SETS:Dictionary = {
 			32: ["antisurface warfare"],
 			33: ["fighter/bomber"],
 			34: ["intensive care"],
-			35: ["electronic attack", "EA"],
+			35: ["electronic attack", "EA", "electromagnetic attack"],
 			36: ["multi-mission"],
 			37: ["hijacking", "hijacked"],
 			38: ["ASW helo - LAMPS"],
@@ -157,7 +157,7 @@ const SYMBOL_SETS:Dictionary = {
 			110000: ["military space platform", "military"],
 			110100: ["military space vehicle", "space vehicle"],
 			110200: ["military re-entry vehicle", "re-entry vehicle"],
-			110300: ["planet lander", "military planet lander"],
+			110300: ["planet lander", "military planet lander", "planetary lander"],
 			110400: ["orbiter shuttle"],
 			110500: ["capsule"],
 			110600: ["general satellite"],
@@ -222,7 +222,8 @@ const SYMBOL_SETS:Dictionary = {
 		MODIFIER_1: {
 			1: ["ballistic"],
 			2: ["space"],
-			3: ["interceptor"]
+			3: ["interceptor"],
+			4: ["hypersonic"]
 		},
 		MODIFIER_2: {
 			1: ["short range"],
@@ -232,11 +233,12 @@ const SYMBOL_SETS:Dictionary = {
 			5: ["intercontinental"],
 			6: ["Arrow"],
 			7: ["ground-based interceptor", "GBI"],
-			8: ["Patriot"],
+			8: ["unknown"],
 			9: ["standard missile - terminal phase", "SM-T"],
 			10: ["standard missile - 3", "SM-3"],
 			11: ["terminal high-altitude area defense", "THAAD"],
-			12: ["space"]
+			12: ["space"],
+			13: ["debris"]
 		}
 	},
 	10: {
@@ -355,6 +357,7 @@ const SYMBOL_SETS:Dictionary = {
 			141701: ["mechanized security"],
 			141702: ["motorized security"],
 			141800: ["search and rescue"],
+			141801: ["Isolated personnel"],
 			141900: ["security police (air)"],
 			142000: ["shore patrol"],
 			142100: ["topographic", "geospatial"],
@@ -435,6 +438,7 @@ const SYMBOL_SETS:Dictionary = {
 			165300: ["army field support"],
 			165400: ["contracting services"],
 			165500: ["parachute rigger"],
+			165600: ["human resources", "HR"],
 			170000: ["naval all", "naval"],
 			170100: ["naval"],
 			180000: ["named headquarters"],

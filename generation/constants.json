@@ -189,7 +189,11 @@
 	},
 
 	"amplifiers": {
-		"11": {"names": ["team", "crew"], "type": "echelon", "applies to": ["land unit"]}, 
+		"11": {
+			"names": ["team", "crew"], "type": "echelon", "applies to": ["land unit"],
+			"side": "top",
+			"icon": [{"r": 15, "pos": [100, -20]}, {"d": "M80,-10 L120,-30"}]
+		}, 
 		"12": {"names": ["squad"], "type": "echelon", "applies to": ["land unit"]},
 		"13": {"names": ["section"], "type": "echelon", "applies to": ["land unit"]},
 		"14": {"names": ["platoon", "detachment"], "type": "echelon", "applies to": ["land unit"]},

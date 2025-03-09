@@ -594,6 +594,14 @@
 			"names": ["search and rescue"],
 			"icon": [{"text": "SAR"}]
 		},
+		"141801": {
+			"names": ["Isolated personnel"],
+			"intro": "2525E",
+			"icon": [
+				{"d": "M 100,100 88,88  m 12,12 12,-12  m -12,30 v -18  m -9.5,18 H 110"},
+				{"d": "m 106,87.2 a 5.92,5.92 0 0 1 -6,5.9 5.92,5.92 0 0 1 -5.9,-5.9 5.92,5.92 0 0 1 5.9,-6 5.92,5.92 0 0 1 6,6 z", "stroke": false, "fill": true}
+			]
+		},
 		"141900": {
 			"names": ["security police (air)"],
 			"icon": [
@@ -993,7 +1001,10 @@
 			"names": ["parachute rigger"],
 			"icon": [{"d": "m 120,100 -20,20 -20,-20 m 0,0 c 0,-25 40,-25 40,0 l -40,0"}]
 		},
-
+		"165600": {
+			"names": ["human resources", "HR"],
+			"icon": [{"text": "HR"}]
+		},
 
 
 		"170000": {
