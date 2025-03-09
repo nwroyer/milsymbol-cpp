@@ -1,7 +1,7 @@
 import re
 
-FIRST = ['NATO medical', 'NATO']
-SECOND = ['role 4']
+FIRST = ["PSYOP", "psychological operations", "military information support operations", "MISO"]
+SECOND = ['broadcast transmitter antenna', 'broadcast transmitter antennae']
 swappable:bool = True
 
 if True: #__name__ == '__main__':

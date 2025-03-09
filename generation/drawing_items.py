@@ -98,9 +98,10 @@ class SymbolElement:
 		def parse_basics(self, element) -> None:
 			if 'fill' in element:
 				self.fill_color = self.element_to_color_type(element['fill'])
+				print(f'Fill is {self.fill_color}')
 
 			if 'stroke' in element:
-				self.fill_color = self.element_to_color_type(element['stroke'])
+				self.stroke_color = self.element_to_color_type(element['stroke'])
 
 			if 'strokewidth' in element:
 				self.stroke_width = float(element['strokewidth'])

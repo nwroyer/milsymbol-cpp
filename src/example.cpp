@@ -19,7 +19,7 @@ int main(int argc, const char** argv) {
 
     milsymbol::SymbolStyle alt_style;
     alt_style.use_modifiers = true;
-    alt_style.color_mode = milsymbol::ColorMode::UNFILLED;
+    alt_style.color_mode = milsymbol::ColorMode::LIGHT;
 
     milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("131305100011020000100000000000")
                                    .with_affiliation(milsymbol::Affiliation::FRIEND);

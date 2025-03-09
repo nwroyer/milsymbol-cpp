@@ -64,7 +64,7 @@
 			"icon": [{"d": "M70,85 l40,0 10,-10 0,50 -10,-10 -40,0 z M120,85 l10,0 M120,95 l10,0 M120,105 l10,0 M120,115 l10,0", "fill": "icon"}]
 		},
 		"110601": {
-			"names": ["broadcast transmitter antenna"],
+			"names": ["broadcast transmitter antennae psychological operations", "PSYOP broadcast transmitter antenna", "PSYOP broadcast transmitter antennae", "broadcast transmitter antenna PSYOP", "broadcast transmitter antenna MISO", "MISO broadcast transmitter antenna", "broadcast transmitter antenna psychological operations", "military information support operations broadcast transmitter antenna", "broadcast transmitter antennae PSYOP", "broadcast transmitter antennae military information support operations", "MISO broadcast transmitter antennae", "psychological operations broadcast transmitter antenna", "military information support operations broadcast transmitter antennae", "broadcast transmitter antennae MISO", "broadcast transmitter antenna military information support operations", "psychological operations broadcast transmitter antennae"],
 			"icon": [{"icon": "110100"}, {"icon": "110600"}]
 		},
 		"110700": {
@@ -682,7 +682,7 @@
 			"icon": [{"icon": "150500"}, {"icon": "150800"}]
 		},
 		"150505": {
-			"names": ["EW jamming", "electromagnetic warfare jamming", "electronic warfare jamming"],
+			"names": ["EW search", "electromagnetic warfare search", "electronic warfare search"],
 			"icon": [{"icon": "150500"}, {"icon": "151100"}]
 		},
 		"150600": {

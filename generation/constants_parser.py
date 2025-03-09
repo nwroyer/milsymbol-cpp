@@ -105,7 +105,7 @@ class Dimension:
 		self.frames:dict = {}  # Dictionary of frames for IDs
 
 	def __repr__(self):
-		return f'Dimension \"{self.id_code}\"'
+		return f'Dimension \"{self.id_code}\" {len(self.frames[list(self.frames.keys())[0]])}'
 
 	@staticmethod
 	def from_dict(id_code:str, json:dict, over_dict:dict, constants):

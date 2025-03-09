@@ -1,6 +1,6 @@
 {
 	"common": true,
-	"m1": {
+	"M1": {
 		"100": {
 			"names": ["uav", "unmanned aerial vehicle", "uas", "unmanned aerial system", "remotely piloted vehicle", "rpv"],
 			"cat": "mobility",
@@ -135,7 +135,7 @@
 		"150": {"names": ["hijacker", "hijack", "hijacking"], "cat": "crime", "icon": [{"textm1": "HIJ"}]}
 	},
 
-	"m2": {
+	"M2": {
 		"100": {"names": ["airborne"], "cat": "mobility", "icon": [{"d": "M75,140 C75,125 100,125 100,140 C100,125 125,125 125,140"}]},
 		"101": {"names": ["bicycle equipped", "bicycle"], "cat": "mobility", "icon": [{"r": 11, "pos": [100, 132]}]},
 		"102": {"names": ["railroad", "railway"], "cat": "mobility", "icon": [

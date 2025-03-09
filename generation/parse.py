@@ -148,8 +148,7 @@ def parse_item_icon(item_icon, full_items:dict, constants:Constants) -> SymbolLa
 	for element in item_icon:
 		new_element_list:list = parse_symbol_element(element, full_items=full_items, constants=constants)
 		if new_element_list is not None:
-			for new_element in new_element_list:
-				new_sl.elements.append(new_element)
+			new_sl.elements.extend(new_element_list)
 		else:
 			print('Error parsing symbol element', file=sys.stderr)
 			return None
@@ -398,9 +397,10 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 		dim_entries = []
 
 		for dimension in constants.dimensions.values():
-			#print(f'Dimension {dimension.id_code}: {dimension.frames}')
 			sym_entry = dimension.frames[base.names[0]]
+			print(f'Dimension {dimension.id_code} / {base.names[0]}: {sym_entry}')
 			draw_command = parse_item_icon(item_icon=sym_entry, full_items={}, constants=constants)
+			print(f'Dimension {dimension.id_code} / {base.names[0]}: {draw_command}')
 			dim_entries.append(f'{{Dimension::{sanitize_constant(dimension.id_code)}, {draw_command.cpp(constants=constants)}}}')
 
 		schema += ',\n'.join([f'\t\t\t{dim_entry}' for dim_entry in dim_entries])

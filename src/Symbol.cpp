@@ -854,12 +854,6 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
         if (style.use_amplifiers) {
             apply_context(context, affiliation, dimension_from_symbol_set(symbol_set), base_bbox, components);
         }
-
-        // if (symbol_set == SymbolSet::SPACE || symbol_set == SymbolSet::SPACE_MISSILE) {
-        //     components.push_back(get_space_modifier(affiliation));
-        // } else if (symbol_set == SymbolSet::ACTIVITIES) {
-        //     components.push_back(get_activity_modifier(affiliation));
-        // }
     }
 
     /*
