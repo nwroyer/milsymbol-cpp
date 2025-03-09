@@ -118,160 +118,235 @@
 	"M1": {
 		"01": {
 			"names": ["antisubmarine warfare", "ASW"],
+			"cat": "mission area",
+			"until": "2525E",
+			"new": "C-1-151",
 			"icon": [{"textm1": "ASW"}]
 		},
 		"02": {
 			"names": ["auxiliary"],
+			"cat": "mission area",
 			"icon": [{"textm1": "AUX"}]
 		},
 		"03": {
 			"names": ["command and control"],
+			"cat": "mission area",
+			"until": "2525E",
+			"new": "C-1-122",
 			"icon": [{"textm1": "C2"}]
 		},
 		"04": {
 			"names": ["intelligence, surveillance, and reconnaissance"],
+			"cat": "mission area",
+			"until": "2525E",
+			"new": "C-1-125",
 			"icon": [{"textm1": "ISR"}]
 		},
 		"05": {
 			"names": ["mine countermeasures"],
+			"cat": "mission area",
+			"until": "2525E",
+			"new": "C-1-153",
 			"icon": [{"textm1": "MCM"}]
 		},
 		"06": {
 			"names": ["mine warfare"],
+			"cat": "mission area",
+			"until": "2525E",
+			"new": "C-1-154",
 			"icon": [{"textm1": "MIW"}]
 		},
 		"07": {
 			"names": ["surface warfare"],
+			"cat": "mission area",
+			"until": "2525E",
+			"new": "C-1-155",
 			"icon": [{"textm1": "SUW"}]
 		},
 		"08": {
 			"names": ["attack"],
+			"cat": "mission area",
+			"until": "2525E",
+			"new": "C-1-106",
 			"icon": [{"textm1": "A"}]
 		},
 		"09": {
 			"names": ["ballistic missile"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-108",
 			"icon": [{"textm1": "B"}]
 		},
 		"10": {
 			"names": ["guided missile"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-133",
 			"icon": [{"textm1": "G"}]
 		},
 		"11": {
 			"names": ["other guided missile"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-134",
 			"icon": [{"textm1": "M"}]
 		},
 		"12": {
 			"names": ["special operations forces", "SOF"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-131",
 			"icon": [{"textm1": "SOF"}]
 		},
 		"13": {
 			"names": ["possible submarine low 1"],
+			"cat": "submarine confidence",
 			"icon": [{"textm1": "P1"}]
 		},
 		"14": {
 			"names": ["possible submarine low 2"],
+			"cat": "submarine confidence",
 			"icon": [{"textm1": "P2"}]
 		},
 		"15": {
 			"names": ["possible submarine high 3"],
+			"cat": "submarine confidence",
 			"icon": [{"textm1": "P3"}]
 		},
 		"16": {
 			"names": ["possible submarine high 4"],
+			"cat": "submarine confidence",
 			"icon": [{"textm1": "P4"}]
 		},
 		"17": {
 			"names": ["probable submarine"],
+			"cat": "submarine confidence",
 			"icon": [{"textm1": "PB"}]
 		},
 		"18": {
 			"names": ["certain submarine"],
+			"cat": "submarine confidence",
 			"icon": [{"textm1": "CT"}]
 		},
 		"19": {
 			"names": ["anti-torpedo torpedo"],
+			"cat": "capability",
 			"icon": [{"textm1": "ATT"}]
 		},
 		"20": {
 			"names": ["hijacking", "hijacked"],
+			"cat": "crime",
+			"until": "2525E",
+			"new": "C-1-150",
 			"icon": [{"textm1": "H"}]
 		},
 		"21": {
 			"names": ["hijacker"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-150",
 			"icon": [{"textm1": "HJ"}]
 		},
 		"22": {
 			"names": ["cyberspace", "cyber"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-1-115",
 			"icon": [{"textm1": "CYB"}]
 		}
 	}, 
 	"M2": {
 		"01": {
 			"names": ["air independent propulsion"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "AI"}]
 		},
 		"02": {
 			"names": ["diesel electric, general"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "D"}]
 		},
 		"03": {
 			"names": ["diesel type 1"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "D1"}]
 		},
 		"04": {
 			"names": ["diesel type 2"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "D2"}]
 		},
 		"05": {
 			"names": ["diesel type 3"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "D3"}]
 		},
 		"06": {
-			"names": ["nuclear powered, general"],
+			"names": ["nuclear powered, general", "nuclear"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "N"}]
 		},
 		"07": {
 			"names": ["nuclear type 1"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "N1"}]
 		},
 		"08": {
 			"names": ["nuclear type 2"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "N2"}]
 		},
 		"09": {
 			"names": ["nuclear type 3"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "N3"}]
 		},
 		"10": {
 			"names": ["nuclear type 4"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "N4"}]
 		},
 		"11": {
 			"names": ["nuclear type 5"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "N5"}]
 		},
 		"12": {
 			"names": ["nuclear type 6"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "N6"}]
 		},
 		"13": {
 			"names": ["nuclear type 7"],
+			"cat": "ship propulsion",
 			"icon": [{"textm2": "N7"}]
 		},
 		"14": {
 			"names": ["autonomous control"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-2-110",
 			"icon": [{"textm2": "AUT"}]
 		},
 		"15": {
 			"names": ["remotely-piloted"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-2-111",
 			"icon": [{"textm2": "RP"}]
 		},
 		"16": {
 			"names": ["expendable"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-2-112",
 			"icon": [{"textm2": "EXP"}]
 		},
 		"17": {
 			"names": ["cyberspace", "cyber"],
+			"cat": "capability",
+			"until": "2525E",
+			"new": "C-2-122",
 			"icon": [{"textm2": "CYB"}]
 		}
 	}

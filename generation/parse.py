@@ -398,9 +398,7 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 
 		for dimension in constants.dimensions.values():
 			sym_entry = dimension.frames[base.names[0]]
-			print(f'Dimension {dimension.id_code} / {base.names[0]}: {sym_entry}')
 			draw_command = parse_item_icon(item_icon=sym_entry, full_items={}, constants=constants)
-			print(f'Dimension {dimension.id_code} / {base.names[0]}: {draw_command}')
 			dim_entries.append(f'{{Dimension::{sanitize_constant(dimension.id_code)}, {draw_command.cpp(constants=constants)}}}')
 
 		schema += ',\n'.join([f'\t\t\t{dim_entry}' for dim_entry in dim_entries])
