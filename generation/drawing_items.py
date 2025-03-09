@@ -74,19 +74,33 @@ class SymbolElement:
 				f' stroke_width="{self.stroke_width}"' if self.stroke_color is not None and self.stroke_color != '' else ''
 			)
 
+		def element_to_color_type(self, element):
+			if type(element) not in [str, bool]:
+				raise Exception(f"Non-bool or string fill color {element}")
+				return None
+
+			if type(element) == str:
+				if element not in ['white', 'icon', 'yellow', 'none', 'icon_fill']:
+					raise Exception(f"Unknown fill color \"{element}\"")
+					return None
+
+				if element == 'none':
+					return None
+
+				return element
+
+			if type(element) == bool:
+				return 'icon' if element else None
+
+			return None
+
+
 		def parse_basics(self, element) -> None:
 			if 'fill' in element:
-				self.fill_color = element['fill']
-				if type(self.fill_color) == str and self.fill_color.lower() == 'none':
-					self.fill_color = None
-					
-				if type(self.fill_color) == bool:
-					self.fill_color = 'icon' if self.fill_color else None
+				self.fill_color = self.element_to_color_type(element['fill'])
 
 			if 'stroke' in element:
-				self.stroke_color = element['stroke']
-				if type(self.stroke_color) == bool:
-					self.stroke_color = 'icon' if self.stroke_color else None
+				self.fill_color = self.element_to_color_type(element['stroke'])
 
 			if 'strokewidth' in element:
 				self.stroke_width = float(element['strokewidth'])
