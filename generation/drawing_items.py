@@ -1,6 +1,6 @@
 from font_rendering import Font
-from constants_parser import Constants
 import re
+import sys
 
 """
 The default stroke to use for symbols
@@ -99,38 +99,62 @@ class SymbolElement:
 			return None
 
 
-		def parse_basics(self, element) -> None:
-			if 'fill' in element:
-				self.fill_color = self.element_to_color_type(element['fill'])
+		def parse_basics(self, json) -> None:
+			if 'fill' in json:
+				self.fill_color = self.element_to_color_type(json['fill'])
 
-			if 'stroke' in element:
-				self.stroke_color = self.element_to_color_type(element['stroke'])
+			if 'stroke' in json:
+				self.stroke_color = self.element_to_color_type(json['stroke'])
 
-			if 'strokewidth' in element:
-				self.stroke_width = float(element['strokewidth'])
+			if 'strokewidth' in json:
+				self.stroke_width = float(json['strokewidth'])
 
-			if "strokedashed" in element:
-				self.stroke_dashed = element['strokedashed']
+			if "strokedashed" in json:
+				self.stroke_dashed = json['strokedashed']
+
+	
+
+
 
 	"""
 	Full frame command
 	"""
 	class FullFrame(Base):
-		def __init__(self, constants:Constants):
+		def __init__(self, affiliations):
 			super().__init__()
 			self.elements:dict = {
-				affil.id_code: [] for affil in constants.affiliations.values()			
+				affil.id_code: [] for affil in affiliations
 			}
 
-		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False):
-			ordering = [affiliation.id_code for affiliation in constants.full_frame_ordering]
+		@classmethod
+		def parse_from_dict(cls, json:dict, full_items:dict, affiliations:list):
+			new_element = cls(affiliations=affiliations.values())
+			affiliation_dict = {a.names[0]: a for a in affiliations}
+			for type_name, type_entry in json.items():
+				if not(type_name in [a.names[0] for a in affiliations]):
+					print('Error: Unrecognized FF type "{}"'.format(type_name), file=sys.stderr)
+					return None
+
+				if type(type_entry) is not list:
+					print(f'Bad entry for full-frame icon {type_name}', file=sys.stderr)
+					return None
+
+				for sub_entry in type_entry:
+					new_subelements:list = SymbolElement.parse_from_dict(item=sub_entry, full_items=full_items, affiliations=affiliations)
+					type_code = affiliation_dict[type_name].id_code
+					new_element.elements[type_code].extend(new_subelements)
+			new_element.parse_basics(json=json)
+			return new_element
+
+		def cpp(self, schema, output_style=OutputStyle(), with_bbox=False):
+			ordering = [affiliation.id_code for affiliation in schema.full_frame_ordering]
 			elements_ordered = [(item, self.elements[item]) for item in ordering]
 
 			ret = 'DrawCommand::full_frame('
 
 			items = []
-			for affiliation in constants.full_frame_ordering:
-				items.append('{' + ', '.join([e.cpp(constants=constants, output_style=output_style) for e in self.elements[affiliation.id_code]]) + '}')
+			for affiliation in schema.full_frame_ordering:
+				items.append('{' + ', '.join([e.cpp(schema=schema, output_style=output_style) for e in self.elements[affiliation.id_code]]) + '}')
 
 			#print(constants.full_frame_ordering)
 
@@ -152,7 +176,16 @@ class SymbolElement:
 		def __repr__(self):
 			return f'<path d="{self.d}" {self.base_params()} />'
 
-		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False) -> str:
+		@classmethod
+		def parse_from_dict(cls, json:dict):
+			ret = cls()
+			ret.d = json['d']
+			if 'bbox' in json:
+				ret.bbox = tuple(json['bbox'])
+			ret.parse_basics(json=json)
+			return ret
+
+		def cpp(self, schema, output_style=OutputStyle(), with_bbox=False) -> str:
 			ret:str = 'DrawCommand::path(\"{}\", BoundingBox({}, {}, {}, {}))'.format(self.d, *self.bbox)
 			if self.fill_color is not None:
 				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
@@ -164,8 +197,6 @@ class SymbolElement:
 				ret += '.with_stroke_style(StrokeStyle::DASHED)'
 
 			return ret
-
-
 
 	"""
 	Represents a circle command
@@ -181,7 +212,15 @@ class SymbolElement:
 		def __repr__(self):
 			return f'<circle cx="{self.pos[0]}" cy="{self.pos[1]}" radius="{self.radius}" {self.base_params()} />'
 
-		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False) -> str:
+		@classmethod
+		def parse_from_dict(cls, json:dict):
+			ret = cls()
+			ret.pos = tuple(json['pos'])
+			ret.radius = json['r']
+			ret.parse_basics(json=json)
+			return ret
+
+		def cpp(self, schema, output_style=OutputStyle(), with_bbox=False) -> str:
 			ret:str = 'DrawCommand::circle(Vector2{{{}, {}}}, {})'.format(self.pos[0], self.pos[1], self.radius)
 			if self.fill_color is not None:
 				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
@@ -212,7 +251,35 @@ class SymbolElement:
 		def __repr__(self):
 			return f'<text x="{self.pos[0]}" y="{self.pos[1]}" font-size="{self.font_size}" font-anchor="{self.align}" {self.base_params()}>{self.text}</text>'
 
-		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False) -> str:
+		@classmethod
+		def parse_from_dict(cls, json:dict):
+			ret = cls()
+			if 'textm1' in json:
+				# Parse text
+				ret.text = json['textm1']
+				ret.text_type = 'm1'
+			elif 'textm2' in json:
+				# Parse text
+				ret.text = json['textm2']
+				ret.text_type = 'm2'	
+			else:
+				ret.text = json['text']
+				ret.text_type = 'normal'
+
+			if 'pos' in json:
+				ret.pos = tuple(json['pos'])
+				ret.text_type = 'manual'
+			if "fontsize" in json:
+				ret.font_size = float(json["fontsize"])
+				ret.text_type = 'manual'
+			elif 'size' in json:
+				ret.font_size = float(json["size"])
+				ret.text_type = 'manual'
+
+			ret.parse_basics(json=json)
+			return ret
+
+		def cpp(self, schema, output_style=OutputStyle(), with_bbox=False) -> str:
 
 			"""
 			If we're supposed to convert text to paths, do so here and
@@ -269,7 +336,7 @@ class SymbolElement:
 				path_el.fill_color = self.fill_color
 				path_el.stroke_color = self.stroke_color
 				path_el.d = ret_path
-				return path_el.cpp(constants=Constants)
+				return path_el.cpp(schema=schema)
 
 			# Default text-as-text rendition
 			ret:str = ''
@@ -316,11 +383,20 @@ class SymbolElement:
 				' '.join([str(item) for item in self.items])
 			)
 
-		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False) -> str:
+		def cpp(self, schema, output_style=OutputStyle(), with_bbox=False) -> str:
 			return 'DrawCommand::translate(Vector2{{{}, {}}}, {})'.format(
 				self.delta[0], self.delta[1],
-				', '.join([x.cpp(constants=constants, output_style=output_style, with_bbox=with_bbox) for x in self.items])
+				', '.join([x.cpp(schema=schema, output_style=output_style, with_bbox=with_bbox) for x in self.items])
 			)
+
+		@classmethod
+		def parse_from_dict(cls, json:dict):
+			ret = cls()
+			ret.delta = tuple(json['translate'])
+			ret.parse_basics(json=json)
+			return ret
+
+
 
 	"""
 	Represents a scaling
@@ -336,28 +412,98 @@ class SymbolElement:
 				' '.join([str(item) for item in self.items])
 			)
 
-		def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False):
+		@classmethod
+		def parse_from_dict(cls, json:dict):
+			ret = cls()
+			ret.scale = float(json['scale'])
+			return ret
+
+		def cpp(self, schema, output_style=OutputStyle(), with_bbox=False):
 			return 'DrawCommand::scale({}, {})'.format(
 				self.scale,
-				', '.join([x.cpp(constants=constants, output_style=output_style, with_bbox=with_bbox) for x in self.items])
+				', '.join([x.cpp(schema=schema, output_style=output_style, with_bbox=with_bbox) for x in self.items])
 			)
 
-"""
-A full symbol component (e.g. an entity or modifier)
-"""
-class SymbolLayer:
-	def __init__(self):
-		self.uid:str = '' # Canonical unique name
-		self.names:str = [] # Human-readable names
-		self.elements:list = []
-		self.civilian:bool = False
-		pass
 
-	def __repr__(self):
-		return '{{{}}} -> {}'.format(self.uid, self.elements)
+	@staticmethod
+	def parse_from_dict(item:dict, full_items:dict, affiliations:dict) -> list:
+		"""
+		Parse a specific item from JSON as a symbol element (path, text, etc.)
+		`item` is the item to be parsed; `full_items` is the dictionary
+		of all items in this set, to allow for aliases for symbols (e.g. supply units
+		have a similar full-frame line; aliasing allows the schema to not repeat
+		the entire definition for the line every time).
+		"""
 
-	def cpp(self, constants:Constants, output_style=OutputStyle(), with_bbox=False):
-		return 'SymbolLayer{{{}}}{}'.format(
-			', '.join([cmd.cpp(output_style=output_style, constants=constants, with_bbox=with_bbox) for cmd in self.elements]),
-			'.with_civilian_override(true)' if self.civilian else ''
-		)
+		new_element = None
+
+		if 'text' in item or 'textm1' in item or 'textm2' in item:
+			# Parse text
+			new_element = SymbolElement.Text.parse_from_dict(json=item)	
+		elif 'd' in item:
+			# Parse path
+			new_element = SymbolElement.Path.parse_from_dict(json=item)
+		elif 'r' in item:
+			# Parse circle
+			new_element = SymbolElement.Circle.parse_from_dict(json=item)
+		elif 'icon' in item:
+			item_name:str = item['icon']
+			if not isinstance(item_name, str):
+				print("Bad icon: {}".format(item_name), file=sys.stderr)
+			if item_name in full_items and 'icon' in full_items[item_name]:
+				original_icon = full_items[item_name]['icon']
+				new_elements = []
+				for subitem in original_icon:
+					new_el = SymbolElement.parse_from_dict(item=subitem, full_items=full_items, affiliations=affiliations)
+					if new_el is None:
+						print('Bad subelement')
+						return None
+					new_elements.extend(new_el)
+
+				if len(new_elements) < 1:
+					print("Bad new element in icon {}".format(new_element), file=sys.stderr)
+					return None
+				return new_elements
+			else:
+				print('Unrecognized element {}'.format(item_name), file=sys.stderr)
+				return None
+		elif 'translate' in item:
+			new_element = SymbolElement.Translate.parse_from_dict(json=item)
+		elif 'scale' in item:
+			new_element = SymbolElement.Scale.parse_from_dict(json=item)
+		else:
+			# Test for full-frame
+			for affiliation in affiliations:
+				if affiliations[affiliation] == affiliation and affiliation.names[0] not in item:
+					print("Invalid full-frame element type {} - affiliation \"{}\" not found in {} // {}".format(item, affiliation, item, affiliations), file=sys.stderr)
+					return None
+
+			# This is a valid full-frame icon
+			new_element = SymbolElement.FullFrame.parse_from_dict(json=item, full_items=full_items, affiliations=affiliations)
+			if new_element is None:
+				print(f'Error: Unable to parse full frame icon {item}', file=sys.stderr)
+				return None
+
+		# Parse subitems for transformation
+		if isinstance(new_element, SymbolElement.Transformation):
+			subitems = item['items']
+			for subitem in subitems:
+				new_subelements:list = SymbolElement.parse_from_dict(item=subitem, full_items=full_items, affiliations=affiliations)
+				if new_subelements is None:
+					print("Invalid subelements", file=sys.stderr)
+					return None
+				for sl in new_subelements:
+					new_element.items.append(sl)
+
+		# TODO load fill and stroke
+		if new_element is None:
+			return []
+
+		if new_element.fill_color is not None and new_element.fill_color not in COLORS:
+			print("Bad fill color {}".format(new_element.fill_color), file=sys.stderr)
+			return None
+		if new_element.stroke_color is not None and new_element.stroke_color not in COLORS:
+			print("Bad stroke color {}".format(new_element.stroke_color), file=sys.stderr)
+			return None
+
+		return [new_element]

@@ -8,280 +8,7 @@ import copy
 
 from constants_parser import *
 from drawing_items import *
-
-
-"""
-This file generates the actual C++ header files used to define constants
-for entities and modifiers, as well as the actual code used to render
-SVGs for symbols. 
-"""
-
-
-"""
-Parse a specific item from JSON as a symbol element (path, text, etc.)
-`item` is the item to be parsed; `full_items` is the dictionary
-of all items in this set, to allow for aliases for symbols (e.g. supply units
-have a similar full-frame line; aliasing allows the schema to not repeat
-the entire definition for the line every time).
-"""
-def parse_symbol_element(item:dict, full_items:dict, constants:Constants) -> list:
-	# Parse types
-	new_element = None
-
-	if 'text' in item:
-		# Parse text
-		new_element = SymbolElement.Text()
-		new_element.text = item['text']
-		new_element.text_type = 'normal'
-
-		if 'pos' in item:
-			new_element.pos = tuple(item['pos'])
-			new_element.text_type = 'manual'
-
-		if "fontsize" in item:
-			new_element.font_size = float(item["fontsize"])
-			new_element.text_type = 'manual'
-	elif 'textm1' in item:
-		# Parse text
-		new_element = SymbolElement.Text()
-		new_element.text = item['textm1']
-		new_element.text_type = 'm1'
-	elif 'textm2' in item:
-		# Parse text
-		new_element = SymbolElement.Text()
-		new_element.text = item['textm2']
-		new_element.text_type = 'm2'		
-	elif 'd' in item:
-		# Parse path
-		new_element = SymbolElement.Path()
-		new_element.d = item['d']
-		if 'bbox' in item:
-			new_element.bbox = tuple(item['bbox'])
-	elif 'r' in item:
-		# Parse circle
-		new_element = SymbolElement.Circle()
-		new_element.pos = tuple(item['pos'])
-		new_element.radius = item['r']
-	elif 'icon' in item:
-		item_name:str = item['icon']
-		if not isinstance(item_name, str):
-			print("Bad icon: {}".format(item_name), file=sys.stderr)
-		if item_name in full_items and 'icon' in full_items[item_name]:
-			new_element = parse_item_icon(full_items[item_name]['icon'], full_items=full_items, constants=constants)
-			if new_element is None or len(new_element.elements) < 1:
-				print("Bad new element in icon {}".format(new_element), file=sys.stderr)
-				return None
-			return new_element.elements
-		else:
-			print('Unrecognized element {}'.format(item_name), file=sys.stderr)
-			return None
-	elif 'translate' in item:
-		new_element = SymbolElement.Translate()
-		new_element.delta = tuple(item['translate'])
-	elif 'scale' in item:
-		new_element = SymbolElement.Scale()
-		new_element.scale = float(item['scale'])
-	else:
-		# Test for full-frame
-		affiliation_dict = constants.get_base_affiliation_dict()
-		for affiliation in affiliation_dict.keys():
-			if affiliation not in item:
-				print("Invalid full-frame element type {} - affiliation \"{}\" not found".format(item, affiliation), file=sys.stderr)
-				return None
-
-		# This is a valid full-frame icon
-		new_element = SymbolElement.FullFrame(constants=constants)
-
-		for type_name, type_entry in item.items():
-			if not(type_name in affiliation_dict):
-				print('Error: Unrecognized FF type "{}"'.format(type_name), file=sys.stderr)
-				return None
-
-			if type(type_entry) is not list:
-				print(f'Bad entry for full-frame icon {type_name}', file=sys.stderr)
-				return None
-
-			for sub_entry in type_entry:
-				new_subelements:list = parse_symbol_element(sub_entry, full_items=full_items, constants=constants)
-				type_code = affiliation_dict[type_name].id_code
-				new_element.elements[type_code].extend(new_subelements)
-
-	# Parse subitems for transformation
-	if isinstance(new_element, SymbolElement.Transformation):
-		subitems = item['items']
-		for subitem in subitems:
-			new_subelements:list = parse_symbol_element(subitem, full_items=full_items, constants=constants)
-			if new_subelements is None:
-				print("Invalid subelements", file=sys.stderr)
-				return None
-			for sl in new_subelements:
-				new_element.items.append(sl)
-
-	# TODO load fill and stroke
-	if new_element is not None:
-		if new_element.fill_color is not None and new_element.fill_color not in COLORS:
-			print("Bad fill color {}".format(new_element.fill_color), file=sys.stderr)
-			return None
-		if new_element.stroke_color is not None and new_element.stroke_color not in COLORS:
-			print("Bad stroke color {}".format(new_element.stroke_color), file=sys.stderr)
-			return None
-
-		new_element.parse_basics(item)
-	else:
-		return []
-
-	return [new_element]
-
-"""
-Parse a dict representing a symbol layer from the JSON and 
-return an SymbolLayer object. This only handles the icon itself
-and assumes the item is valid. See `parse_item` for the whole
-parsed item.
-"""
-def parse_item_icon(item_icon, full_items:dict, constants:Constants) -> SymbolLayer:
-	if type(item_icon) is not list:
-		print("Icons must all be lists", file=sys.stderr)
-		return None
-
-	new_sl:SymbolLayer = SymbolLayer()
-
-	for element in item_icon:
-		new_element_list:list = parse_symbol_element(element, full_items=full_items, constants=constants)
-		if new_element_list is not None:
-			new_sl.elements.extend(new_element_list)
-		else:
-			print('Error parsing symbol element', file=sys.stderr)
-			return None
-
-	return new_sl
-
-"""
-Parse a dict representing a symbol layer from the JSON and 
-return an SymbolLayer object
-"""
-def parse_item(uid:str, item:dict, full_items:dict, constants:Constants) -> SymbolLayer:
-
-	if 'icon' not in item or 'names' not in item:
-		print('No keys in {}'.format(uid))
-		return None
-
-	item_icon = item['icon']
-	symbol_layer:SymbolLayer = parse_item_icon(item_icon, full_items=full_items, constants=constants)
-	if symbol_layer == None:
-		print(f"Bad symbol {uid}", file=sys.stderr)
-		return None
-
-	symbol_layer.civilian = bool(item['civ']) if 'civ' in item else False
-
-	symbol_layer.uid = uid
-	symbol_layer.names = item['names'] if 'names' in item else []
-	return symbol_layer
-
-"""
-All acceptable item types in the JSON file defining
-a symbol set
-"""
-ITEM_TYPES = ["IC", "M1", "M2"]
-
-"""
-Represents an entire symbol set with entities and two sets of modifiers.
-"""
-class SymbolSet:
-	def __init__(self):
-		self.id = '00'
-		self.icons = {}
-		self.m1 = {}
-		self.m2 = {}
-		self.names = []
-		self.dimension = None
-		self.common = False
-
-	def __lt__(self, other) -> bool:
-		if self.common != other.common:
-			return not self.common
-
-		return int(self.id) < int(other.id)
-
-"""
-Parse a JSON file representing a single symbol set. This file should
-be of the form:
-
-```
-{
-	"set": "00",
-	"name": "example_set",
-	"IC": {
-		...
-	},
-	"M1": {
-		...
-	},
-	"M2": {
-		...
-	}
-}
-```
-"""
-def parse_symbol_set_file(filepath:str, constants:Constants) -> dict:
-	if not os.path.exists(filepath):
-		print(f'No file "{filepath}"')
-		return
-
-	json_str:str = ''
-	with open(filepath, 'r') as json_file:
-		json_str = json_file.read()
-		json_str = re.sub('#[.]*\n', '', json_str)
-
-	json_dict = json.loads(json_str)
-
-
-	# Parse icon sets
-	ret:dict = {
-		it: {} for it in ITEM_TYPES
-	}
-
-	if not ('set' in json_dict):
-		print("No set", file=sys.stderr)
-		return None
-
-	is_common = json_dict.get('common', False)
-
-	if 'dimension' not in json_dict and not is_common:
-		raise Exception(f"No dimension defined in \"{filepath}\"")
-		return None
-
-	if not is_common and json_dict['dimension'] not in constants.dimensions:
-		raise Exception(f"Dimension \"{json_dict['dimension']}\" not found from \"{filepath}\"")
-		return None
-
-	icon_set:str = json_dict['set']
-
-	for item_type in ITEM_TYPES:
-		if not (item_type in json_dict):
-			continue
-
-		for item_code, item in json_dict[item_type].items():
-			# print(f'Loading {json_dict["set"]}:{item_type}:{item_code}')
-			if not(('names' in item or 'name' in item) and 'icon' in item):
-				print(f'Improper indices for {json_dict["set"]}:{item_type}:{item_code}')
-				return None
-
-			new_sl = parse_item(uid=item_code, item=item, full_items=json_dict[item_type], constants=constants)
-			if new_sl is not None:
-				ret[item_type][item_code] = new_sl
-			else:
-				print(f'Unable to process item {json_dict["set"]}:{item_type}:{item_code}: {item["names"]}', file=sys.stderr)
-				return 
-
-	ret_set = SymbolSet()
-	ret_set.id = icon_set
-	ret_set.icons = {item: ret['IC'][item] for item in ret['IC'].keys() if item[0] != '.'} # Ignore utility symbols
-	ret_set.m1 = ret['M1']
-	ret_set.m2 = ret['M2']
-	ret_set.names = json_dict['names'] if 'names' in json_dict else [json_dict['name']]
-	ret_set.dimension = constants.dimensions[json_dict['dimension']] if not is_common else False
-	ret_set.common = is_common
-	return ret_set
+from schema import *
 
 """
 Generates the C++ headers for the combined symbol sets.
@@ -292,8 +19,14 @@ Generates the C++ headers for the combined symbol sets.
 `use_text_paths` indicates whether to replace all text elements with SVG paths,
 	which may be desirable for some use cases.
 """
-def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, constant_filename:str, use_text_paths:bool=False,
+def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use_text_paths:bool=False,
 	text_path_font:str=DEFAULT_FONT_FILE, include_enumerator:bool=True, godot_filename:str = '') -> None:
+	
+	if schema is None:
+		print('No schema provided', file=sys.stderr)
+		return
+
+	symbol_sets = sorted(schema.symbol_sets.values())
 
 	def sanitize_constant(constant:str) -> str:
 		return re.sub(r'[\s,/\(\)\-\[\]]+', '_', constant).upper()
@@ -301,7 +34,7 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 	output_style = OutputStyle()
 	output_style.use_text_paths = use_text_paths
 
-	# Create constants
+	# Create constant file
 	const_text = ''
 
 	const_text += '#pragma once\n'
@@ -310,24 +43,24 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 
 	const_text += 'namespace milsymbol {\n\n'
 
-	# Create color mode constants
+	# Create color mode schema
 	const_text += 'enum class ColorMode {\n'
-	const_text += ',\n'.join([f'\t{sanitize_constant(color_mode)} = {color_index}' for color_index, color_mode in enumerate(constants.color_modes)])
+	const_text += ',\n'.join([f'\t{sanitize_constant(color_mode)} = {color_index}' for color_index, color_mode in enumerate(schema.color_modes)])
 	const_text += '\n};\n\n'
 
-	# Create affiliation constants
+	# Create affiliation schema
 	const_text += 'enum class Affiliation {\n'
-	const_text += ',\n'.join([f'\t{sanitize_constant(affiliation.names[0])} = {affiliation.id_code}' for affiliation in constants.affiliations.values()])
+	const_text += ',\n'.join([f'\t{sanitize_constant(affiliation.names[0])} = {affiliation.id_code}' for affiliation in schema.affiliations.values()])
 	const_text += '\n};\n\n'
 
 	const_text += "static constexpr bool is_affiliation_dashed(Affiliation affiliation) noexcept {\n"
-	const_text += "\tif(" + ' || '.join([f'affiliation == Affiliation::{sanitize_constant(affiliation.names[0])}' for affiliation in constants.affiliations.values() if affiliation.dashed]) + ') {\n'
+	const_text += "\tif(" + ' || '.join([f'affiliation == Affiliation::{sanitize_constant(affiliation.names[0])}' for affiliation in schema.affiliations.values() if affiliation.dashed]) + ') {\n'
 	const_text += '\t\treturn true;\n\t}\n\treturn false;\n}\n\n'
 
 	const_text += "static constexpr Affiliation get_frame_base_affiliation(Affiliation affiliation) noexcept {\n\tswitch(affiliation) {\n"
 	# Create base frame affiliations
-	for base in constants.get_base_affiliations():
-		aliases = [affil for affil in constants.affiliations.values() if affil.get_base_frame_affiliation(constants=constants) == base]
+	for base in schema.get_base_affiliations():
+		aliases = [affil for affil in schema.affiliations.values() if affil.get_base_frame_affiliation(schema=schema) == base]
 		const_text += ''.join([f'\t\tcase Affiliation::{sanitize_constant(alias.names[0])}:\n' for alias in aliases])
 		if base.names[0] == 'unknown':
 			const_text += '\t\tdefault:\n'
@@ -335,26 +68,26 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 	const_text += '\t}\n}\n\n'
 
 	const_text += "enum class Dimension {\n"
-	const_text += ',\n'.join(['\tUNDEFINED = -1'] + [f'\t{sanitize_constant(dimension.id_code)} = {index}' for index, dimension in enumerate(constants.dimensions.values())])
+	const_text += ',\n'.join(['\tUNDEFINED = -1'] + [f'\t{sanitize_constant(dimension.id_code)} = {index}' for index, dimension in enumerate(schema.dimensions.values())])
 	const_text += '\n};\n\n'
 
-	# Create context constants
+	# Create context schema
 	const_text += 'enum class Context {\n'
-	const_text += ',\n'.join([f'\t{sanitize_constant(context.names[0])} = {context.id_code}' for context in constants.contexts.values()])
+	const_text += ',\n'.join([f'\t{sanitize_constant(context.names[0])} = {context.id_code}' for context in schema.contexts.values()])
 	const_text += '\n};\n\n'
 
-	# Create status constants
+	# Create status schema
 	const_text += 'enum class Status {\n'
-	const_text += ',\n'.join([f'\t{sanitize_constant(status.names[0])} = {status.id_code}' for status in constants.statuses.values()])
+	const_text += ',\n'.join([f'\t{sanitize_constant(status.names[0])} = {status.id_code}' for status in schema.statuses.values()])
 	const_text += '\n};\n\n'
 
 	const_text += "static constexpr bool is_status_dashed(Status status) noexcept {\n"
-	const_text += "\tif(" + ' || '.join([f'status == Status::{sanitize_constant(status.names[0])}' for status in constants.statuses.values() if status.dashed]) + ') {\n'
+	const_text += "\tif(" + ' || '.join([f'status == Status::{sanitize_constant(status.names[0])}' for status in schema.statuses.values() if status.dashed]) + ') {\n'
 	const_text += '\t\treturn true;\n\t}\n\treturn false;\n}\n\n'
 
 	# Create symbol set enums
 	const_text += "enum class SymbolSet {\n"
-	const_text += ',\n'.join(['\tUNDEFINED = -1'] + ['\t{} = 0x{}'.format(sanitize_constant(symbol_set.names[0]), symbol_set.id) for symbol_set in symbol_sets]) + '\n'
+	const_text += ',\n'.join(['\tUNDEFINED = -1'] + ['\t{} = 0x{}'.format(sanitize_constant(symbol_set.names[0]), symbol_set.id_code) for symbol_set in symbol_sets]) + '\n'
 	const_text += f'}};\n\nstatic constexpr int SYMBOL_SET_COUNT = {len(symbol_sets)};\n'
 	const_text += 'static constexpr int NOMINAL_ICON_SIZE = 200; /// The default icon size\n\n'
 	const_text += 'static constexpr std::array<SymbolSet, SYMBOL_SET_COUNT> SYMBOL_SETS = {\n'
@@ -364,19 +97,19 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 	const_text += 'enum Entity : int32_t {\n'
 	const_text += '\tENTITY_UNKNOWN = 0,\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.icons.values()]
-	const_text += ',\n'.join([f'\t{sanitize_constant(f"{symset.names[0]}_{ent.names[0]}")} = 0x{int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
+	const_text += ',\n'.join([f'\t{sanitize_constant(f"{symset.names[0]}_{ent.names[0]}")} = 0x{int(symset.id_code)}{ent.id_code}' for (ent, symset) in entities]) + '\n'
 	const_text += '};\n\n'
 	
 	const_text += 'enum Modifier1 : int32_t {\n'
 	const_text += f'\tM1_UNKNOWN = 0,\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.m1.values()]
-	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.names[0])}_M1_{sanitize_constant(ent.names[0])}"} = 0x{symset.id}{ent.uid}' for (ent, symset) in entities]) + '\n'
+	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.names[0])}_M1_{sanitize_constant(ent.names[0])}"} = 0x{symset.id_code}{ent.id_code}' for (ent, symset) in entities]) + '\n'
 	const_text += '};\n\n'
 	
 	const_text += 'enum Modifier2 : int32_t {\n'
 	const_text += f'\tM2_UNKNOWN = 0,\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.m2.values()]
-	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.names[0])}_M2_{sanitize_constant(ent.names[0])}"} = 0x{symset.id}{ent.uid}' for (ent, symset) in entities]) + '\n'
+	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.names[0])}_M2_{sanitize_constant(ent.names[0])}"} = 0x{symset.id_code}{ent.id_code}' for (ent, symset) in entities]) + '\n'
 	const_text += '};\n\n'
 
 	const_text += '}\n'
@@ -386,217 +119,176 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 	"""
 	Create schema proper
 	"""
-	schema = ''
-	schema += '#pragma once\n'
-	schema += '#include "DrawCommands.hpp"\n'
-	schema += '#include "Constants.hpp"\n'
-	schema += '#include "eternal.hpp"\n\n'
-	schema += 'namespace milsymbol::_impl {\n'
+	schema_text = ''
+	schema_text += '#pragma once\n'
+	schema_text += '#include "DrawCommands.hpp"\n'
+	schema_text += '#include "Constants.hpp"\n'
+	schema_text += '#include "eternal.hpp"\n\n'
+	schema_text += 'namespace milsymbol::_impl {\n'
 
 	# Create symbol type enum
-	schema += "enum class IconType {\n" + "\tENTITY = 0,\n\tMODIFIER_1,\n\tMODIFIER_2\n\n};\n\n"
+	schema_text += "enum class IconType {\n" + "\tENTITY = 0,\n\tMODIFIER_1,\n\tMODIFIER_2\n\n};\n\n"
 
 	# Create base frame draw commands
-	schema += "static constexpr const SymbolSet sidc_to_symbol_set(int hex_code) {\n"
-	schema += f'\tconst auto SYMBOL_SET_MAP = mapbox::eternal::map<int, SymbolSet>({{\n'
-	schema += ',\n'.join([f'\t\t{{0x{symbol_set.id}, SymbolSet::{sanitize_constant(symbol_set.names[0])}}}' for symbol_set in symbol_sets if not symbol_set.common])
-	schema += '\n\t});\n\n'
-	schema += '\tauto it = SYMBOL_SET_MAP.find(hex_code);\n'
-	schema += '\treturn (it != SYMBOL_SET_MAP.end() ? it->second : SymbolSet::LAND_UNIT);\n}\n'	
+	schema_text += "static constexpr const SymbolSet sidc_to_symbol_set(int hex_code) {\n"
+	schema_text += f'\tconst auto SYMBOL_SET_MAP = mapbox::eternal::map<int, SymbolSet>({{\n'
+	schema_text += ',\n'.join([f'\t\t{{0x{symbol_set.id_code}, SymbolSet::{sanitize_constant(symbol_set.names[0])}}}' for symbol_set in symbol_sets if not symbol_set.common])
+	schema_text += '\n\t});\n\n'
+	schema_text += '\tauto it = SYMBOL_SET_MAP.find(hex_code);\n'
+	schema_text += '\treturn (it != SYMBOL_SET_MAP.end() ? it->second : SymbolSet::LAND_UNIT);\n}\n'	
 
 	# Get entity set
-	schema += "static constexpr const Entity sidc_to_entity(SymbolSet symbol_set, int hex_code) {\n"
+	schema_text += "static constexpr const Entity sidc_to_entity(SymbolSet symbol_set, int hex_code) {\n"
 	for symbol_set in symbol_sets:
 		if symbol_set.common:
 			continue
 
-		schema += f'\tif (symbol_set == SymbolSet::{sanitize_constant(symbol_set.names[0])}) {{\n'
-		schema += f'\t\tconst auto ENTITY_MAP = mapbox::eternal::map<int, Entity>({{\n'
+		schema_text += f'\tif (symbol_set == SymbolSet::{sanitize_constant(symbol_set.names[0])}) {{\n'
+		schema_text += f'\t\tconst auto ENTITY_MAP = mapbox::eternal::map<int, Entity>({{\n'
 		dim_entries = [f'\t\t{{0x{entity_id}, Entity::{sanitize_constant(symbol_set.names[0])}_{sanitize_constant(entity.names[0])}}}' for (entity_id, entity) in symbol_set.icons.items()]
-		schema += ',\n'.join([f'\t{e}' for e in dim_entries])
-		schema += f'\n\t\t}});\n\n'
+		schema_text += ',\n'.join([f'\t{e}' for e in dim_entries])
+		schema_text += f'\n\t\t}});\n\n'
 
-		schema += '\t\tauto it = ENTITY_MAP.find(hex_code);\n'
-		schema += '\t\treturn (it != ENTITY_MAP.end() ? it->second : Entity::ENTITY_UNKNOWN);\n'
-		schema += f'\t}}\n\n'
-	schema += '\treturn {};\n}\n\n'
+		schema_text += '\t\tauto it = ENTITY_MAP.find(hex_code);\n'
+		schema_text += '\t\treturn (it != ENTITY_MAP.end() ? it->second : Entity::ENTITY_UNKNOWN);\n'
+		schema_text += f'\t}}\n\n'
+	schema_text += '\treturn {};\n}\n\n'
 
 	for m in range(0, 2):
-		schema += f"static constexpr const Modifier{m+1} sidc_to_modifier_{m+1}(SymbolSet symbol_set, int hex_code) {{\n"
+		schema_text += f"static constexpr const Modifier{m+1} sidc_to_modifier_{m+1}(SymbolSet symbol_set, int hex_code) {{\n"
 		for symbol_set in symbol_sets:
 			modifier_set = symbol_set.m1 if m == 0 else symbol_set.m2
 			if len(modifier_set) < 1:
 				continue
 
-			schema += f'\tif (symbol_set == SymbolSet::{sanitize_constant(symbol_set.names[0])}) {{\n'
-			schema += f'\t\tconst auto MODIFIER_MAP = mapbox::eternal::map<int, Modifier{m+1}>({{\n'
+			schema_text += f'\tif (symbol_set == SymbolSet::{sanitize_constant(symbol_set.names[0])}) {{\n'
+			schema_text += f'\t\tconst auto MODIFIER_MAP = mapbox::eternal::map<int, Modifier{m+1}>({{\n'
 			dim_entries = [f'\t\t{{0x{mod_id}, Modifier{m+1}::{sanitize_constant(symbol_set.names[0])}_M{m+1}_{sanitize_constant(mod.names[0])}}}' for (mod_id, mod) in modifier_set.items()]
-			schema += ',\n'.join([f'\t{e}' for e in dim_entries])
-			schema += f'\n\t\t}});\n\n'
+			schema_text += ',\n'.join([f'\t{e}' for e in dim_entries])
+			schema_text += f'\n\t\t}});\n\n'
 
-			schema += '\t\tauto it = MODIFIER_MAP.find(hex_code);\n'
-			schema += f'\t\treturn (it != MODIFIER_MAP.end() ? it->second : Modifier{m+1}::M{m+1}_UNKNOWN);\n'
-			schema += f'\t}}\n\n'
-		schema += '\treturn {};\n}\n\n'
+			schema_text += '\t\tauto it = MODIFIER_MAP.find(hex_code);\n'
+			schema_text += f'\t\treturn (it != MODIFIER_MAP.end() ? it->second : Modifier{m+1}::M{m+1}_UNKNOWN);\n'
+			schema_text += f'\t}}\n\n'
+		schema_text += '\treturn {};\n}\n\n'
 
-		schema += f"static constexpr bool is_modifier_{m+1}_common(Modifier{m+1} modifier) {{\n"
-		schema += '\treturn ((static_cast<int>(modifier) & 0xF000) == 0xC000);\n'
-		schema += '}\n\n'
+		schema_text += f"static constexpr bool is_modifier_{m+1}_common(Modifier{m+1} modifier) {{\n"
+		schema_text += '\treturn ((static_cast<int>(modifier) & 0xF000) == 0xC000);\n'
+		schema_text += '}\n\n'
 
 	# Create base frame draw commands
-	schema += "static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension, Affiliation affiliation, Context context, bool position_only = false) {\n"
-	schema += "\tAffiliation base_affiliation = get_frame_base_affiliation(affiliation);\n"
-	schema += "\tif (position_only) {dimension = Dimension::POSITION_MARKER;}\n\n"
+	schema_text += "static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension, Affiliation affiliation, Context context, bool position_only = false) {\n"
+	schema_text += "\tAffiliation base_affiliation = get_frame_base_affiliation(affiliation);\n"
+	schema_text += "\tif (position_only) {dimension = Dimension::POSITION_MARKER;}\n\n"
 
-	for base in constants.get_base_affiliations():
-		schema += f'\tif (base_affiliation == Affiliation::{sanitize_constant(base.names[0])}) {{\n'
-		schema += f'\t\tconst auto ENTITY_MAP = mapbox::eternal::map<Dimension, SymbolLayer>({{\n'
+	for base in schema.get_base_affiliations():
+		schema_text += f'\tif (base_affiliation == Affiliation::{sanitize_constant(base.names[0])}) {{\n'
+		schema_text += f'\t\tconst auto ENTITY_MAP = mapbox::eternal::map<Dimension, SymbolLayer>({{\n'
 		dim_entries = []
 
-		for dimension in constants.dimensions.values():
-			sym_entry = dimension.frames[base.names[0]]
-			draw_command = parse_item_icon(item_icon=sym_entry, full_items={}, constants=constants)
-			dim_entries.append(f'{{Dimension::{sanitize_constant(dimension.id_code)}, {draw_command.cpp(constants=constants)}}}')
+		for dimension in schema.dimensions.values():
+			draw_commands = dimension.frames[base.names[0]]
+			draw_cmd = f'SymbolLayer{{{", ".join([cmd.cpp(schema=schema) for cmd in draw_commands])}}}'
+			dim_entries.append(f'{{Dimension::{sanitize_constant(dimension.id_code)}, {draw_cmd}}}')
 
-		schema += ',\n'.join([f'\t\t\t{dim_entry}' for dim_entry in dim_entries])
-		schema += f'\n\t\t}});\n\n'
+		schema_text += ',\n'.join([f'\t\t\t{dim_entry}' for dim_entry in dim_entries])
+		schema_text += f'\n\t\t}});\n\n'
 
-		schema += '\t\tauto it = ENTITY_MAP.find(dimension);\n'
-		schema += '\t\treturn (it != ENTITY_MAP.end() ? it->second : SymbolLayer{});\n'
-		schema += f'\t}}\n\n'
+		schema_text += '\t\tauto it = ENTITY_MAP.find(dimension);\n'
+		schema_text += '\t\treturn (it != ENTITY_MAP.end() ? it->second : SymbolLayer{});\n'
+		schema_text += f'\t}}\n\n'
 	
-	schema += '\treturn {};\n}\n\n'
+	schema_text += '\treturn {};\n}\n\n'
 
 	# Create the symbol set to dimension mapping
-	schema += 'static constexpr Dimension dimension_from_symbol_set(SymbolSet set) noexcept {\n'
-	schema += '\tswitch(set) {\n'
-	for dimension in constants.dimensions.values():
+	schema_text += 'static constexpr Dimension dimension_from_symbol_set(SymbolSet set) noexcept {\n'
+	schema_text += '\tswitch(set) {\n'
+	for dimension in schema.dimensions.values():
 		dim_sets = [symset for symset in symbol_sets if symset.dimension == dimension]
 		for dim_set in dim_sets:
-			schema += f'\t\tcase SymbolSet::{sanitize_constant(dim_set.names[0])}:\n'
+			schema_text += f'\t\tcase SymbolSet::{sanitize_constant(dim_set.names[0])}:\n'
 		if dimension.id_code == 'land unit':
-			schema += '\t\tdefault:\n'
-		schema += f'\t\t\treturn Dimension::{sanitize_constant(dimension.id_code)};\n'
+			schema_text += '\t\tdefault:\n'
+		schema_text += f'\t\t\treturn Dimension::{sanitize_constant(dimension.id_code)};\n'
 
-	schema += '\t}\n}\n\n'
+	schema_text += '\t}\n}\n\n'
 
 	# Create full frame ordering
-	schema += 'static constexpr int get_full_frame_ordering(Affiliation affiliation) noexcept {\n'
-	schema += f'\tswitch(get_frame_affiliation(affiliation)) {{\n'
-	for index, affiliation in enumerate(constants.full_frame_ordering):
-		schema += f'\t\tcase Affiliation::{sanitize_constant(affiliation.names[0])}:\n\t\t\treturn {index};\n'
-	unknown_index = [a.names[0] for a in constants.full_frame_ordering].index('unknown')
-	schema += f'\t\tdefault:\n\t\t\treturn {unknown_index};\n'
+	schema_text += 'static constexpr int get_full_frame_ordering(Affiliation affiliation) noexcept {\n'
+	schema_text += f'\tswitch(get_frame_affiliation(affiliation)) {{\n'
+	for index, affiliation in enumerate(schema.full_frame_ordering):
+		schema_text += f'\t\tcase Affiliation::{sanitize_constant(affiliation.names[0])}:\n\t\t\treturn {index};\n'
+	unknown_index = [a.names[0] for a in schema.full_frame_ordering].index('unknown')
+	schema_text += f'\t\tdefault:\n\t\t\treturn {unknown_index};\n'
 
-	schema += '\t}\n}\n\n'
+	schema_text += '\t}\n}\n\n'
 
 	# Create the master list of symbol sets
-	schema += "static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code, IconType symbol_type) {\n"
+	schema_text += "static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code, IconType symbol_type) {\n"
 
 	for index, symbol_set in enumerate(symbol_sets):
-		schema += '\t{}if (symbol_set == SymbolSet::{}) {{\n'.format('else ' if index > 0 else '', sanitize_constant(symbol_set.names[0]))
+		schema_text += '\t{}if (symbol_set == SymbolSet::{}) {{\n'.format('else ' if index > 0 else '', sanitize_constant(symbol_set.names[0]))
 
 		SYMBOL_TYPE_HEADERS = ['ENTITY', 'MODIFIER_1', 'MODIFIER_2']
 
 		for symtype_index, sym_type in enumerate([symbol_set.icons, symbol_set.m1, symbol_set.m2]):
 			if len(sym_type) < 1:
 				continue
-			schema += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 and not symbol_set.common else '', SYMBOL_TYPE_HEADERS[symtype_index])
+			schema_text += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 and not symbol_set.common else '', SYMBOL_TYPE_HEADERS[symtype_index])
 
 			map_title:str = f'{SYMBOL_TYPE_HEADERS[symtype_index]}_MAP'
 
 			# Iterate through symbols
-			schema += '\t\t\tconst auto {} = mapbox::eternal::map<int32_t, SymbolLayer>({{\n'.format(map_title)
+			schema_text += '\t\t\tconst auto {} = mapbox::eternal::map<int32_t, SymbolLayer>({{\n'.format(map_title)
 
 			out_symbols = []
 			for sym_code, symbol in sym_type.items():
 				mod_code = f'M{symtype_index}_' if symtype_index > 0 else ''
 				sanitized_name = sanitize_constant(f"{symbol_set.names[0]}_{mod_code}{symbol.names[0]}")
-				out_symbols.append((sanitized_name, symbol.cpp(output_style=output_style, constants=constants, with_bbox=True), symbol.names[0]))
+				out_symbols.append((sanitized_name, symbol.cpp(output_style=output_style, schema=schema, with_bbox=True), symbol.names[0]))
 
-			schema += ',\n'.join([f'\t\t\t\t{{static_cast<int32_t>({constant_name}), {draw_commands}}} /* {comment} */' for constant_name, draw_commands, comment in out_symbols]) + '\n'
-			schema += '\t\t\t});\n'
+			schema_text += ',\n'.join([f'\t\t\t\t{{static_cast<int32_t>({constant_name}), {draw_commands}}} /* {comment} */' for constant_name, draw_commands, comment in out_symbols]) + '\n'
+			schema_text += '\t\t\t});\n'
 
-			schema += "\t\t\tauto it = {}.find(code);\n".format(map_title) + \
+			schema_text += "\t\t\tauto it = {}.find(code);\n".format(map_title) + \
 				f"\t\t\treturn (it != {map_title}.end() ? it->second : SymbolLayer{{}});\n"
 
-			schema += '\t\t}\n'
+			schema_text += '\t\t}\n'
 
-		schema += '\t\telse {\n\t\t\treturn {};\n\t\t}\n'
-		schema += '\t}\n\n'
+		schema_text += '\t\telse {\n\t\t\treturn {};\n\t\t}\n'
+		schema_text += '\t}\n\n'
 
-	schema +=  "\n\t// Default to nothing\n\treturn {};\n" + "}\n"
+	schema_text +=  "\n\t// Default to nothing\n\treturn {};\n" + "}\n"
 
 	# Create the enumerator
 	if include_enumerator:
-		schema += "static constexpr std::vector<int32_t> get_available_symbols(SymbolSet symbol_set, IconType symbol_type) {\n"
+		schema_text += "static constexpr std::vector<int32_t> get_available_symbols(SymbolSet symbol_set, IconType symbol_type) {\n"
 
 		for index, symbol_set in enumerate(symbol_sets):
-			schema += '\t{}if (symbol_set == SymbolSet::{}) {{\n'.format('else ' if index > 0 else '', sanitize_constant(symbol_set.names[0]))
+			schema_text += '\t{}if (symbol_set == SymbolSet::{}) {{\n'.format('else ' if index > 0 else '', sanitize_constant(symbol_set.names[0]))
 
 			SYMBOL_TYPE_HEADERS = ['ENTITY', 'MODIFIER_1', 'MODIFIER_2']
 
 			for symtype_index, sym_type in enumerate([symbol_set.icons, symbol_set.m1, symbol_set.m2]):
-				schema += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 else '', SYMBOL_TYPE_HEADERS[symtype_index])
+				schema_text += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 else '', SYMBOL_TYPE_HEADERS[symtype_index])
 
 				# Iterate through symbols
-				schema += '\t\t\treturn {{{}}};\n'.format(', '.join(
+				schema_text += '\t\t\treturn {{{}}};\n'.format(', '.join(
 					[f'{sanitize_constant(symbol_set.names[0])}_{f"M{symtype_index}_" if symtype_index > 0 else ""}{sanitize_constant(sym.names[0])}' for sym_id, sym in sym_type.items()]
 				))
 
-				schema += '\t\t}\n' # Close if block for symbol type
+				schema_text += '\t\t}\n' # Close if block for symbol type
 
-			schema += '\t}\n\n' # Close if block for symbol set
+			schema_text += '\t}\n\n' # Close if block for symbol set
 
-		schema +=  "\n\t// Default to nothing\n\treturn {};\n" + "}\n" # Close function
+		schema_text +=  "\n\t// Default to nothing\n\treturn {};\n" + "}\n" # Close function
 
 	# Close the namespace
-	schema += '}'
+	schema_text += '}'
 
 	with open(schema_filename, 'w') as schema_file:
-		schema_file.write(schema)
+		schema_file.write(schema_text)
 
-	if len(godot_filename) > 0:
-		symbol_set_name_key:str = "SYMBOL_SET_NAME"
-		entity_key:str = "ENTITIES"
-		modifier_1_key:str = "MODIFIER_1"
-		modifier_2_key:str = "MODIFIER_2"
-		# Create Godot constants
-		godot_file = 'class_name SIDCConstants\n'
-
-		godot_file += f'const {symbol_set_name_key}:StringName = &"{symbol_set_name_key}"\n'
-		godot_file += f'const {entity_key}:StringName = &"{entity_key}"\n'
-		godot_file += f'const {modifier_1_key}:StringName = &"{modifier_1_key}"\n'
-		godot_file += f'const {modifier_2_key}:StringName = &"{modifier_2_key}"\n'
-
-		# Create the constants
-		godot_file += 'const SYMBOL_SETS:Dictionary = {\n'
-		for index, symbol_set in enumerate(symbol_sets):
-			godot_file += f'\t0x{symbol_set.id}: {{\n'
-
-			godot_file += f'\t\t{symbol_set_name_key}: "{symbol_set.names[0]}",\n'
-
-			# Add in entities and modifiers
-			SYMBOL_TYPE_HEADERS = [entity_key, modifier_1_key, modifier_2_key]
-
-			for symtype_index, sym_type in enumerate([symbol_set.icons, symbol_set.m1, symbol_set.m2]):
-				godot_file += '\t\t{}: {{\n'.format(SYMBOL_TYPE_HEADERS[symtype_index])
-
-				godot_file += ',\n'.join(['\t\t\t{}: [{}]'.format(
-					int(sym.uid),
-					', '.join([f'\"{name}\"' for name in sym.names])
-				) for sym in sym_type.values()]) + '\n'
-
-				godot_file += '\t\t}}{}\n'.format(',' if symtype_index != (len(SYMBOL_TYPE_HEADERS) - 1) else '')
-
-			godot_file += '\t}}{}\n'.format(',' if index != (len(symbol_sets) - 1) else '')
-			pass
-
-		godot_file += '}' # Close the dict
-
-		# Write the file
-		with open(godot_filename, 'w') as godot_file_object:
-			godot_file_object.write(godot_file)
 
 def main() -> None:
 	# Gather the JSON files to parse - all .json files in this directory
@@ -609,18 +301,19 @@ def main() -> None:
 		print("No constant file \"constants.json\" found", file=sys.stderr)
 		return
 
-	constants = parse_constant_file(filepath=constant_files[0])
+	schema = Schema()
+	schema.parse_from_file(filepath=constant_files[0])
 
 	# Parse all the JSON files
 	symbol_sets = []
 	for filename in [f for f in files if os.path.basename(f) != 'constants.json']:
 		print(f'Parsing "{filename}"...')
-		items = parse_symbol_set_file(filename, constants=constants)
-		if items is None:
+		symbol_set:SymbolSet = SymbolSet.parse_from_file(filename, schema=schema)
+		if symbol_set is None:
 			print(f"Bad symbol set file \"{filename}\"", file=sys.stderr)
 			continue
 
-		symbol_sets.append(items)
+		schema.symbol_sets[symbol_set.id_code] = symbol_set
 	symbol_sets = sorted(symbol_sets)
 
 
@@ -637,8 +330,7 @@ def main() -> None:
 
 	print(f"Outputting C++ headers, using {'path' if arguments.use_text_paths else 'text'} elements for text...")
 	create_schema(
-		constants=constants,
-		symbol_sets=symbol_sets, 
+		schema=schema,
 		use_text_paths=arguments.use_text_paths,
 		text_path_font=arguments.text_path_font,
 		constant_filename=os.path.join(cwd, '..', 'include', 'Constants.hpp'),
