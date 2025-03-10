@@ -4,7 +4,7 @@ const ENTITIES:StringName = &"ENTITIES"
 const MODIFIER_1:StringName = &"MODIFIER_1"
 const MODIFIER_2:StringName = &"MODIFIER_2"
 const SYMBOL_SETS:Dictionary = {
-	1: {
+	0x01: {
 		SYMBOL_SET_NAME: "air",
 		ENTITIES: {
 			110000: ["military"],
@@ -117,7 +117,7 @@ const SYMBOL_SETS:Dictionary = {
 			12: ["cyberspace"]
 		}
 	},
-	2: {
+	0x02: {
 		SYMBOL_SET_NAME: "air missile",
 		ENTITIES: {
 			110000: ["missile"]
@@ -151,7 +151,7 @@ const SYMBOL_SETS:Dictionary = {
 			16: ["intercontinental"]
 		}
 	},
-	5: {
+	0x05: {
 		SYMBOL_SET_NAME: "space",
 		ENTITIES: {
 			110000: ["military space platform", "military"],
@@ -214,7 +214,7 @@ const SYMBOL_SETS:Dictionary = {
 			12: ["tug"]
 		}
 	},
-	6: {
+	0x06: {
 		SYMBOL_SET_NAME: "space missile",
 		ENTITIES: {
 			110000: ["missile", "space missile"]
@@ -241,7 +241,7 @@ const SYMBOL_SETS:Dictionary = {
 			13: ["debris"]
 		}
 	},
-	10: {
+	0x10: {
 		SYMBOL_SET_NAME: "land unit",
 		ENTITIES: {
 			0: ["unspecified command and control"],
@@ -652,7 +652,7 @@ const SYMBOL_SETS:Dictionary = {
 			89: ["air defense", "anti-air", "antiair", "AA", "air defence"]
 		}
 	},
-	11: {
+	0x11: {
 		SYMBOL_SET_NAME: "land civilian unit/organization",
 		ENTITIES: {
 			110000: ["c", "i", "v", "i", "l", "i", "a", "n"],
@@ -700,7 +700,7 @@ const SYMBOL_SETS:Dictionary = {
 			2: ["cyberspace"]
 		}
 	},
-	15: {
+	0x15: {
 		SYMBOL_SET_NAME: "land equipment",
 		ENTITIES: {
 			110000: ["weapon"],
@@ -968,7 +968,7 @@ const SYMBOL_SETS:Dictionary = {
 			9: ["robotic"]
 		}
 	},
-	20: {
+	0x20: {
 		SYMBOL_SET_NAME: "land installation",
 		ENTITIES: {
 			110000: ["installation"],
@@ -1131,7 +1131,7 @@ const SYMBOL_SETS:Dictionary = {
 			10: ["transportation"]
 		}
 	},
-	27: {
+	0x27: {
 		SYMBOL_SET_NAME: "dismounted individual",
 		ENTITIES: {
 			110201: ["explosive ordnance disposal", "EOD"],
@@ -1239,7 +1239,7 @@ const SYMBOL_SETS:Dictionary = {
 			38: ["rank WO-5", "W-5", "rank W-5", "WO-5"]
 		}
 	},
-	30: {
+	0x30: {
 		SYMBOL_SET_NAME: "sea surface",
 		ENTITIES: {
 			110000: ["military"],
@@ -1382,7 +1382,7 @@ const SYMBOL_SETS:Dictionary = {
 			16: ["cyberspace"]
 		}
 	},
-	35: {
+	0x35: {
 		SYMBOL_SET_NAME: "sea subsurface",
 		ENTITIES: {
 			110000: ["military"],
@@ -1450,7 +1450,7 @@ const SYMBOL_SETS:Dictionary = {
 			17: ["cyberspace", "cyber"]
 		}
 	},
-	36: {
+	0x36: {
 		SYMBOL_SET_NAME: "mine warfare",
 		ENTITIES: {
 			110000: ["sea mine, general", "general sea mine"],
@@ -1526,7 +1526,7 @@ const SYMBOL_SETS:Dictionary = {
 
 		}
 	},
-	40: {
+	0x40: {
 		SYMBOL_SET_NAME: "activities",
 		ENTITIES: {
 			110000: ["incident"],
@@ -1707,7 +1707,7 @@ const SYMBOL_SETS:Dictionary = {
 			2: ["security force assistance"]
 		}
 	},
-	50: {
+	0x50: {
 		SYMBOL_SET_NAME: "signals intelligence",
 		ENTITIES: {
 			110000: ["signal intercept"],
@@ -1785,7 +1785,7 @@ const SYMBOL_SETS:Dictionary = {
 
 		}
 	},
-	60: {
+	0x60: {
 		SYMBOL_SET_NAME: "cyberspace",
 		ENTITIES: {
 			110000: ["cyberspace unit"],
@@ -1851,6 +1851,105 @@ const SYMBOL_SETS:Dictionary = {
 			6: ["advanced persistent threat"],
 			7: ["nation state"],
 			8: ["nation state sponsored"]
+		}
+	},
+	0xC: {
+		SYMBOL_SET_NAME: "common modifiers",
+		ENTITIES: {
+
+		},
+		MODIFIER_1: {
+			100: ["uav", "unmanned aerial vehicle", "uas", "unmanned aerial system", "remotely piloted vehicle", "rpv"],
+			101: ["robotic", "robot"],
+			102: ["fixed wing", "FW"],
+			103: ["rotary wing", "RW"],
+			104: ["tilt-rotor", "tiltrotor"],
+			105: ["VTOL", "vertical takeoff and landing", "vertical or short takeoff and landing", "VSTOL", "helicopter-equipped", "helicopter equipped"],
+			106: ["attack", "strike"],
+			107: ["armored"],
+			108: ["ballistic missile", "ballistic missile defense"],
+			109: ["bridge", "bridging"],
+			110: ["cargo"],
+			111: ["utility"],
+			112: ["light"],
+			113: ["medium"],
+			114: ["heavy"],
+			115: ["cyberspace", "cyber"],
+			116: ["command post node", "CPN"],
+			117: ["joint network node", "JNN"],
+			118: ["retransmission site", "retrans site"],
+			119: ["brigade"],
+			120: ["close protection"],
+			121: ["combat"],
+			122: ["command and control", "C2"],
+			123: ["crowd and riot control", "crowd control", "riot control"],
+			124: ["explosive ordnance disposal", "EOD"],
+			125: ["intelligence surveillance and reconnaissance", "ISR"],
+			126: ["maintenance"],
+			127: ["medevac", "medical", "medic", "corpsman"],
+			128: ["search and rescue", "SAR"],
+			129: ["security"],
+			130: ["sniper"],
+			131: ["special operations forces", "SOF"],
+			132: ["special weapons and tactics", "SWAT"],
+			133: ["guided missile"],
+			134: ["other guided missile"],
+			135: ["petroleum oil and lubricants", "petroleum", "POL"],
+			136: ["water"],
+			137: ["weapons"],
+			138: ["chemical"],
+			140: ["radiological"],
+			141: ["nuclear"],
+			142: ["decontamination", "decon"],
+			143: ["civilian"],
+			144: ["government organization", "government"],
+			145: ["accident"],
+			146: ["assassination"],
+			147: ["execution"],
+			148: ["kidnapping", "kidnap"],
+			149: ["piracy"],
+			150: ["hijacker", "hijack", "hijacking"],
+			151: ["anti-submarine warfare", "antisubmarine warfare", "ASW"],
+			152: ["escort"],
+			153: ["mine countermeasures"],
+			154: ["mine warfare"],
+			155: ["surface warfare"],
+			156: ["command"],
+			157: ["regiment", "group"],
+			158: ["platoon", "detachment"],
+			160: ["section"],
+			161: ["squad"],
+			162: ["team", "crew"],
+			163: ["battalion", "squadron"],
+			164: ["directed energy", "laser"]
+		},
+		MODIFIER_2: {
+			100: ["airborne"],
+			101: ["bicycle equipped", "bicycle"],
+			102: ["railroad", "railway"],
+			103: ["ski"],
+			104: ["tracked"],
+			105: ["wheeled limited cross country", "wheeled"],
+			106: ["wheeled cross country", "cross country", "wheeled x"],
+			107: ["fixed-wing", "fixed wing", "FW"],
+			108: ["rotary-wing", "rotary wing", "RW"],
+			109: ["robotic", "robot"],
+			110: ["autonomous", "autonomous control"],
+			111: ["remotely piloted"],
+			112: ["expendable"],
+			113: ["mountain"],
+			114: ["long range", "long-range"],
+			115: ["medium range", "medium-range"],
+			116: ["short range", "short-range"],
+			117: ["close range", "close-range"],
+			118: ["heavy"],
+			119: ["medium"],
+			120: ["light and medium", "medium and light"],
+			121: ["light"],
+			122: ["cyberspace", "cyber"],
+			123: ["security force assistance", "SFA"],
+			124: ["medical bed"],
+			125: ["multifunctional", "multi-function", "multi-functional", "multifunction"]
 		}
 	}
 }

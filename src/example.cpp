@@ -21,7 +21,7 @@ int main(int argc, const char** argv) {
     alt_style.use_modifiers = true;
     alt_style.color_mode = milsymbol::ColorMode::LIGHT;
 
-    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130360000013020013070000000000")
+    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("100310021612040100060130000840")
                                    .with_affiliation(milsymbol::Affiliation::FRIEND);
 
     milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);

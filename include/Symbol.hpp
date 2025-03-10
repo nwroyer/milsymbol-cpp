@@ -23,7 +23,7 @@ namespace milsymbol {
 struct Symbol {
 
     using entity_t = int32_t;
-    using modifier_t = int16_t;
+    using modifier_t = int32_t;
 
     /**
      * @brief Constructs a default symbol.
@@ -245,9 +245,9 @@ private:
 
     // Symbols
     SymbolSet symbol_set = SymbolSet::LAND_UNIT;
-    entity_t entity = 0;    /// The entity ID for the symbol. from 0-999999 inclusive
-    modifier_t modifier_1 = 0; /// Modifier 1 code, from 0-99 inclusive
-    modifier_t modifier_2 = 0; /// Modifier 2 code, from 0-99 inclusive
+    entity_t entity = Entity::ENTITY_UNKNOWN;    /// The entity ID for the symbol. from 0-999999 inclusive
+    Modifier1 modifier_1 = Modifier1::M1_UNKNOWN; /// Modifier 1 code, from 0-99 inclusive
+    Modifier2 modifier_2 = Modifier2::M2_UNKNOWN; /// Modifier 2 code, from 0-99 inclusive
 
     /*
      * Positioning data

@@ -1,5 +1,8 @@
 {
+	"set": "C",
+	"name": "common modifiers",
 	"common": true,
+	"IC": {},
 	"M1": {
 		"100": {
 			"names": ["uav", "unmanned aerial vehicle", "uas", "unmanned aerial system", "remotely piloted vehicle", "rpv"],

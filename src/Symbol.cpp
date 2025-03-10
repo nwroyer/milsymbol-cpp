@@ -259,7 +259,6 @@ static void get_dismounted_leadership(bool leadership, Affiliation affiliation, 
     }
 }
 
-
 _impl::DrawCommand get_symbol_headquarters(Affiliation affiliation, Dimension dimension,
     real_t hq_staff_length, const BoundingBox& base_bbox, real_t frame_stroke_width,
     Vector2& staff_base)
@@ -736,8 +735,20 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
      */
     // entity_t entity_raw = 0;
     symbol.entity = _impl::sidc_to_entity(symbol_set, hex_from_substring(sidc.substr(10, 6)));
-    symbol.modifier_1 = _impl::sidc_to_modifier_1(symbol_set, hex_from_substring(sidc.substr(16, 2)));
-    symbol.modifier_2 = _impl::sidc_to_modifier_2(symbol_set, hex_from_substring(sidc.substr(18, 2)));
+
+    bool common_mod_1 = sidc.length() >= 30 ? (hex_from_substring(sidc.substr(20, 1)) != 0) : false;
+    bool common_mod_2 = sidc.length() >= 30 ? (hex_from_substring(sidc.substr(21, 1)) != 0) : false;
+
+    if (common_mod_2) {
+        std::cout << "Common mod from " << sidc.substr(18, 2) << ": "
+                  << std::hex << 0x100 + hex_from_substring(sidc.substr(18, 2)) << std::endl;
+    }
+
+    symbol.modifier_1 = _impl::sidc_to_modifier_1(common_mod_1 ? SymbolSet::COMMON_MODIFIERS : symbol_set,
+                                                  (common_mod_1 ? 0x100 : 0) + hex_from_substring(sidc.substr(16, 2)));
+    symbol.modifier_2 = _impl::sidc_to_modifier_2(common_mod_2 ? SymbolSet::COMMON_MODIFIERS : symbol_set,
+                                                  (common_mod_2 ? 0x100 : 0) + hex_from_substring(sidc.substr(18, 2)));
+
 
     return symbol;
 }
@@ -748,7 +759,7 @@ Symbol::modifier_t Symbol::get_modifier(int mod) const noexcept {
         return 0;
     }
 
-    return mod == 1 ? modifier_1 : modifier_2;
+    return mod == 1 ? static_cast<modifier_t>(modifier_1) : static_cast<modifier_t>(modifier_2);
 }
 
 inline Vector2 scaled_to_center(const Vector2& vec, float scale) noexcept {
@@ -764,8 +775,8 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     SymbolSet symbol_set = get_symbol_set();
 
     _impl::SymbolLayer symbol_layer = _impl::get_symbol_layer(symbol_set, entity, IconType::ENTITY);
-    _impl::SymbolLayer m1_layer = _impl::get_symbol_layer(symbol_set, modifier_1, IconType::MODIFIER_1);
-    _impl::SymbolLayer m2_layer = _impl::get_symbol_layer(symbol_set, modifier_2, IconType::MODIFIER_2);
+    _impl::SymbolLayer m1_layer = _impl::get_symbol_layer(_impl::is_modifier_1_common(modifier_1) ? SymbolSet::COMMON_MODIFIERS : symbol_set, modifier_1, IconType::MODIFIER_1);
+    _impl::SymbolLayer m2_layer = _impl::get_symbol_layer(_impl::is_modifier_2_common(modifier_2) ? SymbolSet::COMMON_MODIFIERS : symbol_set, modifier_2, IconType::MODIFIER_2);
 
     // Add the base geometry
     std::vector<_impl::DrawCommand> components;

@@ -194,8 +194,12 @@ class SymbolSet:
 		self.m2 = {}
 		self.names = []
 		self.dimension = None
+		self.common = False
 
 	def __lt__(self, other) -> bool:
+		if self.common != other.common:
+			return not self.common
+
 		return int(self.id) < int(other.id)
 
 """
@@ -240,11 +244,13 @@ def parse_symbol_set_file(filepath:str, constants:Constants) -> dict:
 		print("No set", file=sys.stderr)
 		return None
 
-	if 'dimension' not in json_dict:
+	is_common = json_dict.get('common', False)
+
+	if 'dimension' not in json_dict and not is_common:
 		raise Exception(f"No dimension defined in \"{filepath}\"")
 		return None
 
-	if json_dict['dimension'] not in constants.dimensions:
+	if not is_common and json_dict['dimension'] not in constants.dimensions:
 		raise Exception(f"Dimension \"{json_dict['dimension']}\" not found from \"{filepath}\"")
 		return None
 
@@ -273,7 +279,8 @@ def parse_symbol_set_file(filepath:str, constants:Constants) -> dict:
 	ret_set.m1 = ret['M1']
 	ret_set.m2 = ret['M2']
 	ret_set.names = json_dict['names'] if 'names' in json_dict else [json_dict['name']]
-	ret_set.dimension = constants.dimensions[json_dict['dimension']]
+	ret_set.dimension = constants.dimensions[json_dict['dimension']] if not is_common else False
+	ret_set.common = is_common
 	return ret_set
 
 """
@@ -369,7 +376,7 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 	const_text += 'enum Modifier2 : int32_t {\n'
 	const_text += f'\tM2_UNKNOWN = 0,\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.m2.values()]
-	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.names[0])}_M2_{sanitize_constant(ent.names[0])}"} = {int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
+	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.names[0])}_M2_{sanitize_constant(ent.names[0])}"} = 0x{symset.id}{ent.uid}' for (ent, symset) in entities]) + '\n'
 	const_text += '};\n\n'
 
 	const_text += '}\n'
@@ -392,7 +399,7 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 	# Create base frame draw commands
 	schema += "static constexpr const SymbolSet sidc_to_symbol_set(int hex_code) {\n"
 	schema += f'\tconst auto SYMBOL_SET_MAP = mapbox::eternal::map<int, SymbolSet>({{\n'
-	schema += ',\n'.join([f'\t\t{{0x{symbol_set.id}, SymbolSet::{sanitize_constant(symbol_set.names[0])}}}' for symbol_set in symbol_sets])
+	schema += ',\n'.join([f'\t\t{{0x{symbol_set.id}, SymbolSet::{sanitize_constant(symbol_set.names[0])}}}' for symbol_set in symbol_sets if not symbol_set.common])
 	schema += '\n\t});\n\n'
 	schema += '\tauto it = SYMBOL_SET_MAP.find(hex_code);\n'
 	schema += '\treturn (it != SYMBOL_SET_MAP.end() ? it->second : SymbolSet::LAND_UNIT);\n}\n'	
@@ -400,6 +407,9 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 	# Get entity set
 	schema += "static constexpr const Entity sidc_to_entity(SymbolSet symbol_set, int hex_code) {\n"
 	for symbol_set in symbol_sets:
+		if symbol_set.common:
+			continue
+
 		schema += f'\tif (symbol_set == SymbolSet::{sanitize_constant(symbol_set.names[0])}) {{\n'
 		schema += f'\t\tconst auto ENTITY_MAP = mapbox::eternal::map<int, Entity>({{\n'
 		dim_entries = [f'\t\t{{0x{entity_id}, Entity::{sanitize_constant(symbol_set.names[0])}_{sanitize_constant(entity.names[0])}}}' for (entity_id, entity) in symbol_set.icons.items()]
@@ -428,6 +438,10 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 			schema += f'\t\treturn (it != MODIFIER_MAP.end() ? it->second : Modifier{m+1}::M{m+1}_UNKNOWN);\n'
 			schema += f'\t}}\n\n'
 		schema += '\treturn {};\n}\n\n'
+
+		schema += f"static constexpr bool is_modifier_{m+1}_common(Modifier{m+1} modifier) {{\n"
+		schema += '\treturn ((static_cast<int>(modifier) & 0xF000) == 0xC000);\n'
+		schema += '}\n\n'
 
 	# Create base frame draw commands
 	schema += "static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension, Affiliation affiliation, Context context, bool position_only = false) {\n"
@@ -487,7 +501,7 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 		for symtype_index, sym_type in enumerate([symbol_set.icons, symbol_set.m1, symbol_set.m2]):
 			if len(sym_type) < 1:
 				continue
-			schema += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 else '', SYMBOL_TYPE_HEADERS[symtype_index])
+			schema += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 and not symbol_set.common else '', SYMBOL_TYPE_HEADERS[symtype_index])
 
 			map_title:str = f'{SYMBOL_TYPE_HEADERS[symtype_index]}_MAP'
 
@@ -526,8 +540,8 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 				schema += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 else '', SYMBOL_TYPE_HEADERS[symtype_index])
 
 				# Iterate through symbols
-				schema += 'return {{{}}};'.format(', '.join(
-					[f'{int(sym.uid)} /*{sym.names[0]}*/' for sym in sym_type.values()]
+				schema += '\t\t\treturn {{{}}};\n'.format(', '.join(
+					[f'{sanitize_constant(symbol_set.names[0])}_{f"M{symtype_index}_" if symtype_index > 0 else ""}{sanitize_constant(sym.names[0])}' for sym_id, sym in sym_type.items()]
 				))
 
 				schema += '\t\t}\n' # Close if block for symbol type
@@ -558,7 +572,7 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 		# Create the constants
 		godot_file += 'const SYMBOL_SETS:Dictionary = {\n'
 		for index, symbol_set in enumerate(symbol_sets):
-			godot_file += f'\t{int(symbol_set.id)}: {{\n'
+			godot_file += f'\t0x{symbol_set.id}: {{\n'
 
 			godot_file += f'\t\t{symbol_set_name_key}: "{symbol_set.names[0]}",\n'
 
