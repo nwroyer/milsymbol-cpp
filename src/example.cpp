@@ -21,7 +21,7 @@ int main(int argc, const char** argv) {
     alt_style.use_modifiers = true;
     alt_style.color_mode = milsymbol::ColorMode::LIGHT;
 
-    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("131305100011020000100000000000")
+    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130360000013020013070000000000")
                                    .with_affiliation(milsymbol::Affiliation::FRIEND);
 
     milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
@@ -57,7 +57,7 @@ int main(int argc, const char** argv) {
 
     std::ofstream example_2_file;
     example_2_file.open("example_2.svg", std::ios_base::out);
-    example_2_file << milsymbol::Symbol::from_sidc("30001000171114000068")
+    example_2_file << milsymbol::Symbol::from_sidc("130360000013020013070000000000")
                         .as_headquarters(true)
                         .with_affiliation(milsymbol::Affiliation::HOSTILE)
                         .get_svg_string(alt_style);
@@ -74,7 +74,7 @@ int main(int argc, const char** argv) {
 
     milsymbol::Symbol example_3_symbol = milsymbol::Symbol{}
                                              .with_affiliation(milsymbol::Affiliation::FRIEND)
-                                             .with_entity(milsymbol::Entities::LAND_UNIT_INFANTRY)
+                                             .with_entity(milsymbol::Entity::LAND_UNIT_INFANTRY)
                                              .with_echelon(milsymbol::Echelon::BATTALION);
 
     std::ofstream example_3_file;
@@ -88,12 +88,12 @@ int main(int argc, const char** argv) {
      * Write position-only representation of a symbol
      */
 
-    milsymbol::Symbol example_4_symbol = milsymbol::Symbol::from_sidc("30031000141106000060");
+    milsymbol::Symbol example_4_symbol = milsymbol::Symbol::from_sidc("130310000011020000890000000000");
     std::ofstream example_4_file;
 
     milsymbol::SymbolStyle example_4_style;
-    example_4_style.use_frame = false;
-    example_4_style.use_entity_icon = false;
+    // example_4_style.use_frame = false;
+    // example_4_style.use_entity_icon = false;
 
     example_4_file.open("example_4.svg", std::ios_base::out);
     example_4_file << example_4_symbol.get_svg_string(example_4_style);
@@ -102,7 +102,7 @@ int main(int argc, const char** argv) {
     // Example 5
     example_3_symbol = milsymbol::Symbol{}
                                              .with_affiliation(milsymbol::Affiliation::HOSTILE)
-                                             .with_entity(milsymbol::Entities::LAND_UNIT_INFANTRY)
+                                             .with_entity(milsymbol::Entity::LAND_UNIT_INFANTRY)
                                              .with_echelon(milsymbol::Echelon::BATTALION);
 
     std::ofstream example_5_file;

@@ -347,24 +347,27 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 
 	# Create symbol set enums
 	const_text += "enum class SymbolSet {\n"
-	const_text += ',\n'.join(['\tUNDEFINED = -1'] + ['\t{} = {}'.format(sanitize_constant(symbol_set.names[0]), int(symbol_set.id)) for symbol_set in symbol_sets]) + '\n'
+	const_text += ',\n'.join(['\tUNDEFINED = -1'] + ['\t{} = 0x{}'.format(sanitize_constant(symbol_set.names[0]), symbol_set.id) for symbol_set in symbol_sets]) + '\n'
 	const_text += f'}};\n\nstatic constexpr int SYMBOL_SET_COUNT = {len(symbol_sets)};\n'
 	const_text += 'static constexpr int NOMINAL_ICON_SIZE = 200; /// The default icon size\n\n'
 	const_text += 'static constexpr std::array<SymbolSet, SYMBOL_SET_COUNT> SYMBOL_SETS = {\n'
 	const_text += ',\n'.join(['\tSymbolSet::{}'.format(sanitize_constant(symbol_set.names[0])) for symbol_set in symbol_sets]) + '\n'
 	const_text += '};\n\n'
 
-	const_text += 'enum Entities : int32_t {\n'
+	const_text += 'enum Entity : int32_t {\n'
+	const_text += '\tENTITY_UNKNOWN = 0,\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.icons.values()]
-	const_text += ',\n'.join([f'\t{sanitize_constant(f"{symset.names[0]}_{ent.names[0]}")} = {int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
+	const_text += ',\n'.join([f'\t{sanitize_constant(f"{symset.names[0]}_{ent.names[0]}")} = 0x{int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
 	const_text += '};\n\n'
 	
 	const_text += 'enum Modifier1 : int32_t {\n'
+	const_text += f'\tM1_UNKNOWN = 0,\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.m1.values()]
-	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.names[0])}_M1_{sanitize_constant(ent.names[0])}"} = {int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
+	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.names[0])}_M1_{sanitize_constant(ent.names[0])}"} = 0x{symset.id}{ent.uid}' for (ent, symset) in entities]) + '\n'
 	const_text += '};\n\n'
 	
 	const_text += 'enum Modifier2 : int32_t {\n'
+	const_text += f'\tM2_UNKNOWN = 0,\n'
 	entities = [(ent, symset) for symset in symbol_sets for ent in symset.m2.values()]
 	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.names[0])}_M2_{sanitize_constant(ent.names[0])}"} = {int(symset.id)}{ent.uid}' for (ent, symset) in entities]) + '\n'
 	const_text += '};\n\n'
@@ -385,6 +388,46 @@ def create_schema(constants:Constants, symbol_sets:list, schema_filename:str, co
 
 	# Create symbol type enum
 	schema += "enum class IconType {\n" + "\tENTITY = 0,\n\tMODIFIER_1,\n\tMODIFIER_2\n\n};\n\n"
+
+	# Create base frame draw commands
+	schema += "static constexpr const SymbolSet sidc_to_symbol_set(int hex_code) {\n"
+	schema += f'\tconst auto SYMBOL_SET_MAP = mapbox::eternal::map<int, SymbolSet>({{\n'
+	schema += ',\n'.join([f'\t\t{{0x{symbol_set.id}, SymbolSet::{sanitize_constant(symbol_set.names[0])}}}' for symbol_set in symbol_sets])
+	schema += '\n\t});\n\n'
+	schema += '\tauto it = SYMBOL_SET_MAP.find(hex_code);\n'
+	schema += '\treturn (it != SYMBOL_SET_MAP.end() ? it->second : SymbolSet::LAND_UNIT);\n}\n'	
+
+	# Get entity set
+	schema += "static constexpr const Entity sidc_to_entity(SymbolSet symbol_set, int hex_code) {\n"
+	for symbol_set in symbol_sets:
+		schema += f'\tif (symbol_set == SymbolSet::{sanitize_constant(symbol_set.names[0])}) {{\n'
+		schema += f'\t\tconst auto ENTITY_MAP = mapbox::eternal::map<int, Entity>({{\n'
+		dim_entries = [f'\t\t{{0x{entity_id}, Entity::{sanitize_constant(symbol_set.names[0])}_{sanitize_constant(entity.names[0])}}}' for (entity_id, entity) in symbol_set.icons.items()]
+		schema += ',\n'.join([f'\t{e}' for e in dim_entries])
+		schema += f'\n\t\t}});\n\n'
+
+		schema += '\t\tauto it = ENTITY_MAP.find(hex_code);\n'
+		schema += '\t\treturn (it != ENTITY_MAP.end() ? it->second : Entity::ENTITY_UNKNOWN);\n'
+		schema += f'\t}}\n\n'
+	schema += '\treturn {};\n}\n\n'
+
+	for m in range(0, 2):
+		schema += f"static constexpr const Modifier{m+1} sidc_to_modifier_{m+1}(SymbolSet symbol_set, int hex_code) {{\n"
+		for symbol_set in symbol_sets:
+			modifier_set = symbol_set.m1 if m == 0 else symbol_set.m2
+			if len(modifier_set) < 1:
+				continue
+
+			schema += f'\tif (symbol_set == SymbolSet::{sanitize_constant(symbol_set.names[0])}) {{\n'
+			schema += f'\t\tconst auto MODIFIER_MAP = mapbox::eternal::map<int, Modifier{m+1}>({{\n'
+			dim_entries = [f'\t\t{{0x{mod_id}, Modifier{m+1}::{sanitize_constant(symbol_set.names[0])}_M{m+1}_{sanitize_constant(mod.names[0])}}}' for (mod_id, mod) in modifier_set.items()]
+			schema += ',\n'.join([f'\t{e}' for e in dim_entries])
+			schema += f'\n\t\t}});\n\n'
+
+			schema += '\t\tauto it = MODIFIER_MAP.find(hex_code);\n'
+			schema += f'\t\treturn (it != MODIFIER_MAP.end() ? it->second : Modifier{m+1}::M{m+1}_UNKNOWN);\n'
+			schema += f'\t}}\n\n'
+		schema += '\treturn {};\n}\n\n'
 
 	# Create base frame draw commands
 	schema += "static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension, Affiliation affiliation, Context context, bool position_only = false) {\n"

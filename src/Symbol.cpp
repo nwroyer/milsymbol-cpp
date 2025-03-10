@@ -457,6 +457,26 @@ static int int_substring(const std::string_view& view, int start, int len) {
     return ret;
 }
 
+static int hex_from_substring(const std::string_view string_view) noexcept {
+    int result = 0;
+    std::size_t chars_consumed = 0;
+    const char* first = string_view.data();
+    const char* last = string_view.data() + string_view.length();
+    std::from_chars_result res = std::from_chars(first, last, result, 16);
+
+    if (res.ec != std::errc()) {
+        std::cerr << "Invalid hexadecimal string \"" << string_view << "\": error " << static_cast<int>(res.ec) << std::endl;
+        return 0;
+    }
+
+    if (res.ptr != last) {
+        std::cerr << "Invalid hexadecimal string \"" << string_view << "\": overflow error " << std::endl;
+        return 0;
+    }
+
+    return result;
+}
+
 Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
 
     /*
@@ -550,47 +570,9 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
     }
 
     // Parse the symbol sets
-    int symbol_set_raw = int_substring(sidc, 4, 2);
-
-    SymbolSet symbol_set;
-    switch (symbol_set_raw) {
-    case 1:
-        symbol_set = SymbolSet::AIR;
-        break;
-    case 2:
-        symbol_set = SymbolSet::AIR_MISSILE;
-        break;
-    case 5:
-        symbol_set = SymbolSet::SPACE;
-        break;
-    case 6:
-        symbol_set = SymbolSet::SPACE_MISSILE;
-        break;
-    case 10:
-        symbol_set = SymbolSet::LAND_UNIT;
-        break;
-    case 11:
-        symbol_set = SymbolSet::LAND_CIVILIAN_UNIT_ORGANIZATION;
-        break;
-    case 15:
-        symbol_set = SymbolSet::LAND_EQUIPMENT;
-        break;
-    case 20:
-        symbol_set = SymbolSet::LAND_INSTALLATION;
-        break;
-    case 30:
-        symbol_set = SymbolSet::SEA_SURFACE;
-        break;
-    case 35:
-        symbol_set = SymbolSet::SEA_SUBSURFACE;
-        break;
-    case 40:
-        symbol_set = SymbolSet::ACTIVITIES;
-        break;
-    default:
-        symbol_set = SymbolSet::UNDEFINED;
-        break;
-    }
+    SymbolSet symbol_set = _impl::sidc_to_symbol_set(hex_from_substring(sidc.substr(4, 2)));
+    symbol.symbol_set = symbol_set;
+    std::cout << "Symbol set " << static_cast<int>(symbol_set) << " from " << sidc.substr(4, 2) << std::endl;
 
     /*
      * Parse status
@@ -752,18 +734,10 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
      * - Characters 16-17 inclusive are modifier 1
      * - Characters 18-19 inclusive are modifier 2
      */
-    entity_t entity_raw = 0;
-    modifier_t modifier_1_raw = 0;
-    modifier_t modifier_2_raw = 0;
-
-    entity_raw = int_substring(sidc, 10, 6);
-    symbol.entity = static_cast<int>(symbol_set) * ENTITY_SYMBOL_SET_OFFSET + entity_raw;
-
-    modifier_1_raw = int_substring(sidc, 16, 2);
-    symbol.modifier_1 = modifier_1_raw == 0 ? 0 : static_cast<int>(symbol_set) * MODIFIER_SYMBOL_SET_OFFSET + modifier_1_raw;
-
-    modifier_2_raw = int_substring(sidc, 18, 2);
-    symbol.modifier_2 = modifier_2_raw == 0 ? 0 : static_cast<int>(symbol_set) * MODIFIER_SYMBOL_SET_OFFSET + modifier_2_raw;
+    // entity_t entity_raw = 0;
+    symbol.entity = _impl::sidc_to_entity(symbol_set, hex_from_substring(sidc.substr(10, 6)));
+    symbol.modifier_1 = _impl::sidc_to_modifier_1(symbol_set, hex_from_substring(sidc.substr(16, 2)));
+    symbol.modifier_2 = _impl::sidc_to_modifier_2(symbol_set, hex_from_substring(sidc.substr(18, 2)));
 
     return symbol;
 }

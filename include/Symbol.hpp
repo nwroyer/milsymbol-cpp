@@ -113,7 +113,7 @@ struct Symbol {
      * actual entity code, while the first 1 or 2 are the symbol set.
      * @return This same object, modifier
      */
-    inline constexpr Symbol& with_entity(Entities entity) noexcept {
+    inline constexpr Symbol& with_entity(Entity entity) noexcept {
         // Set invalid entities to zero
         if (entity < ENTITY_SYMBOL_SET_OFFSET) {
             this->entity = 0;
@@ -211,7 +211,7 @@ struct Symbol {
     inline constexpr void set_task_force(bool task_force) noexcept {this->task_force = task_force;} /// Setter for headquarters
     inline constexpr bool is_task_force() const noexcept {return task_force;} /// Getter for headquarters
 
-    inline constexpr SymbolSet get_symbol_set() const noexcept {return symbol_set_from_entity(entity);}
+    inline constexpr SymbolSet get_symbol_set() const noexcept {return symbol_set;}
 
     static std::vector<entity_t> get_all_entities(SymbolSet symbol_set) noexcept;
     static std::vector<entity_t> get_all_modifier_1s(SymbolSet symbol_set) noexcept;
@@ -229,14 +229,6 @@ private:
     static_assert(std::numeric_limits<entity_t>::max() > 99999999, "Insufficient space for entity storage"); // Check for storing entities as 8-digit integers for speed
     static_assert(std::numeric_limits<modifier_t>::max() > 9999, "Insufficient space for modifier storage"); // Check for storing entities as 4-digit integers for speed
 
-    static constexpr SymbolSet symbol_set_from_entity(entity_t ent) noexcept {
-        if (ent < ENTITY_SYMBOL_SET_OFFSET) {
-            return SymbolSet::UNDEFINED;
-        } else {
-            return static_cast<SymbolSet>(ent / ENTITY_SYMBOL_SET_OFFSET);
-        }
-    }
-
     /*
      * Metadata
      */
@@ -252,6 +244,7 @@ private:
     bool task_force = false; /// Whether this symbol indicates a task force
 
     // Symbols
+    SymbolSet symbol_set = SymbolSet::LAND_UNIT;
     entity_t entity = 0;    /// The entity ID for the symbol. from 0-999999 inclusive
     modifier_t modifier_1 = 0; /// Modifier 1 code, from 0-99 inclusive
     modifier_t modifier_2 = 0; /// Modifier 2 code, from 0-99 inclusive
