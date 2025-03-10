@@ -27,7 +27,8 @@ yellow is only used for missile icons and chemical spills.
 """
 COLORS:list = {
 	'icon', 'icon_fill', 'white', 'yellow',
-	"mine red", "mine dark green", "mine bright green"
+	"mine red", "mine dark green", "mine bright green",
+	'mine yellow', 'mine orange'
 }
 
 """
