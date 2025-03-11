@@ -21,37 +21,32 @@ int main(int argc, const char** argv) {
     alt_style.use_modifiers = true;
     alt_style.color_mode = milsymbol::ColorMode::LIGHT;
 
-    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130315003300000000000000000000")
-                                   .with_affiliation(milsymbol::Affiliation::FRIEND)
-                                   .with_amplifier(milsymbol::Amplifier::LONG_TOWED_ARRAY);
+    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130310001411120021601000000000");
+    std::cout << "I " << "130310001411120021601000000000" << std::endl;
+
+    // 130310001411120021601000000000
+    // 1303100014111200216010000000000
 
     milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
-    std::cout << "Viewbox: " << results.svg_bounding_box.x1 << ", " << results.svg_bounding_box.y1 <<
-        " to " << results.svg_bounding_box.x2 << ", " << results.svg_bounding_box.y2 << std::endl;
-    std::cout << "Symbol anchor: " << results.symbol_anchor.x << ", " << results.symbol_anchor.y <<
-        " (" <<
-            (results.symbol_anchor.x + results.svg_bounding_box.x1) << ", " <<
-            (results.symbol_anchor.y + results.svg_bounding_box.y1) << " in SVG space)" <<
-        std::endl;
+    // std::cout << "Viewbox: " << results.svg_bounding_box.x1 << ", " << results.svg_bounding_box.y1 <<
+    //     " to " << results.svg_bounding_box.x2 << ", " << results.svg_bounding_box.y2 << std::endl;
+    // std::cout << "Symbol anchor: " << results.symbol_anchor.x << ", " << results.symbol_anchor.y <<
+    //     " (" <<
+    //         (results.symbol_anchor.x + results.svg_bounding_box.x1) << ", " <<
+    //         (results.symbol_anchor.y + results.svg_bounding_box.y1) << " in SVG space)" <<
+    //     std::endl;
 
-    std::ofstream example_1_file;
-    example_1_file.open("example_1.svg", std::ios_base::out);
-    example_1_file << results.svg;
-    example_1_file.close();
-    std::cout << "Symbol set " << std::hex << static_cast<int>(symbol.get_symbol_set()) << std::endl;
-
-    std::array array_item = {milsymbol::Affiliation::UNKNOWN, milsymbol::Affiliation::NEUTRAL, milsymbol::Affiliation::SUSPECT, milsymbol::Affiliation::HOSTILE};
+    std::array array_item = {milsymbol::Affiliation::FRIEND, milsymbol::Affiliation::UNKNOWN, milsymbol::Affiliation::NEUTRAL, milsymbol::Affiliation::SUSPECT, milsymbol::Affiliation::HOSTILE};
     for (int i = 0; i < array_item.size(); i++) {
 
         milsymbol::Affiliation aff = array_item[i];
         symbol = symbol.with_affiliation(aff);
-        std::cout << symbol.to_sidc() << std::endl;
+        std::cout << "O " << symbol.to_sidc() << std::endl;
+
         milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
-
-
         std::ofstream example_1_file;
         std::stringstream name_stream;
-        name_stream << "example_" << (i + 2) << ".svg";
+        name_stream << "example_" << (i + 1) << ".svg";
         example_1_file.open(name_stream.str(), std::ios_base::out);
         example_1_file << results.svg;
         example_1_file.close();

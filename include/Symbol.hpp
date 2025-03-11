@@ -220,7 +220,7 @@ struct Symbol {
     }
 
     inline constexpr HQTFD get_hqtfd() const noexcept {
-
+        return HQTFD::UNDEFINED;
     }
 
     inline constexpr SymbolSet get_symbol_set() const noexcept {return symbol_set;}

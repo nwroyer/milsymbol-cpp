@@ -153,7 +153,6 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style,
     for (const auto& item : ret.draw_items) {
         out.emplace_back(item);
         base_bbox.merge(item.get_bbox(symbol.get_affiliation()));
-        std::cout << item.get_bbox(symbol.get_affiliation()) << std::endl;
     }
 
     base_bbox.merge(modifier_bbox);
@@ -272,9 +271,16 @@ std::string Symbol::to_sidc() const noexcept {
     append_to_ss(ss, affiliation, 1);
     append_to_ss(ss, symbol_set, 2);
     append_to_ss(ss, status, 1);
-    append_to_ss(ss, hqtfd, 1);
-
-    ss << std::hex << static_cast<int>(status);
+    append_to_ss(ss, 0, 1);
+    append_to_ss(ss, amplifier, 2);
+    append_to_ss(ss, entity & 0xFFFFFF, 6);
+    append_to_ss(ss, modifier_1 & 0xFF, 2);
+    append_to_ss(ss, modifier_2 & 0xFF, 2);
+    append_to_ss(ss, _impl::is_modifier_1_common(modifier_1) ? 1 : 0, 1);
+    append_to_ss(ss, _impl::is_modifier_2_common(modifier_2) ? 1 : 0, 1);
+    append_to_ss(ss, 0, 1); // Frame shape
+    append_to_ss(ss, 0, 4); // Reserved for future use
+    append_to_ss(ss, 0, 3); // Country code
     return ss.str();
 }
 

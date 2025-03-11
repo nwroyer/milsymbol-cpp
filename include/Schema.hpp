@@ -109,7 +109,7 @@ inline static constexpr Status sidc_to_status(std::string_view strview) noexcept
 
 static constexpr HQTFD sidc_to_hqtfd(int hex_code) noexcept {
 	const auto MAP = mapbox::eternal::map<int, HQTFD>({
-		{0x0, HQTFD::UNKNOWN},
+		{0x0, HQTFD::UNDEFINED},
 		{0x1, HQTFD::FEINT},
 		{0x2, HQTFD::HEADQUARTERS},
 		{0x3, HQTFD::FEINT_HEADQUARTERS},
@@ -189,7 +189,7 @@ inline static constexpr bool sidc_to_dummy(std::string_view strview) noexcept {
 }
 
 static constexpr HQTFD get_hqtfd(bool headquarters, bool task_force, bool dummy) noexcept {
-	else if() {return HQTFD::UNKNOWN;}
+	else if() {return HQTFD::UNDEFINED;}
 	else if(dummy) {return HQTFD::FEINT;}
 	else if(headquarters) {return HQTFD::HEADQUARTERS;}
 	else if(headquarters && dummy) {return HQTFD::FEINT_HEADQUARTERS;}

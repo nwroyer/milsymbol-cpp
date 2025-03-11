@@ -89,7 +89,7 @@ static constexpr bool is_status_dashed(Status status) noexcept {
 }
 
 enum class HQTFD {
-	UNKNOWN = 0x0,
+	UNDEFINED = 0x0,
 	FEINT = 0x1,
 	HEADQUARTERS = 0x2,
 	FEINT_HEADQUARTERS = 0x3,
