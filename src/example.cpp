@@ -21,7 +21,7 @@ int main(int argc, const char** argv) {
     alt_style.use_modifiers = true;
     alt_style.color_mode = milsymbol::ColorMode::LIGHT;
 
-    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130610001311020000000000000000")
+    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130327007111021500040100000000")
                                    .with_affiliation(milsymbol::Affiliation::FRIEND);
 
     milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
@@ -37,8 +37,6 @@ int main(int argc, const char** argv) {
     example_1_file.open("example_1.svg", std::ios_base::out);
     example_1_file << results.svg;
     example_1_file.close();
-
-    std::cout << results.svg << std::endl;
 
     std::array array_item = {milsymbol::Affiliation::UNKNOWN, milsymbol::Affiliation::NEUTRAL, milsymbol::Affiliation::SUSPECT, milsymbol::Affiliation::HOSTILE};
     for (int i = 0; i < array_item.size(); i++) {

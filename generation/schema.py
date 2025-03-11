@@ -286,6 +286,7 @@ class Amplifier:
 			for item in json['icon']:
 				amplifier.icon.extend(drawing_items.SymbolElement.parse_from_dict(item, full_items={}, affiliations=schema.get_base_affiliation_dict()))
 
+		print(amplifier.icon)
 		return amplifier
 
 	def cpp(self, schema, output_style, with_bbox=False):

@@ -31,240 +31,6 @@ static constexpr real_t get_task_force_width(Amplifier amplifier) {
     // }
 }
 
-/*
-TEAM = 0,
-SQUAD,
-SECTION,
-PLATOON,
-COMPANY,
-
-BATTALION,
-REGIMENT,
-BRIGADE,
-DIVISION,
-CORPS,
-
-ARMY,
-ARMY_GROUP,
-REGION,
-COMMAND
-*/
-static void get_amplifier_layer(bool installation, const BoundingBox& bbox, Amplifier amplifier, Affiliation affiliation, std::vector<_impl::DrawCommand>& out_items) {
-    if (amplifier == Amplifier::UNDEFINED) {
-        return;
-    }
-
-    _impl::SymbolLayer ret = _impl::get_amplifier_layer(amplifier, affiliation);
-    for (const auto& item : ret.draw_items) {
-        out_items.emplace_back(item);
-    }
-
-    // return;
-
-    // real_t padding = installation ? 15 : 0;
-    // using namespace _impl;
-
-    // std::vector<_impl::DrawCommand> out;
-    // if (amplifier == Amplifier::TEAM) {
-    //     out.push_back(DrawCommand::circle(Vector2{100, bbox.y1 - 20}, 15));
-    //     std::stringstream ss;
-    //     ss << "M80," << (bbox.y1 - 10) << "L120," << (bbox.y1 - 30);
-    //     BoundingBox cmd_bbox;
-    //     cmd_bbox.y1 = bbox.y1 - 40 - installation;
-    //     out.push_back(DrawCommand::dynamic_path(std::move(ss.str()), cmd_bbox));
-    // } else if (amplifier == Amplifier::SQUAD) {
-    //     out.push_back(DrawCommand::circle(Vector2(100, bbox.y1 - 20), 7.5).with_fill(ColorType::ICON));
-    // } else if (amplifier == Amplifier::SECTION) {
-    //     out.push_back(DrawCommand::circle(Vector2{115, bbox.y1 - 20}, 7.5).with_fill(ColorType::ICON));
-    //     out.push_back(DrawCommand::circle(Vector2{85, bbox.y1 - 20}, 7.5).with_fill(ColorType::ICON));
-    // } else if (amplifier == Amplifier::PLATOON) {
-    //     out.push_back(DrawCommand::circle(Vector2{100, bbox.y1 - 20}, 7.5).with_fill(ColorType::ICON));
-    //     out.push_back(DrawCommand::circle(Vector2{70, bbox.y1 - 20}, 7.5).with_fill(ColorType::ICON));
-    //     out.push_back(DrawCommand::circle(Vector2{130, bbox.y1 - 20}, 7.5).with_fill(ColorType::ICON));
-    // } else if (amplifier == Amplifier::COMPANY) {
-    //     std::stringstream ss;
-    //     ss << "M100," << (bbox.y1 - 10) << "L100," << (bbox.y1 - 35);
-    //     out.push_back(DrawCommand::dynamic_path(std::move(ss.str()), bbox.with_y1(bbox.y1 - 40 - padding)));
-    // } else if (amplifier == Amplifier::BATTALION) {
-    //     out.push_back(DrawCommand::dynamic_path(bbox.with_y1(bbox.y1 - 40 - padding),
-    //                                             "M90,", (bbox.y1 - 10), "L90,", (bbox.y1 - 35)));
-    //     out.push_back(DrawCommand::dynamic_path(bbox.with_y1(bbox.y1 - 40 - padding),
-    //                                             "M110,", (bbox.y1 - 10), "L110,", (bbox.y1 - 35)));
-    // } else if (amplifier == Amplifier::REGIMENT) {
-    //     out.push_back(DrawCommand::dynamic_path(bbox.with_y1(bbox.y1 - 40 - padding),
-    //                                             "M80,", (bbox.y1 - 10), "L80,", (bbox.y1 - 35)));
-    //     out.push_back(DrawCommand::dynamic_path(bbox.with_y1(bbox.y1 - 40 - padding),
-    //                                             "M100,", (bbox.y1 - 10), "L100,", (bbox.y1 - 35)));
-    //     out.push_back(DrawCommand::dynamic_path(bbox.with_y1(bbox.y1 - 40 - padding),
-    //                                             "M120,", (bbox.y1 - 10), "L120,", (bbox.y1 - 35)));
-    // } else if (amplifier == Amplifier::BRIGADE) {
-    //     out.push_back(DrawCommand::dynamic_path(bbox.with_y1(bbox.y1 - 40 - padding),
-    //                                             "M87.5,", (bbox.y1 - 10), " l25,-25 m0,25 l-25,-25"));
-    // } else if (amplifier == Amplifier::DIVISION) {
-    //     out.push_back(DrawCommand::dynamic_path(BoundingBox{70, bbox.y1 - 40 - padding, 130, bbox.y1},
-    //                                             "M70,",
-    //                                             (bbox.y1 - 10),
-    //                                             " l25,-25 m0,25 l-25,-25   M105,",
-    //                                             (bbox.y1 - 10),
-    //                                             " l25,-25 m0,25 l-25,-25"));
-    // } else if (amplifier == Amplifier::CORPS) {
-    //     out.push_back(DrawCommand::dynamic_path(BoundingBox{52.5, bbox.y1 - 40 - padding, 147.5, bbox.y1},
-    //                                             "M52.5,",
-    //                                             (bbox.y1 - 10),
-    //                                             " l25,-25 m0,25 l-25,-25 M87.5,",
-    //                                             (bbox.y1 - 10),
-    //                                             " l25,-25 m0,25 l-25,-25 M122.5,",
-    //                                             (bbox.y1 - 10),
-    //                                             " l25,-25 m0,25 l-25,-25"
-    //     ));
-    // } else if (amplifier == Amplifier::ARMY) {
-    //     out.push_back(DrawCommand::dynamic_path(BoundingBox{35, bbox.y1 - 40 - padding, 165, bbox.y1},
-    //           "M35,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25   M70,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25   M105,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25    M140,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25"));
-    // } else if (amplifier == Amplifier::ARMY_GROUP) {
-    //     out.push_back(DrawCommand::dynamic_path(BoundingBox{17.5, bbox.y1 - 40 - padding, 182.5, bbox.y1},
-    //           "M17.5,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25    M52.5,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25    M87.5,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25    M122.5,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25       M157.5,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25"));
-    // } else if (amplifier == Amplifier::REGION) {
-    //     out.push_back(DrawCommand::dynamic_path(BoundingBox{0, bbox.y1 - 40 - padding, 200, bbox.y1},
-    //           "M0,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25   M35,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25   M70,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25   M105,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25    M140,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25     M175,",
-    //           (bbox.y1 - 10),
-    //           " l25,-25 m0,25 l-25,-25"));
-    // } else if (amplifier == Amplifier::COMMAND) {
-    //     out.push_back(DrawCommand::dynamic_path(BoundingBox{70, bbox.y1 - 40 - padding, 130, bbox.y1},
-    //         "M70,",
-    //         (bbox.y1 - 22.5),
-    //         " l25,0 m-12.5,12.5 l0,-25   M105,",
-    //         (bbox.y1 - 22.5),
-    //         " l25,0 m-12.5,12.5 l0,-25"));
-    // }
-
-    // out_items.push_back(DrawCommand::translate(Vector2{0, - padding}, out));
-}
-
-// static BoundingBox get_mobility_layer(bool installation, const BoundingBox& base_bbox, Mobility mob, Affiliation affiliation, std::vector<_impl::DrawCommand>& out_items) {
-//     using namespace _impl;
-
-//     if (mob == Mobility::UNDEFINED) {
-//         return base_bbox;
-//     }
-
-//     /*
-//      * Calculate padding
-//      */
-
-//     BoundingBox bbox = base_bbox;
-
-//     if (affiliation == Affiliation::NEUTRAL) {
-//         if (mob == Mobility::TOWED || mob == Mobility::SHORT_TOWED_ARRAY || mob == Mobility::LONG_TOWED_ARRAY) {
-//             bbox = bbox.with_y2(bbox.y2 + 8);
-//         }
-//         else if (mob == Mobility::OVER_SNOW || mob == Mobility::SLED) {
-//             bbox = bbox.with_y2(bbox.y2 + 13);
-//         }
-//     }
-
-//     /*
-//      * Calculate geometry
-//      */
-//     std::vector<_impl::DrawCommand> out;
-//     if (mob == Mobility::WHEELED) {
-//         out.push_back(DrawCommand::path("M 53,1 l 94, 0", BoundingBox{53, 1, 94, 1}));
-//         out.push_back(DrawCommand::circle(Vector2{58, 8}, 8));
-//         out.push_back(DrawCommand::circle(Vector2{142, 8}, 8));
-//     } else if (mob == Mobility::WHEELED_CROSS_COUNTRY) {
-//         out.push_back(DrawCommand::path("M 53,1 l 94, 0", BoundingBox{53, 1, 94, 1}));
-//         out.push_back(DrawCommand::circle(Vector2{58, 8}, 8));
-//         out.push_back(DrawCommand::circle(Vector2{142, 8}, 8));
-//         out.push_back(DrawCommand::circle(Vector2{100, 8}, 8));
-//     } else if (mob == Mobility::TRACKED) {
-//         out.push_back(DrawCommand::path("M 53,1 l 100,0 c15,0 15,15 0,15 l -100,0 c-15,0 -15,-15 0,-15",
-//                                         BoundingBox{42, 0, 168, 18}));
-//     } else if (mob == Mobility::WHEELED_AND_TRACKED) {
-//         out.push_back(DrawCommand::circle(Vector2{58, 8}, 8));
-//         out.push_back(DrawCommand::path("M 83,1 l 70,0 c15,0 15,15 0,15 l -70,0 c-15,0 -15,-15 0,-15",
-//                                         BoundingBox{42, 0, 168, 18}));
-//     } else if (mob == Mobility::TOWED) {
-//         out.push_back(DrawCommand::path("M 63,1 l 74,0", BoundingBox{55, 0, 145, 10}));
-//         out.push_back(DrawCommand::circle(Vector2{58, 3}, 8));
-//         out.push_back(DrawCommand::circle(Vector2{142, 3}, 8));
-//     } else if (mob == Mobility::RAIL) {
-//         out.push_back(DrawCommand::path("M 53,1 l 96,0", BoundingBox{53, 1, 53 + 96, 1}));
-//         out.push_back(DrawCommand::circle(Vector2{58, 8}, 8));
-//         out.push_back(DrawCommand::circle(Vector2{73, 8}, 8));
-//         out.push_back(DrawCommand::circle(Vector2{127, 8}, 8));
-//         out.push_back(DrawCommand::circle(Vector2{142, 8}, 8));
-//     } else if (mob == Mobility::OVER_SNOW) {
-//         out.push_back(DrawCommand::path("M 50,-9 l10,10 90,0", BoundingBox{50, -9, 50 + 10 + 90, -9 + 10}));
-//     } else if (mob == Mobility::SLED) {
-//         out.push_back(DrawCommand::path("M 145,-12  c15,0 15,15 0,15 l -90,0 c-15,0 -15,-15 0,-15",
-//                                         BoundingBox{42, -12, 168, 3}));
-//     } else if (mob == Mobility::PACK_ANIMALS) {
-//         out.push_back(DrawCommand::path("M 80,20 l 10,-20 10,20 10,-20 10,20", BoundingBox{80, 0, 120, 20}));
-//     } else if (mob == Mobility::BARGE) {
-//         out.push_back(DrawCommand::path("M 50,1 l 100,0 c0,10 -100,10 -100,0", BoundingBox{50, 0, 150, 10}));
-//     } else if (mob == Mobility::AMPHIBIOUS) {
-//         out.push_back(DrawCommand::path("M 65,10 c 0,-10 10,-10 10,0 0,10 10,10 10,0	0,-10 10,-10 10,0 0,10 10,10 10,0	0,-10 10,-10 10,0 0,10 10,10 10,0	0,-10 10,-10 10,0",
-//                                         BoundingBox{65, 0, 100 - 65, 20}));
-//     } else if (mob == Mobility::SHORT_TOWED_ARRAY) {
-//         out.push_back(DrawCommand::path("M 50,5 l 100,0 M50,0 l10,0 0,10 -10,0 z M150,0 l-10,0 0,10 10,0 z M100,0 l5,5 -5,5 -5,-5 z",
-//                                         BoundingBox{50, 0, 150, 10}).with_fill(ColorType::ICON));
-//     } else if (mob == Mobility::LONG_TOWED_ARRAY) {
-//         out.push_back(DrawCommand::path("M 50,5 l 100,0 M50,0 l10,0 0,10 -10,0 z M150,0 l-10,0 0,10 10,0 z M105,0 l-10,0 0,10 10,0 z M75,0 l5,5 -5,5 -5,-5 z  M125,0 l5,5 -5,5 -5,-5 z",
-//                                         BoundingBox{50, 0, 150, 10}).with_fill(ColorType::ICON));
-//     }
-
-//     if (out.empty()) {
-//         return base_bbox;
-//     }
-
-//     out_items.push_back(DrawCommand::translate(Vector2{0, bbox.y2}, out));
-//     BoundingBox ret = base_bbox;
-//     ret.merge(out_items.back().get_bbox());
-//     return ret;
-// }
-
-static void get_dismounted_leadership(bool leadership, Affiliation affiliation, const BoundingBox& bbox, std::vector<_impl::DrawCommand>& out_items) {
-    if (!leadership)
-        return;
-
-    if (affiliation == Affiliation::FRIEND) {
-        out_items.push_back(_impl::DrawCommand::path("m 45,60 55,-25 55,25", bbox.with_y1(bbox.y1 - 20)));
-    } else if (affiliation == Affiliation::NEUTRAL) {
-        out_items.push_back(_impl::DrawCommand::path("m 45,60 55,-25 55,25", bbox.with_y1(bbox.y1 - 20)));
-    } else if (affiliation == Affiliation::HOSTILE) {
-        out_items.push_back(_impl::DrawCommand::path("m 42,71 57.8,-43.3 58.2,42.8", bbox.with_y1(bbox.y1 - 20)));
-    } else {
-        out_items.push_back(_impl::DrawCommand::path("m 50,60 10,-20 80,0 10,20", bbox.with_y1(bbox.y1 - 20)));
-    }
-}
-
 _impl::DrawCommand get_symbol_headquarters(Affiliation affiliation, Dimension dimension,
     real_t hq_staff_length, const BoundingBox& base_bbox, real_t frame_stroke_width,
     Vector2& staff_base)
@@ -311,7 +77,8 @@ static void get_status_modifiers(const Symbol& symbol, const BoundingBox& bbox, 
     }
 }
 
-static BoundingBox apply_amplifiers(const SymbolStyle& style, const Symbol& symbol,
+static BoundingBox apply_amplifiers(const SymbolStyle& style,
+                                    const Symbol& symbol,
                                     const BoundingBox& base_bbox_raw,
                                     std::vector<_impl::DrawCommand>& out,
                                     Vector2& staff_base) {
@@ -330,7 +97,7 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style, const Symbol& symb
                                                          base_bbox,
                                                          style.frame_stroke_width,
                                                          staff_base);
-        modifier_bbox.merge(cmd.get_bbox());
+        modifier_bbox.merge(cmd.get_bbox(symbol.get_affiliation()));
         out.push_back(cmd);
     }
 
@@ -379,9 +146,12 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style, const Symbol& symb
         modifier_bbox.merge(cmd_bbox);
     }
 
-    get_amplifier_layer(symbol.get_symbol_set() == SymbolSet::LAND_INSTALLATION, base_bbox, symbol.get_amplifier(), symbol.get_affiliation(), out);
-    // modifier_bbox.merge(get_mobility_layer(symbol.get_symbol_set() == SymbolSet::LAND_INSTALLATION, base_bbox, symbol.get_mobility(), symbol.get_affiliation(), out));
-    get_dismounted_leadership(false, symbol.get_affiliation(), base_bbox, out);
+    _impl::SymbolLayer ret = _impl::get_amplifier_layer(symbol.get_amplifier(), symbol.get_affiliation());
+    for (const auto& item : ret.draw_items) {
+        out.emplace_back(item);
+        base_bbox.merge(item.get_bbox(symbol.get_affiliation()));
+        std::cout << item.get_bbox(symbol.get_affiliation()) << std::endl;
+    }
 
     base_bbox.merge(modifier_bbox);
     return base_bbox;
@@ -549,7 +319,7 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
         return {};
     }
 
-    base_bbox = base.get_bbox();
+    base_bbox = base.get_bbox(affiliation);
 
     if (style.use_frame || position_only) {
 
@@ -582,7 +352,7 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
             components.push_back(copy);
         }
 
-        base_bbox = base.get_bbox();
+        base_bbox = base.get_bbox(affiliation);
     }
 
     // Handle various graphical modifiers
@@ -602,10 +372,10 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     for (const auto& comp : components) {
         // Expand the bounding box
         if (!bbox_initialized) {
-            bbox = comp.get_bbox();
+            bbox = comp.get_bbox(affiliation);
             bbox_initialized = true;
         } else {
-            bbox.merge(comp.get_bbox());
+            bbox.merge(comp.get_bbox(affiliation));
         }
     }
 
@@ -620,7 +390,7 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
 
     //    bbox_initialized = false;
     for (const auto& comp : components) {
-        bbox.merge(comp.get_bbox());
+        bbox.merge(comp.get_bbox(affiliation));
     }
 
     // Add entity

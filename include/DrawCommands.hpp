@@ -210,6 +210,7 @@ struct DrawInstructionCircle : public DrawInstructionBase<DrawInstructionCircle>
 
     std::string get_svg_string(const Style& context) const noexcept;
     inline constexpr BoundingBox get_bbox() const noexcept {return BoundingBox{center.x - radius, center.y - radius, center.x + radius, center.y + radius};}
+    inline constexpr BoundingBox get_bbox(Affiliation affiliation) const noexcept {return get_bbox();}
 };
 
 /**
@@ -230,6 +231,7 @@ struct DrawInstructionText : public DrawInstructionBase<DrawInstructionText> {
     }
 
     inline constexpr BoundingBox get_bbox() const noexcept {return BoundingBox{xy.x, xy.y, xy.x, xy.y};}
+    inline constexpr BoundingBox get_bbox(Affiliation affiliation) const noexcept {return get_bbox();}
 
     Vector2 xy; /// Position of the text
     const char* text = ""; /// The actual contained text
@@ -256,7 +258,6 @@ struct DrawInstructionTranslate : public DrawInstructionBase<DrawInstructionTran
     inline constexpr DrawInstructionTranslate(const Vector2& delta) noexcept : DrawInstructionBase(), delta{delta} {}
 
     Vector2 delta;
-
     SVGString get_svg_string(const Style& context, const std::vector<DrawCommand>* children) const noexcept;
 };
 
@@ -469,10 +470,60 @@ struct DrawCommand {
      */
     SVGString get_svg_string(const Style& style) const noexcept;
 
-    /**
-     * @brief Returns the bounding box of the draw command
-     */
-    constexpr BoundingBox get_bbox() const noexcept {
+    // /**
+    //  * @brief Returns the bounding box of the draw command
+    //  */
+    // constexpr BoundingBox get_bbox() const noexcept {
+    //     switch(get_type()) {
+    //     case Type::PATH:
+    //         return std::get<DrawInstructionPath>(variant).bbox;
+    //         break;
+    //     case Type::CIRCLE:
+    //         return std::get<DrawInstructionCircle>(variant).get_bbox();
+    //         break;
+    //     case Type::TEXT:
+    //         return std::get<DrawInstructionText>(variant).get_bbox();
+    //         break;
+    //     case Type::TRANSLATE: {
+    //         Vector2 delta = std::get<DrawInstructionTranslate>(variant).delta;
+    //         BoundingBox box{0, 0, 0, 0};
+    //         bool box_inited = false;
+    //         for (const auto& item : children) {
+    //             if (!box_inited) {
+    //                 box = item.get_bbox();
+    //                 box_inited = true;
+    //             } else {
+    //                 box.merge(item.get_bbox());
+    //             }
+    //         }
+    //         std::cout << "Pre" << box << " + " << delta << std::endl;
+    //         return box.translated(delta);
+    //         break;
+    //     }
+    //     case Type::SCALE: {
+    //         float scale = std::get<DrawInstructionScale>(variant).scale;
+    //         BoundingBox box{0, 0, 0, 0};
+    //         bool box_inited = false;
+    //         for (const auto& item : children) {
+    //             if (!box_inited) {
+    //                 box = item.get_bbox().scaled_to_center(scale);
+    //                 box_inited = true;
+    //             } else {
+    //                 box.merge(item.get_bbox().scaled_to_center(scale));
+    //             }
+    //         }
+    //         return box;
+    //     }
+
+    //     default:
+    //     case Type::UNDEFINED:
+    //         // Do nothing
+    //         return {};
+    //         break;
+    //     }
+    // }
+
+    constexpr BoundingBox get_bbox(Affiliation affiliation) const noexcept {
         switch(get_type()) {
         case Type::PATH:
             return std::get<DrawInstructionPath>(variant).bbox;
@@ -489,10 +540,10 @@ struct DrawCommand {
             bool box_inited = false;
             for (const auto& item : children) {
                 if (!box_inited) {
-                    box = item.get_bbox();
+                    box = item.get_bbox(affiliation);
                     box_inited = true;
                 } else {
-                    box.merge(item.get_bbox());
+                    box.merge(item.get_bbox(affiliation));
                 }
             }
             return box.translated(delta);
@@ -504,15 +555,17 @@ struct DrawCommand {
             bool box_inited = false;
             for (const auto& item : children) {
                 if (!box_inited) {
-                    box = item.get_bbox().scaled_to_center(scale);
+                    box = item.get_bbox(affiliation).scaled_to_center(scale);
                     box_inited = true;
                 } else {
-                    box.merge(item.get_bbox().scaled_to_center(scale));
+                    box.merge(item.get_bbox(affiliation).scaled_to_center(scale));
                 }
             }
             return box;
         }
-
+        case Type::FULL_FRAME:
+            return std::get<AffiliationSet>(variant)[get_full_frame_ordering(affiliation)].get_bbox(affiliation);
+            break;
         default:
         case Type::UNDEFINED:
             // Do nothing
@@ -520,6 +573,7 @@ struct DrawCommand {
             break;
         }
     }
+
 
     /**
      * @brief Returns whether the command is defined and valid
@@ -627,6 +681,21 @@ struct DrawCommand {
         return ret;
     }
 
+    static constexpr int get_full_frame_ordering(Affiliation affiliation) noexcept {
+        switch(get_frame_affiliation(affiliation)) {
+        case Affiliation::HOSTILE:
+            return 0;
+        case Affiliation::FRIEND:
+            return 1;
+        case Affiliation::NEUTRAL:
+            return 2;
+        case Affiliation::UNKNOWN:
+            return 3;
+        default:
+            return 3;
+        }
+    }
+
 private:
     using AffiliationSet = std::vector<DrawCommand>;
 
@@ -669,7 +738,7 @@ struct SymbolLayer {
         return draw_items.empty();
     }
 
-    inline constexpr BoundingBox get_bbox() const noexcept {
+    inline constexpr BoundingBox get_bbox(Affiliation affiliation) const noexcept {
         if (draw_items.empty()) {
             return {};
         }
@@ -678,12 +747,12 @@ struct SymbolLayer {
         BoundingBox ret;
         for (const DrawCommand& cmd : draw_items) {
             if (first) {
-                ret = cmd.get_bbox();
+                ret = cmd.get_bbox(affiliation);
                 first = false;
                 continue;
             }
 
-            ret = ret.merge(cmd.get_bbox());
+            ret.merge(cmd.get_bbox(affiliation));
         }
         return ret;
     }

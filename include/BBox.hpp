@@ -37,6 +37,11 @@ struct Vector2 {
     inline constexpr Vector2 operator*(const base_t fac) const noexcept {
         return Vector2{x * fac, y * fac};
     }
+
+    friend std::ostream& operator << (std::ostream& os, const Vector2& v) noexcept {
+        os << "(" << v.x << ", " << v.y << ")";
+        return os;
+    }
 };
 
 /**
@@ -137,6 +142,11 @@ struct BoundingBox {
                            center.x + (size.x - size.x / 2),
                            center.y + (size.y - size.y / 2)
         };
+    }
+
+    friend std::ostream& operator << (std::ostream& os, const BoundingBox& bbox) noexcept {
+        os << "BB[" << bbox.x1 << ", " << bbox.y1 << ", " << bbox.x2 << ", " << bbox.y2 << "]";
+        return os;
     }
 };
 

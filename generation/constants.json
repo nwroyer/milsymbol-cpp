@@ -458,7 +458,12 @@
 			"names": ["leader", "leadership"], 
 			"type": "dismounted individual leadership", "applies to": ["dismounted individual"],
 			"side": "top",
-			"icon": []
+			"icon": [{
+				"unknown": [{"d": "m 50,60 10,-20 80,0 10,20", "bbox": [50, 40, 150, 60]}],
+				"friend": [{"d": "m 45,60 55,-25 55,25", "bbox": [45, 35, 155, 60]}],
+				"hostile": [{"d": "M 30,82 100,28 170,82", "bbox": [30, 28, 170, 82]}],
+				"neutral": [{"d": "M 45,36 100,-5 155,36", "bbox": [45, -5, 155, 36]}]
+			}]
 		}
 	}
 }
