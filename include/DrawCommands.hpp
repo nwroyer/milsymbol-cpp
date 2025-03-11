@@ -5,10 +5,10 @@
  * to make up symbols.
  */
 
-#include <iostream>
 #include <variant>
 #include <optional>
 #include <vector>
+#include <sstream>
 
 #include "Types.hpp"
 #include "Colors.hpp"

@@ -112,7 +112,13 @@
 			}
 		},
 		"land installation": {
-			"frame base": "land unit"
+			"frame base": "land unit",
+			"decorators": {
+				"unknown": [{"fill": true, "stroke": true, "strokewidth": 4, "d": "M85,30.75 85,20.75 115,20.75 115,30.75 100,26.75 Z", "bbox": [85, 20.75, 30, 10]}],
+				"friend": [{"fill": true, "stroke": true, "strokewidth": 4, "d": "M85,48 85,40 115,40 115,48 100,46 Z", "bbox": [85, 40, 30, 10]}],
+				"neutral": [{"fill": true, "stroke": true, "strokewidth": 4, "d": "M85,43 85,35 115,35 115,43 100,41 Z", "bbox": [85, 35, 30, 7]}],
+				"hostile": [{"fill": true, "stroke": true, "strokewidth": 4, "d": "M85,40 85,18 115,18 115,40 100,24 Z", "bbox": [85, 18, 30, 22]}]
+			}
 		},
 		"activities": {
 			"frame base": "land unit",
@@ -183,20 +189,45 @@
 	},
 
 	"hqtfds": {
-		"0": {"names": ["unknown"]},
-		"1": {"names": ["feint", "decoy", "dummy"], "dashed": true},
-		"2": {"names": ["headquarters", "HQ"]},
-		"3": {"names": ["feint headquarters", "feint HQ", "decoy headquarters", "decoy HQ", "dummy headquarters", "dummy HQ"], "dashed": true},
-		"4": {"names": ["task force", "TF"]},
-		"5": {"names": ["feint task force", "feint TF", "decoy task force", "decoy TF", "dummy task force", "dummy TF"], "dashed": true},
-		"6": {"names": ["task force headquarters", "task force HQ", "TF headquarters", "TF HQ"]},
+		"0": {
+			"names": ["unknown"],
+			"hqtfd": []
+		},
+		"1": {
+			"names": ["feint", "decoy", "dummy"], "dashed": true,
+			"hqtfd": ["dummy"]
+		},
+		"2": {
+			"names": ["headquarters", "HQ"],
+			"hqtfd": ["headquarters"]
+		},
+
+		"3": {
+			"names": ["feint headquarters", "feint HQ", "decoy headquarters", "decoy HQ", "dummy headquarters", "dummy HQ"], 
+			"dashed": true,
+			"hqtfd": ["headquarters", "dummy"]
+		},
+		"4": {
+			"names": ["task force", "TF"],
+			"hqtfd": ["task force"]
+		},
+		"5": {
+			"names": ["feint task force", "feint TF", "decoy task force", "decoy TF", "dummy task force", "dummy TF"], 
+			"dashed": true,
+			"hqtfd": ["task force", "dummy"]
+		},
+		"6": {
+			"names": ["task force headquarters", "task force HQ", "TF headquarters", "TF HQ"],
+			"hqtfd": ["task force", "headquarters"]
+		},
 		"7": {
 			"names": [
 				"feint task force headquarters", "feint task force HQ", "feint TF headquarters", "feint TF HQ",
 				"decoy task force headquarters", "decoy task force HQ", "decoy TF headquarters", "decoy TF HQ",
 				"dummy task force headquarters", "dummy task force HQ", "dummy TF headquarters", "dummy TF HQ"
 			],
-			"dashed": true
+			"dashed": true,
+			"hqtfd": ["headquarters", "task force", "dummy"]
 		}
 	},
 

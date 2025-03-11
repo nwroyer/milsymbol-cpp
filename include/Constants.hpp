@@ -11,14 +11,26 @@ enum class ColorMode {
 	UNFILLED = 3
 };
 
+enum class Context {
+	REALITY = 0x0,
+	EXERCISE = 0x1,
+	SIMULATION = 0x2,
+	RESTRICTED_TARGET_REALITY = 0x3,
+	NO_STRIKE_ENTITY_REALITY = 0x4,
+	RESTRICTED_TARGET_EXERCISE = 0x5,
+	NO_STRIKE_ENTITY_EXERCISE = 0x6,
+	RESTRICTED_TARGET_SIMULATION = 0x7,
+	NO_STRIKE_ENTITY_SIMULATION = 0x8
+};
+
 enum class Affiliation {
-	PENDING = 0,
-	UNKNOWN = 1,
-	ASSUMED_FRIEND = 2,
-	FRIEND = 3,
-	NEUTRAL = 4,
-	SUSPECT = 5,
-	HOSTILE = 6
+	PENDING = 0x0,
+	UNKNOWN = 0x1,
+	ASSUMED_FRIEND = 0x2,
+	FRIEND = 0x3,
+	NEUTRAL = 0x4,
+	SUSPECT = 0x5,
+	HOSTILE = 0x6
 };
 
 static constexpr bool is_affiliation_dashed(Affiliation affiliation) noexcept {
@@ -27,6 +39,90 @@ static constexpr bool is_affiliation_dashed(Affiliation affiliation) noexcept {
 	}
 	return false;
 }
+
+enum class Amplifier {
+	TEAM = 0x11,
+	SQUAD = 0x12,
+	SECTION = 0x13,
+	PLATOON = 0x14,
+	COMPANY = 0x15,
+	BATTALION = 0x16,
+	REGIMENT = 0x17,
+	BRIGADE = 0x18,
+	DIVISION = 0x21,
+	CORPS = 0x22,
+	ARMY = 0x23,
+	ARMY_GROUP = 0x24,
+	REGION = 0x25,
+	COMMAND = 0x26,
+	WHEELED = 0x31,
+	WHEELED_CROSS_COUNTRY = 0x32,
+	TRACKED = 0x33,
+	WHEELED_AND_TRACKED = 0x34,
+	TOWED = 0x35,
+	RAIL = 0x36,
+	PACK_ANIMALS = 0x37,
+	OVER_SNOW = 0x41,
+	SLED = 0x42,
+	BARGE = 0x51,
+	AMPHIBIOUS = 0x52,
+	SHORT_TOWED_ARRAY = 0x61,
+	LONG_TOWED_ARRAY = 0x62,
+	LEADER = 0x71
+};
+
+enum class Status {
+	PRESENT = 0x0,
+	PLANNED = 0x1,
+	FULLY_CAPABLE = 0x2,
+	DAMAGED = 0x3,
+	DESTROYED = 0x4,
+	FULL_TO_CAPACITY = 0x5
+};
+
+static constexpr bool is_status_dashed(Status status) noexcept {
+	if(status == Status::PLANNED) {
+		return true;
+	}
+	return false;
+}
+
+enum class HQTFD {
+	UNKNOWN = 0x0,
+	FEINT = 0x1,
+	HEADQUARTERS = 0x2,
+	FEINT_HEADQUARTERS = 0x3,
+	TASK_FORCE = 0x4,
+	FEINT_TASK_FORCE = 0x5,
+	TASK_FORCE_HEADQUARTERS = 0x6,
+	FEINT_TASK_FORCE_HEADQUARTERS = 0x7
+};
+
+static constexpr bool is_hqtfd_dashed(HQTFD hqtfd) noexcept {
+	if(hqtfd == HQTFD::FEINT || hqtfd == HQTFD::FEINT_HEADQUARTERS || hqtfd == HQTFD::FEINT_TASK_FORCE || hqtfd == HQTFD::FEINT_TASK_FORCE_HEADQUARTERS) {
+		return true;
+	}
+	return false;
+}
+
+enum class SymbolSet {
+	SPACE_MISSILE = 0x06,
+	LAND_CIVILIAN_UNIT_ORGANIZATION = 0x11,
+	LAND_EQUIPMENT = 0x15,
+	SIGNALS_INTELLIGENCE = 0x50,
+	LAND_UNIT = 0x10,
+	ACTIVITIES = 0x40,
+	MINE_WARFARE = 0x36,
+	LAND_INSTALLATION = 0x20,
+	CYBERSPACE = 0x60,
+	COMMON_MODIFIERS = 0xC,
+	SEA_SURFACE = 0x30,
+	SPACE = 0x05,
+	DISMOUNTED_INDIVIDUAL = 0x27,
+	AIR = 0x01,
+	SEA_SUBSURFACE = 0x35,
+	AIR_MISSILE = 0x02
+};
 
 static constexpr Affiliation get_frame_base_affiliation(Affiliation affiliation) noexcept {
 	switch(affiliation) {
@@ -60,58 +156,9 @@ enum class Dimension {
 	POSITION_MARKER = 10
 };
 
-enum class Context {
-	REALITY = 0,
-	EXERCISE = 1,
-	SIMULATION = 2,
-	RESTRICTED_TARGET_REALITY = 3,
-	NO_STRIKE_ENTITY_REALITY = 4,
-	RESTRICTED_TARGET_EXERCISE = 5,
-	NO_STRIKE_ENTITY_EXERCISE = 6,
-	RESTRICTED_TARGET_SIMULATION = 7,
-	NO_STRIKE_ENTITY_SIMULATION = 8
-};
-
-enum class Status {
-	PRESENT = 0,
-	PLANNED = 1,
-	FULLY_CAPABLE = 2,
-	DAMAGED = 3,
-	DESTROYED = 4,
-	FULL_TO_CAPACITY = 5
-};
-
-static constexpr bool is_status_dashed(Status status) noexcept {
-	if(status == Status::PLANNED) {
-		return true;
-	}
-	return false;
-}
-
-enum class SymbolSet {
-	UNDEFINED = -1,
-	AIR = 0x01,
-	AIR_MISSILE = 0x02,
-	SPACE = 0x05,
-	SPACE_MISSILE = 0x06,
-	LAND_UNIT = 0x10,
-	LAND_CIVILIAN_UNIT_ORGANIZATION = 0x11,
-	LAND_EQUIPMENT = 0x15,
-	LAND_INSTALLATION = 0x20,
-	DISMOUNTED_INDIVIDUAL = 0x27,
-	SEA_SURFACE = 0x30,
-	SEA_SUBSURFACE = 0x35,
-	MINE_WARFARE = 0x36,
-	ACTIVITIES = 0x40,
-	SIGNALS_INTELLIGENCE = 0x50,
-	CYBERSPACE = 0x60,
-	COMMON_MODIFIERS = 0xC
-};
-
-static constexpr int SYMBOL_SET_COUNT = 16;
 static constexpr int NOMINAL_ICON_SIZE = 200; /// The default icon size
 
-static constexpr std::array<SymbolSet, SYMBOL_SET_COUNT> SYMBOL_SETS = {
+static constexpr std::array<SymbolSet, 16> SYMBOL_SETS = {
 	SymbolSet::AIR,
 	SymbolSet::AIR_MISSILE,
 	SymbolSet::SPACE,

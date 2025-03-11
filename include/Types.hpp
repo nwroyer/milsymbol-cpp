@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Constants.hpp"
+#include <charconv>
+#include <string_view>
+#include <iostream>
 
 /*
  * This file defines enumerations and typedefs for the library.
@@ -58,6 +60,28 @@ enum class Mobility{
     SHORT_TOWED_ARRAY,
     LONG_TOWED_ARRAY
 };
+
+namespace _impl {
+static int hex_from_substring(const std::string_view string_view) noexcept {
+    int result = 0;
+    std::size_t chars_consumed = 0;
+    const char* first = string_view.data();
+    const char* last = string_view.data() + string_view.length();
+    std::from_chars_result res = std::from_chars(first, last, result, 16);
+
+    if (res.ec != std::errc()) {
+        std::cerr << "Invalid hexadecimal string \"" << string_view << "\": error " << static_cast<int>(res.ec) << std::endl;
+        return 0;
+    }
+
+    if (res.ptr != last) {
+        std::cerr << "Invalid hexadecimal string \"" << string_view << "\": overflow error " << std::endl;
+        return 0;
+    }
+
+    return result;
+}
+}
 
 /**
  * @brief Represents an SVG color

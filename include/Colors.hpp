@@ -1,10 +1,10 @@
 #pragma once
 
 #include <array>
-#include <sstream>
 #include <assert.h>
 
 #include "Types.hpp"
+#include "Constants.hpp"
 
 namespace milsymbol::_impl {
 

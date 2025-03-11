@@ -1,6 +1,4 @@
 #include "Symbol.hpp"
-#include <charconv>
-
 #include "Schema.hpp"
 
 namespace milsymbol {
@@ -347,56 +345,6 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style, const Symbol& symb
     }
 
     /*
-     * Handle installation
-     */
-    bool is_installation =  (symbol.get_symbol_set() == SymbolSet::LAND_INSTALLATION);
-    if (is_installation) {
-        real_t gap_filler = 0;
-
-        // Enemey air, ground, and sea symbols
-        if (symbol.get_affiliation() == Affiliation::HOSTILE && (dimension == Dimension::AIR ||
-                                                           dimension == Dimension::LAND_UNIT ||
-                                                           dimension == Dimension::SEA_SURFACE))
-        {
-            gap_filler = 14;
-        }
-
-        // Unknown air/sea/ground symbols
-        if (symbol.get_affiliation() == Affiliation::UNKNOWN && (dimension == Dimension::AIR ||
-                                                           dimension == Dimension::SEA_SURFACE ||
-                                                           dimension == Dimension::LAND_UNIT))
-        {
-            gap_filler = 2;
-        }
-
-        // Friendly air/sea symbols
-        if (symbol.get_affiliation() == Affiliation::FRIEND && (dimension == Dimension::AIR ||
-                                                          dimension == Dimension::SEA_SURFACE))
-        {
-            gap_filler = 2;
-        }
-
-        std::stringstream ss;
-        ss << "M85," <<
-            (base_bbox.y1 + gap_filler - style.frame_stroke_width / 2) <<
-            " 85," <<
-            (base_bbox.y1 - 10) <<
-            " 115," <<
-            (base_bbox.y1 - 10) <<
-            " 115," <<
-            (base_bbox.y1 + gap_filler - style.frame_stroke_width / 2) <<
-            " 100," <<
-            (base_bbox.y1 - style.frame_stroke_width) <<
-            " Z";
-
-        BoundingBox cmd_bbox = base_bbox;
-        cmd_bbox.y1 = base_bbox.y1 - 10;
-        auto cmd = _impl::DrawCommand::dynamic_path(std::move(ss.str()), cmd_bbox).with_fill(_impl::ColorType::ICON);
-        out.push_back(cmd);
-        modifier_bbox.merge(cmd_bbox);
-    }
-
-    /*
      * Handle feint/dummy
      */
 
@@ -423,8 +371,8 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style, const Symbol& symb
         modifier_bbox.merge(cmd_bbox);
     }
 
-    get_echelon_layer(is_installation, base_bbox, symbol.get_echelon(), out);
-    modifier_bbox.merge(get_mobility_layer(is_installation, base_bbox, symbol.get_mobility(), symbol.get_affiliation(), out));
+    get_echelon_layer(symbol.get_symbol_set() == SymbolSet::LAND_INSTALLATION, base_bbox, symbol.get_echelon(), out);
+    modifier_bbox.merge(get_mobility_layer(symbol.get_symbol_set() == SymbolSet::LAND_INSTALLATION, base_bbox, symbol.get_mobility(), symbol.get_affiliation(), out));
     get_dismounted_leadership(false, symbol.get_affiliation(), base_bbox, out);
 
     base_bbox.merge(modifier_bbox);
@@ -454,26 +402,6 @@ static int int_substring(const std::string_view& view, int start, int len) {
     int ret = 0;
     std::from_chars(&view[start], &view[start + len], ret);
     return ret;
-}
-
-static int hex_from_substring(const std::string_view string_view) noexcept {
-    int result = 0;
-    std::size_t chars_consumed = 0;
-    const char* first = string_view.data();
-    const char* last = string_view.data() + string_view.length();
-    std::from_chars_result res = std::from_chars(first, last, result, 16);
-
-    if (res.ec != std::errc()) {
-        std::cerr << "Invalid hexadecimal string \"" << string_view << "\": error " << static_cast<int>(res.ec) << std::endl;
-        return 0;
-    }
-
-    if (res.ptr != last) {
-        std::cerr << "Invalid hexadecimal string \"" << string_view << "\": overflow error " << std::endl;
-        return 0;
-    }
-
-    return result;
 }
 
 Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
@@ -530,202 +458,26 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
 
 
     // Part 1: Parse standard identity
-    char context_int = sidc[2];
-    switch(context_int) {
-    case '2':
-        symbol.context = Context::SIMULATION;
-        break;
-    case '1':
-        symbol.context = Context::EXERCISE;
-        break;
-    default:
-        symbol.context = Context::REALITY;
-        break;
-    }
+    symbol.context = _impl::sidc_to_context(sidc.substr(2, 1));
+    symbol.affiliation = _impl::sidc_to_affiliation(sidc.substr(3, 1));
+    symbol.symbol_set = _impl::sidc_to_symbol_set(sidc.substr(4, 2));
+    symbol.status = _impl::sidc_to_status(sidc.substr(4, 2));
+    symbol.headquarters = _impl::sidc_to_headquarters(sidc.substr(7, 1));
+    symbol.task_force = _impl::sidc_to_task_force(sidc.substr(7, 1));
+    symbol.task_force = _impl::sidc_to_task_force(sidc.substr(7, 1));
 
-    char affil = sidc[3];
-    switch(affil) {
-    case '1':
-        symbol.affiliation = Affiliation::UNKNOWN;
-        break;
-    case '2':
-        symbol.affiliation = Affiliation::ASSUMED_FRIEND;
-        break;
-    case '3':
-        symbol.affiliation = Affiliation::FRIEND;
-        break;
-    case '4':
-        symbol.affiliation = Affiliation::NEUTRAL;
-        break;
-    case '5':
-        symbol.affiliation = Affiliation::SUSPECT;
-        break;
-    case '6':
-        symbol.affiliation = Affiliation::HOSTILE;
-        break;
-    case '0':
-        symbol.affiliation = Affiliation::PENDING;
-        break;
-    }
-
-    // Parse the symbol sets
-    SymbolSet symbol_set = _impl::sidc_to_symbol_set(hex_from_substring(sidc.substr(4, 2)));
-    symbol.symbol_set = symbol_set;
-    std::cout << "Symbol set " << static_cast<int>(symbol_set) << " from " << sidc.substr(4, 2) << std::endl;
-
-    /*
-     * Parse status
-     */
-
-    char status = sidc[6];
-    switch(status) {
-    case '1':
-        symbol.status = Status::PLANNED;
-        break;
-    case '2':
-        symbol.status = Status::FULLY_CAPABLE;
-        break;
-    case '3':
-        symbol.status = Status::DAMAGED;
-        break;
-    case '4':
-        symbol.status = Status::DESTROYED;
-        break;
-    case '5':
-        symbol.status = Status::FULL_TO_CAPACITY;
-        break;
-    default:
-        symbol.status = Status::PRESENT;
-        break;
-    }
+    Amplifier amplifier = _impl::sidc_to_amplifier(sidc.substr(8, 2));
 
     /*
      * Parse headquarters/task force/dummy elements
      */
 
-    char hq = sidc[7];
-    switch(hq) {
-    case '1':
-        symbol.headquarters = false;
-        symbol.task_force = false;
-        symbol.feint_dummy = true;
-        break;
-    case '2':
-        symbol.headquarters = true;
-        symbol.task_force = false;
-        symbol.feint_dummy = false;
-        break;
-    case '3':
-        symbol.headquarters = true;
-        symbol.task_force = false;
-        symbol.feint_dummy = true;
-        break;
-    case '4':
-        symbol.headquarters = false;
-        symbol.task_force = true;
-        symbol.feint_dummy = false;
-        break;
-    case '5':
-        symbol.headquarters = false;
-        symbol.task_force = true;
-        symbol.feint_dummy = true;
-        break;
-    case '6':
-        symbol.headquarters = true;
-        symbol.task_force = true;
-        symbol.feint_dummy = false;
-        break;
-    case '7':
-        symbol.headquarters = true;
-        symbol.task_force = true;
-        symbol.feint_dummy = true;
-        break;
-    default:
-        symbol.headquarters = false;
-        symbol.task_force = false;
-        symbol.feint_dummy = false;
-        break;
-    }
-
     /*
      * Parse mobility/echelon
      */
 
-    char ech1 = sidc[8];
-    char ech2 = sidc[9];
-
     symbol.echelon = Echelon::UNDEFINED;
     symbol.mobility = Mobility::UNDEFINED;
-
-    if (ech1 == '1') {
-        // Echelon at brigade and below
-        if (ech2 == '1')
-            symbol.echelon = Echelon::TEAM;
-        else if (ech2 == '2')
-            symbol.echelon = Echelon::SQUAD;
-        else if (ech2 == '3')
-            symbol.echelon = Echelon::SECTION;
-        else if (ech2 == '4')
-            symbol.echelon = Echelon::PLATOON;
-        else if (ech2 == '5')
-            symbol.echelon = Echelon::COMPANY;
-        else if (ech2 == '6')
-            symbol.echelon = Echelon::BATTALION;
-        else if (ech2 == '7')
-            symbol.echelon = Echelon::REGIMENT;
-        else if (ech2 == '8')
-            symbol.echelon = Echelon::BRIGADE;
-    } else if (ech1 == '2') {
-        // Echelon at division and above
-        if (ech2 == '1')
-            symbol.echelon = Echelon::DIVISION;
-        else if (ech2 == '2')
-            symbol.echelon = Echelon::CORPS;
-        else if (ech2 == '3')
-            symbol.echelon = Echelon::ARMY;
-        else if (ech2 == '4')
-            symbol.echelon = Echelon::ARMY_GROUP;
-        else if (ech2 == '5')
-            symbol.echelon = Echelon::REGION;
-        else if (ech2 == '6')
-            symbol.echelon = Echelon::COMMAND;
-    } else if (ech1 == '3') {
-        // Equipment mobility on land
-        if (ech2 == '1')
-            symbol.mobility = Mobility::WHEELED;
-        else if (ech2 == '2')
-            symbol.mobility = Mobility::WHEELED_CROSS_COUNTRY;
-        else if (ech2 == '3')
-            symbol.mobility = Mobility::TRACKED;
-        else if (ech2 == '4')
-            symbol.mobility = Mobility::WHEELED_AND_TRACKED;
-        else if (ech2 == '5')
-            symbol.mobility = Mobility::TOWED;
-        else if (ech2 == '6')
-            symbol.mobility = Mobility::RAIL;
-        else if (ech2 == '7')
-            symbol.mobility = Mobility::PACK_ANIMALS;
-    } else if (ech1 == '4') {
-        // Equipment mobility on snow
-        if (ech2 == '1')
-            symbol.mobility = Mobility::OVER_SNOW;
-        else if (ech2 == '2')
-            symbol.mobility = Mobility::SLED;
-
-    } else if (ech1 == '5') {
-        // Equipment mobility on water
-        if (ech2 == '1')
-            symbol.mobility = Mobility::BARGE;
-        else if (ech2 == '2')
-            symbol.mobility = Mobility::AMPHIBIOUS;
-
-    } else if (ech1 == '6') {
-        // Naval towed array
-        if (ech2 == '1')
-            symbol.mobility = Mobility::SHORT_TOWED_ARRAY;
-        else if (ech2 == '2')
-            symbol.mobility = Mobility::LONG_TOWED_ARRAY;
-    }
 
     /*
      * Parse entity
@@ -734,20 +486,15 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
      * - Characters 18-19 inclusive are modifier 2
      */
     // entity_t entity_raw = 0;
-    symbol.entity = _impl::sidc_to_entity(symbol_set, hex_from_substring(sidc.substr(10, 6)));
+    symbol.entity = _impl::sidc_to_entity(symbol.symbol_set, _impl::hex_from_substring(sidc.substr(10, 6)));
 
-    bool common_mod_1 = sidc.length() >= 30 ? (hex_from_substring(sidc.substr(20, 1)) != 0) : false;
-    bool common_mod_2 = sidc.length() >= 30 ? (hex_from_substring(sidc.substr(21, 1)) != 0) : false;
+    bool common_mod_1 = sidc.length() >= 30 ? (_impl::hex_from_substring(sidc.substr(20, 1)) != 0) : false;
+    bool common_mod_2 = sidc.length() >= 30 ? (_impl::hex_from_substring(sidc.substr(21, 1)) != 0) : false;
 
-    if (common_mod_2) {
-        std::cout << "Common mod from " << sidc.substr(18, 2) << ": "
-                  << std::hex << 0x100 + hex_from_substring(sidc.substr(18, 2)) << std::endl;
-    }
-
-    symbol.modifier_1 = _impl::sidc_to_modifier_1(common_mod_1 ? SymbolSet::COMMON_MODIFIERS : symbol_set,
-                                                  (common_mod_1 ? 0x100 : 0) + hex_from_substring(sidc.substr(16, 2)));
-    symbol.modifier_2 = _impl::sidc_to_modifier_2(common_mod_2 ? SymbolSet::COMMON_MODIFIERS : symbol_set,
-                                                  (common_mod_2 ? 0x100 : 0) + hex_from_substring(sidc.substr(18, 2)));
+    symbol.modifier_1 = _impl::sidc_to_modifier_1(common_mod_1 ? SymbolSet::COMMON_MODIFIERS : symbol.symbol_set,
+                                                  (common_mod_1 ? 0x100 : 0) + _impl::hex_from_substring(sidc.substr(16, 2)));
+    symbol.modifier_2 = _impl::sidc_to_modifier_2(common_mod_2 ? SymbolSet::COMMON_MODIFIERS : symbol.symbol_set,
+                                                  (common_mod_2 ? 0x100 : 0) + _impl::hex_from_substring(sidc.substr(18, 2)));
 
 
     return symbol;

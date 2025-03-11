@@ -48,14 +48,25 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 	const_text += ',\n'.join([f'\t{sanitize_constant(color_mode)} = {color_index}' for color_index, color_mode in enumerate(schema.color_modes)])
 	const_text += '\n};\n\n'
 
-	# Create affiliation schema
-	const_text += 'enum class Affiliation {\n'
-	const_text += ',\n'.join([f'\t{sanitize_constant(affiliation.names[0])} = {affiliation.id_code}' for affiliation in schema.affiliations.values()])
-	const_text += '\n};\n\n'
+	CONSTANT_ITEMS = [
+		('Context', 'context', 'contexts', Context), 
+		('Affiliation', 'affiliation', 'affiliations', Affiliation),
+		('Amplifier', 'amplifier', 'amplifiers', Amplifier),
+		('Status', 'status', 'statuses', Status), 
+		('HQTFD', 'hqtfd', 'hqtfds', HQTFD), 
+		('SymbolSet', 'symbol_set', 'symbol_sets', SymbolSet)
+	]
 
-	const_text += "static constexpr bool is_affiliation_dashed(Affiliation affiliation) noexcept {\n"
-	const_text += "\tif(" + ' || '.join([f'affiliation == Affiliation::{sanitize_constant(affiliation.names[0])}' for affiliation in schema.affiliations.values() if affiliation.dashed]) + ') {\n'
-	const_text += '\t\treturn true;\n\t}\n\treturn false;\n}\n\n'
+	for enum_value, singular, plural, cls in CONSTANT_ITEMS:
+		const_text += f'enum class {enum_value} {{\n'
+		const_text += ',\n'.join([f'\t{sanitize_constant(item.names[0])} = 0x{item.id_code}' for item in getattr(schema, plural).values()])
+		const_text += '\n};\n\n'
+
+		if hasattr(cls, 'is_dashed') and len([i for i in getattr(schema, plural).values() if i.is_dashed()]) > 0:
+			const_text += f"static constexpr bool is_{singular}_dashed({enum_value} {singular}) noexcept {{\n"
+			const_text += "\tif(" + ' || '.join([f'{singular} == {enum_value}::{sanitize_constant(item.names[0])}' for item in getattr(schema, plural).values() if item.is_dashed()]) + ') {\n'
+			const_text += '\t\treturn true;\n\t}\n\treturn false;\n}\n\n'	
+			pass
 
 	const_text += "static constexpr Affiliation get_frame_base_affiliation(Affiliation affiliation) noexcept {\n\tswitch(affiliation) {\n"
 	# Create base frame affiliations
@@ -71,26 +82,9 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 	const_text += ',\n'.join(['\tUNDEFINED = -1'] + [f'\t{sanitize_constant(dimension.id_code)} = {index}' for index, dimension in enumerate(schema.dimensions.values())])
 	const_text += '\n};\n\n'
 
-	# Create context schema
-	const_text += 'enum class Context {\n'
-	const_text += ',\n'.join([f'\t{sanitize_constant(context.names[0])} = {context.id_code}' for context in schema.contexts.values()])
-	const_text += '\n};\n\n'
-
-	# Create status schema
-	const_text += 'enum class Status {\n'
-	const_text += ',\n'.join([f'\t{sanitize_constant(status.names[0])} = {status.id_code}' for status in schema.statuses.values()])
-	const_text += '\n};\n\n'
-
-	const_text += "static constexpr bool is_status_dashed(Status status) noexcept {\n"
-	const_text += "\tif(" + ' || '.join([f'status == Status::{sanitize_constant(status.names[0])}' for status in schema.statuses.values() if status.dashed]) + ') {\n'
-	const_text += '\t\treturn true;\n\t}\n\treturn false;\n}\n\n'
-
 	# Create symbol set enums
-	const_text += "enum class SymbolSet {\n"
-	const_text += ',\n'.join(['\tUNDEFINED = -1'] + ['\t{} = 0x{}'.format(sanitize_constant(symbol_set.names[0]), symbol_set.id_code) for symbol_set in symbol_sets]) + '\n'
-	const_text += f'}};\n\nstatic constexpr int SYMBOL_SET_COUNT = {len(symbol_sets)};\n'
 	const_text += 'static constexpr int NOMINAL_ICON_SIZE = 200; /// The default icon size\n\n'
-	const_text += 'static constexpr std::array<SymbolSet, SYMBOL_SET_COUNT> SYMBOL_SETS = {\n'
+	const_text += f'static constexpr std::array<SymbolSet, {len(symbol_sets)}> SYMBOL_SETS = {{\n'
 	const_text += ',\n'.join(['\tSymbolSet::{}'.format(sanitize_constant(symbol_set.names[0])) for symbol_set in symbol_sets]) + '\n'
 	const_text += '};\n\n'
 
@@ -112,6 +106,7 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 	const_text += ',\n'.join([f'\t{f"{sanitize_constant(symset.names[0])}_M2_{sanitize_constant(ent.names[0])}"} = 0x{symset.id_code}{ent.id_code}' for (ent, symset) in entities]) + '\n'
 	const_text += '};\n\n'
 
+	# Close namespace
 	const_text += '}\n'
 	with open(constant_filename, 'w') as constant_file:
 		constant_file.write(const_text)
@@ -122,20 +117,38 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 	schema_text = ''
 	schema_text += '#pragma once\n'
 	schema_text += '#include "DrawCommands.hpp"\n'
+	schema_text += '#include "Types.hpp"\n'
 	schema_text += '#include "Constants.hpp"\n'
 	schema_text += '#include "eternal.hpp"\n\n'
-	schema_text += 'namespace milsymbol::_impl {\n'
+
+	schema_text += 'namespace milsymbol::_impl {\n\n'
 
 	# Create symbol type enum
-	schema_text += "enum class IconType {\n" + "\tENTITY = 0,\n\tMODIFIER_1,\n\tMODIFIER_2\n\n};\n\n"
+	schema_text += "enum class IconType {\n" + "\tENTITY = 0,\n\tMODIFIER_1,\n\tMODIFIER_2\n};\n\n"
 
-	# Create base frame draw commands
-	schema_text += "static constexpr const SymbolSet sidc_to_symbol_set(int hex_code) {\n"
-	schema_text += f'\tconst auto SYMBOL_SET_MAP = mapbox::eternal::map<int, SymbolSet>({{\n'
-	schema_text += ',\n'.join([f'\t\t{{0x{symbol_set.id_code}, SymbolSet::{sanitize_constant(symbol_set.names[0])}}}' for symbol_set in symbol_sets if not symbol_set.common])
-	schema_text += '\n\t});\n\n'
-	schema_text += '\tauto it = SYMBOL_SET_MAP.find(hex_code);\n'
-	schema_text += '\treturn (it != SYMBOL_SET_MAP.end() ? it->second : SymbolSet::LAND_UNIT);\n}\n'	
+	for enum_value, singular, plural, cls in CONSTANT_ITEMS:
+		schema_text += f'static constexpr {enum_value} sidc_to_{singular}(int hex_code) noexcept {{\n'
+		schema_text += f'\tconst auto MAP = mapbox::eternal::map<int, {enum_value}>({{\n'
+		schema_text += ',\n'.join([
+			f'\t\t{{0x{item.id_code}, {enum_value}::{sanitize_constant(item.names[0])}}}' for item in getattr(schema, plural).values() if \
+			not ('common' in dir(item) and item.common)
+		])
+		schema_text += '\n\t});\n'
+		schema_text += '\tauto it = MAP.find(hex_code);\n'
+		schema_text += f'\treturn (it != MAP.end() ? it->second : {enum_value}{{}});\n'
+		schema_text += '}\n\n'
+
+		schema_text += f'inline static constexpr {enum_value} sidc_to_{singular}(std::string_view strview) noexcept {{\n'
+		schema_text += f'\treturn sidc_to_{singular}(_impl::hex_from_substring(strview));\n}}\n\n'
+
+	for item in ['headquarters', 'task_force', 'dummy']:
+		schema_text += f'static constexpr bool sidc_to_{item}(int hex_code) noexcept {{\n'
+		schema_text += f'\tHQTFD hqtfd = sidc_to_hqtfd(hex_code);\n'
+		valid = [hqtfd for hqtfd in schema.hqtfds.values() if getattr(hqtfd, item)]
+		schema_text += f'\tif ({" || ".join([f"hqtfd == HQTFD::{sanitize_constant(v.names[0])}" for v in valid])}) {{\n' 
+		schema_text += f'\t\treturn true;\n\t}}\n\treturn false;\n}}\n\n'
+		schema_text += f'inline static constexpr bool sidc_to_{item}(std::string_view strview) noexcept {{\n'
+		schema_text += f'\treturn sidc_to_{item}(_impl::hex_from_substring(strview));\n}}\n\n'
 
 	# Get entity set
 	schema_text += "static constexpr const Entity sidc_to_entity(SymbolSet symbol_set, int hex_code) {\n"

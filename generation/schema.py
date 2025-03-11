@@ -32,6 +32,9 @@ class Context:
 	def __repr__(self):
 		return f"Context {self.id_code} [{self.base_context}]: (" + ', '.join([f'\"{f}\"' for f in self.names]) + ")"
 
+	def is_dashed(self) -> bool:
+		return False
+
 	@staticmethod
 	def from_dict(id_code:str, json:dict):
 		if not is_valid_hex_key(id_code, 1):
@@ -68,6 +71,9 @@ class Affiliation:
 		if self.has_civilian_variant:
 			ret += ' +C'
 		return ret
+
+	def is_dashed(self) -> bool:
+		return self.dashed
 
 	@staticmethod
 	def from_dict(id_code:str, json:dict, schema):
@@ -175,6 +181,9 @@ class Status:
 			print(f"Bad status {status_id}", file=sys.stderr)
 			return None
 
+	def is_dashed(self) -> bool:
+		return self.dashed
+
 	@staticmethod
 	def from_dict(id_code:str, json:dict):
 		if not is_valid_hex_key(id_code, 1):
@@ -197,9 +206,15 @@ class HQTFD:
 		self.id_code:str = "" # 1-digit hexadecimal
 		self.names:list = []
 		self.dashed:bool = False
+		self.headquarters:bool = False
+		self.task_force:bool = False
+		self.dummy:bool = False
 
 	def __repr__(self) -> str:
 		return f"HQTFD {self.id_code} ({self.names[0]})"
+
+	def is_dashed(self) -> bool:
+		return self.dashed
 
 	@staticmethod
 	def from_dict(id_code:str, json:dict):
@@ -215,6 +230,11 @@ class HQTFD:
 			return None
 
 		hqtfd.dashed = json.get("dashed", False)
+
+		hqtfd.headquarters = 'hqtfd' in json and 'headquarters' in json['hqtfd']
+		hqtfd.task_force = 'hqtfd' in json and 'task force' in json['hqtfd']
+		hqtfd.dummy = 'hqtfd' in json and 'dummy' in json['hqtfd']
+
 		return hqtfd
 
 
@@ -447,8 +467,11 @@ class Schema:
 		self.statuses:dict = {}
 		## The headquarters/task force/dummy codes
 		self.hqtfds:dict = {}
+		## Amplifiers
+		self.amplifiers:dict = {}
 		## A mapping of [symbol set ID : symbol set object]
 		self.symbol_sets:dict = {}
+
 
 	def print_constants(self):
 		print("Constants set")
@@ -533,6 +556,12 @@ class Schema:
 			status = Status.from_dict(status_id, status_dict)
 			if status is not None:
 				self.statuses[status.id_code] = status
+
+		# Load amplifiers
+		for amplifier_id, amplifier_dict in json_dict.get("amplifiers", {}).items():
+			amplifier = Amplifier.from_dict(amplifier_id, amplifier_dict, schema=self)
+			if amplifier is not None:
+				self.amplifiers[amplifier.id_code] = amplifier
 
 		for hqtfd_id, hqtfd_dict in json_dict.get("hqtfds", {}).items():
 			hqtfd = HQTFD.from_dict(hqtfd_id, hqtfd_dict)

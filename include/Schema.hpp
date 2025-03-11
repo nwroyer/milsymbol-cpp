@@ -1,38 +1,192 @@
 #pragma once
 #include "DrawCommands.hpp"
+#include "Types.hpp"
 #include "Constants.hpp"
 #include "eternal.hpp"
 
 namespace milsymbol::_impl {
+
 enum class IconType {
 	ENTITY = 0,
 	MODIFIER_1,
 	MODIFIER_2
-
 };
 
-static constexpr const SymbolSet sidc_to_symbol_set(int hex_code) {
-	const auto SYMBOL_SET_MAP = mapbox::eternal::map<int, SymbolSet>({
-		{0x01, SymbolSet::AIR},
-		{0x02, SymbolSet::AIR_MISSILE},
-		{0x05, SymbolSet::SPACE},
+static constexpr Context sidc_to_context(int hex_code) noexcept {
+	const auto MAP = mapbox::eternal::map<int, Context>({
+		{0x0, Context::REALITY},
+		{0x1, Context::EXERCISE},
+		{0x2, Context::SIMULATION},
+		{0x3, Context::RESTRICTED_TARGET_REALITY},
+		{0x4, Context::NO_STRIKE_ENTITY_REALITY},
+		{0x5, Context::RESTRICTED_TARGET_EXERCISE},
+		{0x6, Context::NO_STRIKE_ENTITY_EXERCISE},
+		{0x7, Context::RESTRICTED_TARGET_SIMULATION},
+		{0x8, Context::NO_STRIKE_ENTITY_SIMULATION}
+	});
+	auto it = MAP.find(hex_code);
+	return (it != MAP.end() ? it->second : Context{});
+}
+
+inline static constexpr Context sidc_to_context(std::string_view strview) noexcept {
+	return sidc_to_context(_impl::hex_from_substring(strview));
+}
+
+static constexpr Affiliation sidc_to_affiliation(int hex_code) noexcept {
+	const auto MAP = mapbox::eternal::map<int, Affiliation>({
+		{0x0, Affiliation::PENDING},
+		{0x1, Affiliation::UNKNOWN},
+		{0x2, Affiliation::ASSUMED_FRIEND},
+		{0x3, Affiliation::FRIEND},
+		{0x4, Affiliation::NEUTRAL},
+		{0x5, Affiliation::SUSPECT},
+		{0x6, Affiliation::HOSTILE}
+	});
+	auto it = MAP.find(hex_code);
+	return (it != MAP.end() ? it->second : Affiliation{});
+}
+
+inline static constexpr Affiliation sidc_to_affiliation(std::string_view strview) noexcept {
+	return sidc_to_affiliation(_impl::hex_from_substring(strview));
+}
+
+static constexpr Amplifier sidc_to_amplifier(int hex_code) noexcept {
+	const auto MAP = mapbox::eternal::map<int, Amplifier>({
+		{0x11, Amplifier::TEAM},
+		{0x12, Amplifier::SQUAD},
+		{0x13, Amplifier::SECTION},
+		{0x14, Amplifier::PLATOON},
+		{0x15, Amplifier::COMPANY},
+		{0x16, Amplifier::BATTALION},
+		{0x17, Amplifier::REGIMENT},
+		{0x18, Amplifier::BRIGADE},
+		{0x21, Amplifier::DIVISION},
+		{0x22, Amplifier::CORPS},
+		{0x23, Amplifier::ARMY},
+		{0x24, Amplifier::ARMY_GROUP},
+		{0x25, Amplifier::REGION},
+		{0x26, Amplifier::COMMAND},
+		{0x31, Amplifier::WHEELED},
+		{0x32, Amplifier::WHEELED_CROSS_COUNTRY},
+		{0x33, Amplifier::TRACKED},
+		{0x34, Amplifier::WHEELED_AND_TRACKED},
+		{0x35, Amplifier::TOWED},
+		{0x36, Amplifier::RAIL},
+		{0x37, Amplifier::PACK_ANIMALS},
+		{0x41, Amplifier::OVER_SNOW},
+		{0x42, Amplifier::SLED},
+		{0x51, Amplifier::BARGE},
+		{0x52, Amplifier::AMPHIBIOUS},
+		{0x61, Amplifier::SHORT_TOWED_ARRAY},
+		{0x62, Amplifier::LONG_TOWED_ARRAY},
+		{0x71, Amplifier::LEADER}
+	});
+	auto it = MAP.find(hex_code);
+	return (it != MAP.end() ? it->second : Amplifier{});
+}
+
+inline static constexpr Amplifier sidc_to_amplifier(std::string_view strview) noexcept {
+	return sidc_to_amplifier(_impl::hex_from_substring(strview));
+}
+
+static constexpr Status sidc_to_status(int hex_code) noexcept {
+	const auto MAP = mapbox::eternal::map<int, Status>({
+		{0x0, Status::PRESENT},
+		{0x1, Status::PLANNED},
+		{0x2, Status::FULLY_CAPABLE},
+		{0x3, Status::DAMAGED},
+		{0x4, Status::DESTROYED},
+		{0x5, Status::FULL_TO_CAPACITY}
+	});
+	auto it = MAP.find(hex_code);
+	return (it != MAP.end() ? it->second : Status{});
+}
+
+inline static constexpr Status sidc_to_status(std::string_view strview) noexcept {
+	return sidc_to_status(_impl::hex_from_substring(strview));
+}
+
+static constexpr HQTFD sidc_to_hqtfd(int hex_code) noexcept {
+	const auto MAP = mapbox::eternal::map<int, HQTFD>({
+		{0x0, HQTFD::UNKNOWN},
+		{0x1, HQTFD::FEINT},
+		{0x2, HQTFD::HEADQUARTERS},
+		{0x3, HQTFD::FEINT_HEADQUARTERS},
+		{0x4, HQTFD::TASK_FORCE},
+		{0x5, HQTFD::FEINT_TASK_FORCE},
+		{0x6, HQTFD::TASK_FORCE_HEADQUARTERS},
+		{0x7, HQTFD::FEINT_TASK_FORCE_HEADQUARTERS}
+	});
+	auto it = MAP.find(hex_code);
+	return (it != MAP.end() ? it->second : HQTFD{});
+}
+
+inline static constexpr HQTFD sidc_to_hqtfd(std::string_view strview) noexcept {
+	return sidc_to_hqtfd(_impl::hex_from_substring(strview));
+}
+
+static constexpr SymbolSet sidc_to_symbol_set(int hex_code) noexcept {
+	const auto MAP = mapbox::eternal::map<int, SymbolSet>({
 		{0x06, SymbolSet::SPACE_MISSILE},
-		{0x10, SymbolSet::LAND_UNIT},
 		{0x11, SymbolSet::LAND_CIVILIAN_UNIT_ORGANIZATION},
 		{0x15, SymbolSet::LAND_EQUIPMENT},
-		{0x20, SymbolSet::LAND_INSTALLATION},
-		{0x27, SymbolSet::DISMOUNTED_INDIVIDUAL},
-		{0x30, SymbolSet::SEA_SURFACE},
-		{0x35, SymbolSet::SEA_SUBSURFACE},
-		{0x36, SymbolSet::MINE_WARFARE},
-		{0x40, SymbolSet::ACTIVITIES},
 		{0x50, SymbolSet::SIGNALS_INTELLIGENCE},
-		{0x60, SymbolSet::CYBERSPACE}
+		{0x10, SymbolSet::LAND_UNIT},
+		{0x40, SymbolSet::ACTIVITIES},
+		{0x36, SymbolSet::MINE_WARFARE},
+		{0x20, SymbolSet::LAND_INSTALLATION},
+		{0x60, SymbolSet::CYBERSPACE},
+		{0x30, SymbolSet::SEA_SURFACE},
+		{0x05, SymbolSet::SPACE},
+		{0x27, SymbolSet::DISMOUNTED_INDIVIDUAL},
+		{0x01, SymbolSet::AIR},
+		{0x35, SymbolSet::SEA_SUBSURFACE},
+		{0x02, SymbolSet::AIR_MISSILE}
 	});
-
-	auto it = SYMBOL_SET_MAP.find(hex_code);
-	return (it != SYMBOL_SET_MAP.end() ? it->second : SymbolSet::LAND_UNIT);
+	auto it = MAP.find(hex_code);
+	return (it != MAP.end() ? it->second : SymbolSet{});
 }
+
+inline static constexpr SymbolSet sidc_to_symbol_set(std::string_view strview) noexcept {
+	return sidc_to_symbol_set(_impl::hex_from_substring(strview));
+}
+
+static constexpr bool sidc_to_headquarters(int hex_code) noexcept {
+	HQTFD hqtfd = sidc_to_hqtfd(hex_code);
+	if (hqtfd == HQTFD::HEADQUARTERS || hqtfd == HQTFD::FEINT_HEADQUARTERS || hqtfd == HQTFD::TASK_FORCE_HEADQUARTERS || hqtfd == HQTFD::FEINT_TASK_FORCE_HEADQUARTERS) {
+		return true;
+	}
+	return false;
+}
+
+inline static constexpr bool sidc_to_headquarters(std::string_view strview) noexcept {
+	return sidc_to_headquarters(_impl::hex_from_substring(strview));
+}
+
+static constexpr bool sidc_to_task_force(int hex_code) noexcept {
+	HQTFD hqtfd = sidc_to_hqtfd(hex_code);
+	if (hqtfd == HQTFD::TASK_FORCE || hqtfd == HQTFD::FEINT_TASK_FORCE || hqtfd == HQTFD::TASK_FORCE_HEADQUARTERS || hqtfd == HQTFD::FEINT_TASK_FORCE_HEADQUARTERS) {
+		return true;
+	}
+	return false;
+}
+
+inline static constexpr bool sidc_to_task_force(std::string_view strview) noexcept {
+	return sidc_to_task_force(_impl::hex_from_substring(strview));
+}
+
+static constexpr bool sidc_to_dummy(int hex_code) noexcept {
+	HQTFD hqtfd = sidc_to_hqtfd(hex_code);
+	if (hqtfd == HQTFD::FEINT || hqtfd == HQTFD::FEINT_HEADQUARTERS || hqtfd == HQTFD::FEINT_TASK_FORCE || hqtfd == HQTFD::FEINT_TASK_FORCE_HEADQUARTERS) {
+		return true;
+	}
+	return false;
+}
+
+inline static constexpr bool sidc_to_dummy(std::string_view strview) noexcept {
+	return sidc_to_dummy(_impl::hex_from_substring(strview));
+}
+
 static constexpr const Entity sidc_to_entity(SymbolSet symbol_set, int hex_code) {
 	if (symbol_set == SymbolSet::AIR) {
 		const auto ENTITY_MAP = mapbox::eternal::map<int, Entity>({
@@ -2215,7 +2369,7 @@ static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension,
 			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 65,150 c -55,0 -50,-90 0,-90 0,-50 70,-50 70,0 50,0 55,90 0,90", BoundingBox(45, 20, 155, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 100 22.5 C 85 22.5 70 31.669211 66 50 L 134 50 C 130 31.669204 115 22.5 100 22.5 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::LAND_UNIT, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_EQUIPMENT, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
-			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
+			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M85,30.75 85,20.75 115,20.75 115,30.75 100,26.75 Z", BoundingBox(85, 20.75, 30, 10)).with_fill(ColorType::ICON)}},
 			{Dimension::ACTIVITIES, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 107.96875 31.46875 L 92.03125 31.71875 L 92.03125 46.4375 L 107.71875 46.4375 L 107.96875 31.46875 z M 47.03125 92.5 L 31.09375 92.75 L 31.09375 107.5 L 46.78125 107.5 L 47.03125 92.5 z M 168.4375 92.5 L 152.5 92.75 L 152.5 107.5 L 168.1875 107.5 L 168.4375 92.5 z M 107.96875 153.5625 L 92.03125 153.8125 L 92.03125 168.53125 L 107.71875 168.53125 L 107.96875 153.5625 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::DISMOUNTED_INDIVIDUAL, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::SEA_SURFACE, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
@@ -2234,7 +2388,7 @@ static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension,
 			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 155,150 C 155,50 115,30 100,30 85,30 45,50 45,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 100,30 C 90,30 80,35 68.65625,50 l 62.6875,0 C 120,35 110,30 100,30", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::LAND_UNIT, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_EQUIPMENT, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
-			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
+			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M85,48 85,40 115,40 115,48 100,46 Z", BoundingBox(85, 40, 30, 10)).with_fill(ColorType::ICON)}},
 			{Dimension::ACTIVITIES, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("m 160,135 0,15 15,0 0,-15 z m -135,0 15,0 0,15 -15,0 z m 135,-85 0,15 15,0 0,-15 z m -135,0 15,0 0,15 -15,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::DISMOUNTED_INDIVIDUAL, SymbolLayer{DrawCommand::path("m 100,45 55,25 0,60 -55,25 -55,-25 0,-60 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::SEA_SURFACE, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
@@ -2253,7 +2407,7 @@ static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension,
 			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 45,150 L 45,30,155,30,155,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M45,50 l0,-20 110,0 0,20 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::LAND_UNIT, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_EQUIPMENT, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
-			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
+			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M85,43 85,35 115,35 115,43 100,41 Z", BoundingBox(85, 35, 30, 7)).with_fill(ColorType::ICON)}},
 			{Dimension::ACTIVITIES, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL), DrawCommand::path("m 140,140 15,0 0,15 -15,0 z m -80,0 0,15 -15,0 0,-15 z m 80,-80 0,-15 15,0 0,15 z m -80,0 -15,0 0,-15 15,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::DISMOUNTED_INDIVIDUAL, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::SEA_SURFACE, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
@@ -2272,7 +2426,7 @@ static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension,
 			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 45,150 L45,70 100,20 155,70 155,150", BoundingBox(25, 20, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M67,50 L100,20 133,50 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::LAND_UNIT, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_EQUIPMENT, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},
-			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},
+			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M85,40 85,18 115,18 115,40 100,24 Z", BoundingBox(85, 18, 30, 22)).with_fill(ColorType::ICON)}},
 			{Dimension::ACTIVITIES, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 100 28 L 89.40625 38.59375 L 100 49.21875 L 110.59375 38.59375 L 100 28 z M 38.6875 89.3125 L 28.0625 99.9375 L 38.6875 110.53125 L 49.28125 99.9375 L 38.6875 89.3125 z M 161.40625 89.40625 L 150.78125 100 L 161.40625 110.59375 L 172 100 L 161.40625 89.40625 z M 99.9375 150.71875 L 89.3125 161.3125 L 99.9375 171.9375 L 110.53125 161.3125 L 99.9375 150.71875", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::DISMOUNTED_INDIVIDUAL, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::SEA_SURFACE, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},

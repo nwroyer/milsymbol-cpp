@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <array>
 
 /**
  * @brief Examples of constructing and saving symbols as SVG.
@@ -21,7 +20,7 @@ int main(int argc, const char** argv) {
     alt_style.use_modifiers = true;
     alt_style.color_mode = milsymbol::ColorMode::LIGHT;
 
-    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("100310021612040100060130000840")
+    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130620000011050017101100000000")
                                    .with_affiliation(milsymbol::Affiliation::FRIEND);
 
     milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
@@ -57,7 +56,7 @@ int main(int argc, const char** argv) {
 
     std::ofstream example_2_file;
     example_2_file.open("example_2.svg", std::ios_base::out);
-    example_2_file << milsymbol::Symbol::from_sidc("130360000013020013070000000000")
+    example_2_file << milsymbol::Symbol::from_sidc("130620000011050017101100000000")
                         .as_headquarters(true)
                         .with_affiliation(milsymbol::Affiliation::UNKNOWN)
                         .get_svg_string(alt_style);
