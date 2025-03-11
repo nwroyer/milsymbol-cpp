@@ -26,7 +26,7 @@
 			"has civilian variant": true,
 			"amplifier offsets": {
 				"top": [0, -19.25],
-				"bottom": [0, 0]
+				"bottom": [0, 14]
 			},
 			"colors": {
 				"light":    [255, 255, 128],
@@ -84,7 +84,7 @@
 			"names": ["hostile", "faker", "enemy"],
 			"amplifier offsets": {
 				"top": [0, -22],
-				"bottom": [0, 0]
+				"bottom": [0, 14]
 			},
 			"colors": {
 				"light":    [255, 128, 128],
@@ -124,7 +124,7 @@
 		"land equipment": {
 			"frame base": "land unit",
 			"frames": {
-				"friend":  [{"d": "M25,50 l150,0 0,100 -150,0 z", "fill": "icon_fill", "bbox": [25, 50, 175, 150]}]
+				"friend":  [{"r": 60, "pos": [100, 100], "fill": "icon_fill", "bbox": [25, 50, 175, 150]}]
 			}
 		},
 		"land installation": {
@@ -388,70 +388,116 @@
 		"31": {
 			"names": ["wheeled", "wheeled limited cross country"], "type": "mobility", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{"d": "M 53,160 l 94,0"}, 
+				{"r": 8, "pos": [58, 168]},
+				{"r": 8, "pos": [142, 168]}
+			]
 		},
 		"32": {
 			"names": ["wheeled cross country", "cross country wheeled", "wheeled x"], "type": "mobility", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{"d": "M 53,160 l 94,0"}, 
+				{"r": 8, "pos": [58, 168]},
+				{"r": 8, "pos": [100, 168]},
+				{"r": 8, "pos": [142, 168]}
+			]
 		},
 		"33": {
 			"names": ["tracked"], "type": "mobility", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{
+					"d": "M 48.2,159.9 H 151.8 C 153.8,159.9 155.7,160.8 157.1,162.1 158.4,163.5 159.2,165.3 159.2,167.4 159.2,169.5 158.4,171.4 157.1,172.7 155.7,174.1 153.8,174.9 151.8,174.9 H 48.2 C 44.1,174.9 40.8,171.6 40.8,167.4 40.8,163.3 44.1,159.9 48.2,159.9 Z",
+					"bbox": [38, 158, 161, 177]}
+			]
 		},
 		"34": {
 			"names": ["wheeled and tracked", "tracked and wheeled"], "type": "mobility", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{"d": "M 83,161 l 70,0 c15,0 15,15 0,15 l -70,0 c-15,0 -15,-15 0,-15"},
+				{"r": 8, "pos": [58, 168]}
+			]
 		},
 		"35": {
 			"names": ["towed"], "type": "mobility", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{"d": "M 63,161 l 74,0"},
+				{"r": 8, "pos": [58, 163]},
+				{"r": 8, "pos": [142, 163]}
+			]
 		},
 		"36": {
 			"names": ["rail"], "type": "mobility", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{"d": "M 53,161 l 96,0"},
+				{"r": 8, "pos": [58, 168]},
+				{"r": 8, "pos": [73, 168]},
+				{"r": 8, "pos": [127, 168]},
+				{"r": 8, "pos": [142, 168]}
+			]
 		},
 		"37": {
 			"names": ["pack animals"], "type": "mobility", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{"d": "M 80,190 l 10,-20 10,20 10,-20 10,20", "bbox": [80, 170, 120, 190]}
+			]
 		},
 
 		"41": {
 			"names": ["over snow", "prime mover"], "type": "mobility", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{"d": "M 50,151 l10,10 90,0", "bbox": [50, 151, 150, 161]}
+			]
 		},
 		"42": {
 			"names": ["sled"], "type": "mobility", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [{
+				"friend": [{"d": "M 145,148 C 160,148 160,163 145,163 H 55 C 40,163 40,148 55,148", "bbox": [41, 146, 158, 165]}],
+				"hostile": [{"d": "M 145,148 C 160,148 160,163 145,163 H 55 C 40,163 40,148 55,148", "bbox": [41, 146, 158, 165]}],
+				"unknown": [{"d": "M 145,145 C 160,145 160,160 145,160 H 55 C 40,160 40,145 55,145", "bbox": [41, 143, 158, 162]}],
+				"neutral": [{"d": "M 145,158 C 160,158 160,173 145,173 H 55 C 40,173 40,158 55,158", "bbox": [41, 156, 158, 175]}]
+			}]
 		},
 
 		"51": {
 			"names": ["barge"], "type": "mobility", "applies to": ["land equipment"], 
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{"d": "M 50,161 l 100,0 c0,10 -100,10 -100,0", "bbox": [50, 161, 150, 171]}
+			]
 		},
 		"52": {
 			"names": ["amphibious"], "type": "mobility", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{
+					"d": "M 65,170 C 65,160 75,160 75,170 75,180 85,180 85,170 85,160 95,160 95,170 95,180 105,180 105,170 105,160 115,160 115,170 115,180 125,180 125,170 125,160 135,160 135,170", 
+					"bbox": [63, 160, 137, 179]
+				}
+			]
 		},
 
 		"61": {
 			"names": ["short towed array"], "type": "naval towed array", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{"d": "M 50,170 l 100,0 M50,165 l10,0 0,10 -10,0 z M150,165 l-10,0 0,10 10,0 z M100,165 l5,5 -5,5 -5,-5 z", "fill": true, "stroke": true, "bbox": [48, 162, 152, 178]}
+			]
 		},
 		"62": {
 			"names": ["long towed array"], "type": "naval towed array", "applies to": ["land equipment"],
 			"side": "bottom",
-			"icon": []
+			"icon": [
+				{"d": "M 50,170 l 100,0 M50,165 l10,0 0,10 -10,0 z M150,165 l-10,0 0,10 10,0 z M105,165 l-10,0 0,10 10,0 z M75,165 l5,5 -5,5 -5,-5 z  M125,165 l5,5 -5,5 -5,-5 z", "fill": true, "stroke": true, "bbox": [48, 162, 152, 178]}
+			]
 		},
 
 		"71": {

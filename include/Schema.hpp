@@ -2388,11 +2388,11 @@ static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension,
 			{Dimension::AIR, SymbolLayer{DrawCommand::path("M 155,150 C 155,50 115,30 100,30 85,30 45,50 45,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::SPACE, SymbolLayer{DrawCommand::path("M 155,150 C 155,50 115,30 100,30 85,30 45,50 45,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 100,30 C 90,30 80,35 68.65625,50 l 62.6875,0 C 120,35 110,30 100,30", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::LAND_UNIT, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
-			{Dimension::LAND_EQUIPMENT, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
+			{Dimension::LAND_EQUIPMENT, SymbolLayer{DrawCommand::circle(Vector2{100, 100}, 60).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M85,48 85,40 115,40 115,48 100,46 Z", BoundingBox(85, 40, 115, 48)).with_fill(ColorType::ICON)}},
 			{Dimension::ACTIVITIES, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("m 160,135 0,15 15,0 0,-15 z m -135,0 15,0 0,15 -15,0 z m 135,-85 0,15 15,0 0,-15 z m -135,0 15,0 0,15 -15,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::DISMOUNTED_INDIVIDUAL, SymbolLayer{DrawCommand::path("m 100,45 55,25 0,60 -55,25 -55,-25 0,-60 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
-			{Dimension::SEA_SURFACE, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
+			{Dimension::SEA_SURFACE, SymbolLayer{DrawCommand::circle(Vector2{100, 100}, 60).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::SEA_SUBSURFACE, SymbolLayer{DrawCommand::path("m 45,50 c 0,100 40,120 55,120 15,0 55,-20 55,-120", BoundingBox(45, 50, 155, 170)).with_fill(ColorType::ICON_FILL)}},
 			{Dimension::CYBERSPACE, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("m 135,150 40,-40 0,40 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{Dimension::POSITION_MARKER, SymbolLayer{DrawCommand::circle(Vector2{100, 100}, 15).with_fill(ColorType::ICON_FILL)}}
@@ -2449,7 +2449,7 @@ static constexpr Vector2 get_amplifier_offset(Amplifier amplifier, Affiliation a
 	switch (affiliation) {
 		case Affiliation::PENDING:
 		case Affiliation::UNKNOWN:
-			return Vector2{amplifier_on_top ? static_cast<real_t>(0) : static_cast<real_t>(0), amplifier_on_top ? static_cast<real_t>(-19.25) : static_cast<real_t>(0)};
+			return Vector2{amplifier_on_top ? static_cast<real_t>(0) : static_cast<real_t>(0), amplifier_on_top ? static_cast<real_t>(-19.25) : static_cast<real_t>(14)};
 			break;
 		case Affiliation::ASSUMED_FRIEND:
 		case Affiliation::FRIEND:
@@ -2460,7 +2460,7 @@ static constexpr Vector2 get_amplifier_offset(Amplifier amplifier, Affiliation a
 			break;
 		case Affiliation::SUSPECT:
 		case Affiliation::HOSTILE:
-			return Vector2{amplifier_on_top ? static_cast<real_t>(0) : static_cast<real_t>(0), amplifier_on_top ? static_cast<real_t>(-22) : static_cast<real_t>(0)};
+			return Vector2{amplifier_on_top ? static_cast<real_t>(0) : static_cast<real_t>(0), amplifier_on_top ? static_cast<real_t>(-22) : static_cast<real_t>(14)};
 			break;
 	}
 }
@@ -2529,19 +2529,19 @@ static constexpr SymbolLayer get_amplifier_layer(Amplifier amplifier, Affiliatio
 			{Amplifier::ARMY_GROUP, SymbolLayer{DrawCommand::path("M17.5,40 l25,-25 m0,25 l-25,-25    M52.5,40 l25,-25 m0,25 l-25,-25    M87.5,40 l25,-25 m0,25 l-25,-25    M122.5,40 l25,-25 m0,25 l-25,-25       M157.5,40 l25,-25 m0,25 l-25,-25", BoundingBox(17.5, 15, 165, 40)).with_fill(ColorType::ICON)}},
 			{Amplifier::REGION, SymbolLayer{DrawCommand::path("M0,40 l25,-25 m0,25 l-25,-25   M35,40 l25,-25 m0,25 l-25,-25   M70,40 l25,-25 m0,25 l-25,-25   M105,40 l25,-25 m0,25 l-25,-25    M140,40 l25,-25 m0,25 l-25,-25     M175,40 l25,-25 m0,25 l-25,-25", BoundingBox(0, 15, 200, 40)).with_fill(ColorType::ICON)}},
 			{Amplifier::COMMAND, SymbolLayer{DrawCommand::path("M70,27.5 l25,0 m-12.5,12.5 l0,-25   M105,27.5 l25,0 m-12.5,12.5 l0,-25", BoundingBox(40, 15, 130, 40)).with_fill(ColorType::ICON)}},
-			{Amplifier::WHEELED, SymbolLayer{}},
-			{Amplifier::WHEELED_CROSS_COUNTRY, SymbolLayer{}},
-			{Amplifier::TRACKED, SymbolLayer{}},
-			{Amplifier::WHEELED_AND_TRACKED, SymbolLayer{}},
-			{Amplifier::TOWED, SymbolLayer{}},
-			{Amplifier::RAIL, SymbolLayer{}},
-			{Amplifier::PACK_ANIMALS, SymbolLayer{}},
-			{Amplifier::OVER_SNOW, SymbolLayer{}},
-			{Amplifier::SLED, SymbolLayer{}},
-			{Amplifier::BARGE, SymbolLayer{}},
-			{Amplifier::AMPHIBIOUS, SymbolLayer{}},
-			{Amplifier::SHORT_TOWED_ARRAY, SymbolLayer{}},
-			{Amplifier::LONG_TOWED_ARRAY, SymbolLayer{}},
+			{Amplifier::WHEELED, SymbolLayer{DrawCommand::path("M 53,160 l 94,0", BoundingBox(100, 100, 100, 100)), DrawCommand::circle(Vector2{58, 168}, 8), DrawCommand::circle(Vector2{142, 168}, 8)}},
+			{Amplifier::WHEELED_CROSS_COUNTRY, SymbolLayer{DrawCommand::path("M 53,160 l 94,0", BoundingBox(100, 100, 100, 100)), DrawCommand::circle(Vector2{58, 168}, 8), DrawCommand::circle(Vector2{100, 168}, 8), DrawCommand::circle(Vector2{142, 168}, 8)}},
+			{Amplifier::TRACKED, SymbolLayer{DrawCommand::path("M 48.2,159.9 H 151.8 C 153.8,159.9 155.7,160.8 157.1,162.1 158.4,163.5 159.2,165.3 159.2,167.4 159.2,169.5 158.4,171.4 157.1,172.7 155.7,174.1 153.8,174.9 151.8,174.9 H 48.2 C 44.1,174.9 40.8,171.6 40.8,167.4 40.8,163.3 44.1,159.9 48.2,159.9 Z", BoundingBox(38, 158, 161, 177))}},
+			{Amplifier::WHEELED_AND_TRACKED, SymbolLayer{DrawCommand::path("M 83,161 l 70,0 c15,0 15,15 0,15 l -70,0 c-15,0 -15,-15 0,-15", BoundingBox(100, 100, 100, 100)), DrawCommand::circle(Vector2{58, 168}, 8)}},
+			{Amplifier::TOWED, SymbolLayer{DrawCommand::path("M 63,161 l 74,0", BoundingBox(100, 100, 100, 100)), DrawCommand::circle(Vector2{58, 163}, 8), DrawCommand::circle(Vector2{142, 163}, 8)}},
+			{Amplifier::RAIL, SymbolLayer{DrawCommand::path("M 53,161 l 96,0", BoundingBox(100, 100, 100, 100)), DrawCommand::circle(Vector2{58, 168}, 8), DrawCommand::circle(Vector2{73, 168}, 8), DrawCommand::circle(Vector2{127, 168}, 8), DrawCommand::circle(Vector2{142, 168}, 8)}},
+			{Amplifier::PACK_ANIMALS, SymbolLayer{DrawCommand::path("M 80,190 l 10,-20 10,20 10,-20 10,20", BoundingBox(80, 170, 120, 190))}},
+			{Amplifier::OVER_SNOW, SymbolLayer{DrawCommand::path("M 50,151 l10,10 90,0", BoundingBox(50, 151, 150, 161))}},
+			{Amplifier::SLED, SymbolLayer{DrawCommand::full_frame({DrawCommand::path("M 145,148 C 160,148 160,163 145,163 H 55 C 40,163 40,148 55,148", BoundingBox(41, 146, 158, 165))}, {DrawCommand::path("M 145,148 C 160,148 160,163 145,163 H 55 C 40,163 40,148 55,148", BoundingBox(41, 146, 158, 165))}, {DrawCommand::path("M 145,158 C 160,158 160,173 145,173 H 55 C 40,173 40,158 55,158", BoundingBox(41, 156, 158, 175))}, {DrawCommand::path("M 145,145 C 160,145 160,160 145,160 H 55 C 40,160 40,145 55,145", BoundingBox(41, 143, 158, 162))})}},
+			{Amplifier::BARGE, SymbolLayer{DrawCommand::path("M 50,161 l 100,0 c0,10 -100,10 -100,0", BoundingBox(50, 161, 150, 171))}},
+			{Amplifier::AMPHIBIOUS, SymbolLayer{DrawCommand::path("M 65,170 C 65,160 75,160 75,170 75,180 85,180 85,170 85,160 95,160 95,170 95,180 105,180 105,170 105,160 115,160 115,170 115,180 125,180 125,170 125,160 135,160 135,170", BoundingBox(63, 160, 137, 179))}},
+			{Amplifier::SHORT_TOWED_ARRAY, SymbolLayer{DrawCommand::path("M 50,170 l 100,0 M50,165 l10,0 0,10 -10,0 z M150,165 l-10,0 0,10 10,0 z M100,165 l5,5 -5,5 -5,-5 z", BoundingBox(48, 162, 152, 178)).with_fill(ColorType::ICON)}},
+			{Amplifier::LONG_TOWED_ARRAY, SymbolLayer{DrawCommand::path("M 50,170 l 100,0 M50,165 l10,0 0,10 -10,0 z M150,165 l-10,0 0,10 10,0 z M105,165 l-10,0 0,10 10,0 z M75,165 l5,5 -5,5 -5,-5 z  M125,165 l5,5 -5,5 -5,-5 z", BoundingBox(48, 162, 152, 178)).with_fill(ColorType::ICON)}},
 			{Amplifier::LEADER, SymbolLayer{DrawCommand::full_frame({DrawCommand::path("M 30,82 100,28 170,82", BoundingBox(30, 28, 170, 82))}, {DrawCommand::path("m 45,60 55,-25 55,25", BoundingBox(45, 35, 155, 60))}, {DrawCommand::path("M 45,36 100,-5 155,36", BoundingBox(45, -5, 155, 36))}, {DrawCommand::path("m 50,60 10,-20 80,0 10,20", BoundingBox(50, 40, 150, 60))})}}
 		});
 
