@@ -1,5 +1,6 @@
 #include "Symbol.hpp"
 #include "Schema.hpp"
+#include <iomanip>
 
 namespace milsymbol {
 
@@ -13,6 +14,8 @@ class DrawInstruction {
         SCALE
     };
 };
+
+static constexpr int SIDC_VERSION = 0x13;
 
 static constexpr real_t get_task_force_width(Amplifier amplifier) {
     return 90;
@@ -211,8 +214,6 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
      * - [27-29]: Nationality / country / geopolitical identifier
      */
 
-
-
     std::string ret = sidc_raw + '\0';
     std::string_view sidc = ret;
 
@@ -244,34 +245,37 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
     symbol.task_force = _impl::sidc_to_task_force(sidc.substr(7, 1));
     symbol.task_force = _impl::sidc_to_task_force(sidc.substr(7, 1));
     symbol.amplifier = _impl::sidc_to_amplifier(sidc.substr(8, 2));
-
-    /*
-     * Parse headquarters/task force/dummy elements
-     */
-
-    /*
-     * Parse mobility/echelon
-     */
-
-    /*
-     * Parse entity
-     * - Characters 10-15 inclusive are the entity type
-     * - Characters 16-17 inclusive are modifier 1
-     * - Characters 18-19 inclusive are modifier 2
-     */
-    // entity_t entity_raw = 0;
     symbol.entity = _impl::sidc_to_entity(symbol.symbol_set, _impl::hex_from_substring(sidc.substr(10, 6)));
 
+    // Determine whether we're using common modifiers
     bool common_mod_1 = sidc.length() >= 30 ? (_impl::hex_from_substring(sidc.substr(20, 1)) != 0) : false;
     bool common_mod_2 = sidc.length() >= 30 ? (_impl::hex_from_substring(sidc.substr(21, 1)) != 0) : false;
 
+    // Execute on the common modifier
     symbol.modifier_1 = _impl::sidc_to_modifier_1(common_mod_1 ? SymbolSet::COMMON_MODIFIERS : symbol.symbol_set,
                                                   (common_mod_1 ? 0x100 : 0) + _impl::hex_from_substring(sidc.substr(16, 2)));
     symbol.modifier_2 = _impl::sidc_to_modifier_2(common_mod_2 ? SymbolSet::COMMON_MODIFIERS : symbol.symbol_set,
                                                   (common_mod_2 ? 0x100 : 0) + _impl::hex_from_substring(sidc.substr(18, 2)));
 
-
     return symbol;
+}
+
+template<typename T>
+static void append_to_ss(std::stringstream& ss, const T& item, int width) {
+    ss << std::hex << std::setw(width) << std::setfill('0') << static_cast<int>(item);
+}
+
+std::string Symbol::to_sidc() const noexcept {
+    std::stringstream ss;
+    append_to_ss(ss, SIDC_VERSION, 2);
+    append_to_ss(ss, context, 1);
+    append_to_ss(ss, affiliation, 1);
+    append_to_ss(ss, symbol_set, 2);
+    append_to_ss(ss, status, 1);
+    append_to_ss(ss, hqtfd, 1);
+
+    ss << std::hex << static_cast<int>(status);
+    return ss.str();
 }
 
 Symbol::modifier_t Symbol::get_modifier(int mod) const noexcept {

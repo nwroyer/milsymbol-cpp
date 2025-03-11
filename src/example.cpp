@@ -42,9 +42,12 @@ int main(int argc, const char** argv) {
 
     std::array array_item = {milsymbol::Affiliation::UNKNOWN, milsymbol::Affiliation::NEUTRAL, milsymbol::Affiliation::SUSPECT, milsymbol::Affiliation::HOSTILE};
     for (int i = 0; i < array_item.size(); i++) {
+
         milsymbol::Affiliation aff = array_item[i];
         symbol = symbol.with_affiliation(aff);
+        std::cout << symbol.to_sidc() << std::endl;
         milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
+
 
         std::ofstream example_1_file;
         std::stringstream name_stream;

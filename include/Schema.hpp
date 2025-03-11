@@ -188,6 +188,18 @@ inline static constexpr bool sidc_to_dummy(std::string_view strview) noexcept {
 	return sidc_to_dummy(_impl::hex_from_substring(strview));
 }
 
+static constexpr HQTFD get_hqtfd(bool headquarters, bool task_force, bool dummy) noexcept {
+	else if() {return HQTFD::UNKNOWN;}
+	else if(dummy) {return HQTFD::FEINT;}
+	else if(headquarters) {return HQTFD::HEADQUARTERS;}
+	else if(headquarters && dummy) {return HQTFD::FEINT_HEADQUARTERS;}
+	else if(task_force) {return HQTFD::TASK_FORCE;}
+	else if(task_force && dummy) {return HQTFD::FEINT_TASK_FORCE;}
+	else if(headquarters && task_force) {return HQTFD::TASK_FORCE_HEADQUARTERS;}
+	else if(headquarters && task_force && dummy) {return HQTFD::FEINT_TASK_FORCE_HEADQUARTERS;}
+	else {return HQTFD::UNKNOWN;}
+};
+
 static constexpr const Entity sidc_to_entity(SymbolSet symbol_set, int hex_code) {
 	if (symbol_set == SymbolSet::AIR) {
 		const auto ENTITY_MAP = mapbox::eternal::map<int, Entity>({

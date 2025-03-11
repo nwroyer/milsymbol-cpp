@@ -7,11 +7,10 @@
 #include <vector>
 #include <cstdint>
 #include <string>
-#include <numeric>
-#include <string_view>
 
 #include "BBox.hpp"
 #include "Constants.hpp"
+#include "Schema.hpp"
 #include "SymbolStyle.hpp"
 
 namespace milsymbol {
@@ -36,6 +35,11 @@ struct Symbol {
      * non-numeric characters, the behavior will be undefined, but is intended to be exception-safe.
      */
     static Symbol from_sidc(const std::string& sidc) noexcept;
+
+    /**
+     * @brief Returns the SIDC describing the symbol
+     */
+    std::string to_sidc() const noexcept;
 
     /**
      * @brief Helper function to set an affiliation inline
@@ -69,11 +73,11 @@ struct Symbol {
 
     /**
      * @brief Helper function to set a feint/dummy status inline.
-     * @param feint_dummy Whether the symbol is a feint/dummy (true) or not (false)
+     * @param dummy Whether the symbol is a feint/dummy (true) or not (false)
      * @return This same object, modified
      */
     inline constexpr Symbol& as_feint_or_dummy(bool feint_dummy) noexcept {
-        this->feint_dummy = feint_dummy;
+        this->dummy = feint_dummy;
         return *this;
     }
 
@@ -98,6 +102,16 @@ struct Symbol {
     }
 
     /**
+     * @brief Helper function to set the symbol's headquarters/task force/dummy status inline.
+     * @param hqtfd The HQTFD code
+     * @return This same object, modified
+     */
+    inline constexpr Symbol& as_hqtfd(HQTFD hqtfd) noexcept {
+        set_hqtfd(hqtfd);
+        return *this;
+    }
+
+    /**
      * @brief Helper function to set the symbol's entity.
      * @param entity The entity code to set, as a 7-8 digit integer. The last 6 digits are the
      * actual entity code, while the first 1 or 2 are the symbol set.
@@ -112,6 +126,8 @@ struct Symbol {
         this->entity = entity;
         return *this;
     }
+
+
 
     inline constexpr Vector2 get_anchor() const noexcept {return symbol_anchor;} /// Returns the symbol anchor
     inline constexpr Vector2 get_octagon_anchor() const noexcept {return octagon_anchor;} /// Returns the octagon anchor
@@ -188,14 +204,24 @@ struct Symbol {
     inline constexpr void set_amplifier(Amplifier amplifier) noexcept {this->amplifier = amplifier;} /// Setter for echelon
     inline constexpr Amplifier get_amplifier() const noexcept {return amplifier;} /// Getter for echelon
 
-    inline constexpr void set_feint_or_dummy(bool feint_dummy) noexcept {this->feint_dummy = feint_dummy;} /// Setter for feint/dummy
-    inline constexpr bool is_feint_or_dummy() const noexcept {return feint_dummy;} /// Getter for feint/dummy
+    inline constexpr void set_feint_or_dummy(bool feint_dummy) noexcept {this->dummy = feint_dummy;} /// Setter for feint/dummy
+    inline constexpr bool is_feint_or_dummy() const noexcept {return dummy;} /// Getter for feint/dummy
 
     inline constexpr void set_headquarters(bool headquarters) noexcept {this->headquarters = headquarters;} /// Setter for headquarters
     inline constexpr bool is_headquarters() const noexcept {return headquarters;} /// Getter for headquarters
 
     inline constexpr void set_task_force(bool task_force) noexcept {this->task_force = task_force;} /// Setter for headquarters
     inline constexpr bool is_task_force() const noexcept {return task_force;} /// Getter for headquarters
+
+    inline constexpr void set_hqtfd(HQTFD hqtfd) noexcept {
+        this->headquarters = _impl::sidc_to_headquarters(static_cast<int>(hqtfd));
+        this->task_force = _impl::sidc_to_task_force(static_cast<int>(hqtfd));
+        this->dummy = _impl::sidc_to_dummy(static_cast<int>(hqtfd));
+    }
+
+    inline constexpr HQTFD get_hqtfd() const noexcept {
+
+    }
 
     inline constexpr SymbolSet get_symbol_set() const noexcept {return symbol_set;}
 
@@ -224,7 +250,7 @@ private:
     Context context = Context::REALITY; /// The context of the symbol (reality, exercise, or simulation). Defaults to reality.
     Amplifier amplifier = Amplifier::UNDEFINED;
 
-    bool feint_dummy = false; /// Whether this is a fake/dummy (true) or not (false)
+    bool dummy = false; /// Whether this is a fake/dummy (true) or not (false)
     bool headquarters = false; /// Whether this is a headquarters (with a staff indicator)
     bool task_force = false; /// Whether this symbol indicates a task force
 

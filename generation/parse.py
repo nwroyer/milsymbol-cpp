@@ -141,7 +141,8 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 		schema_text += f'inline static constexpr {enum_value} sidc_to_{singular}(std::string_view strview) noexcept {{\n'
 		schema_text += f'\treturn sidc_to_{singular}(_impl::hex_from_substring(strview));\n}}\n\n'
 
-	for item in ['headquarters', 'task_force', 'dummy']:
+	HQTFD_COMPONENTS:list = ['headquarters', 'task_force', 'dummy']
+	for item in HQTFD_COMPONENTS:
 		schema_text += f'static constexpr bool sidc_to_{item}(int hex_code) noexcept {{\n'
 		schema_text += f'\tHQTFD hqtfd = sidc_to_hqtfd(hex_code);\n'
 		valid = [hqtfd for hqtfd in schema.hqtfds.values() if getattr(hqtfd, item)]
@@ -149,6 +150,12 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 		schema_text += f'\t\treturn true;\n\t}}\n\treturn false;\n}}\n\n'
 		schema_text += f'inline static constexpr bool sidc_to_{item}(std::string_view strview) noexcept {{\n'
 		schema_text += f'\treturn sidc_to_{item}(_impl::hex_from_substring(strview));\n}}\n\n'
+
+	schema_text += f'static constexpr HQTFD get_hqtfd(bool headquarters, bool task_force, bool dummy) noexcept {{\n'
+	for hqtfd in schema.hqtfds.values():
+		schema_text += '\telse if(' + ' && '.join([item for item in HQTFD_COMPONENTS if getattr(hqtfd, item)]) + f') {{return HQTFD::{sanitize_constant(hqtfd.names[0])};}}\n'
+	schema_text += '\telse {return HQTFD::UNKNOWN;}\n'
+	schema_text += f'}};\n\n'
 
 	# Get entity set
 	schema_text += "static constexpr const Entity sidc_to_entity(SymbolSet symbol_set, int hex_code) {\n"
