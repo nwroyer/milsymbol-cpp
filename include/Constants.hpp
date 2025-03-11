@@ -41,6 +41,7 @@ static constexpr bool is_affiliation_dashed(Affiliation affiliation) noexcept {
 }
 
 enum class Amplifier {
+	UNDEFINED = 0x00,
 	TEAM = 0x11,
 	SQUAD = 0x12,
 	SECTION = 0x13,

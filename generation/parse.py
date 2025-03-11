@@ -183,6 +183,7 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 			schema_text += '\t\tauto it = MODIFIER_MAP.find(hex_code);\n'
 			schema_text += f'\t\treturn (it != MODIFIER_MAP.end() ? it->second : Modifier{m+1}::M{m+1}_UNKNOWN);\n'
 			schema_text += f'\t}}\n\n'
+
 		schema_text += '\treturn {};\n}\n\n'
 
 		schema_text += f"static constexpr bool is_modifier_{m+1}_common(Modifier{m+1} modifier) {{\n"
@@ -213,6 +214,24 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 	
 	schema_text += '\treturn {};\n}\n\n'
 
+	schema_text += 'static constexpr Vector2 get_amplifier_offset(Amplifier amplifier, Affiliation affiliation) noexcept {\n'
+	schema_text += '\taffiliation = get_frame_base_affiliation(affiliation);\n'
+	# Default amplifier to top
+	schema_text += '\tbool amplifier_on_top = !({});\n'.format(' || '.join([f'amplifier == Amplifier::{sanitize_constant(amp.names[0])}' for amp in schema.amplifiers.values() if amp.side == 'bottom']))
+	schema_text += '\tswitch (affiliation) {\n'
+	for affil in schema.get_base_affiliations():
+		
+		for ta in [a for a in schema.get_base_affiliation_dict() if schema.get_base_affiliation_dict()[a] == affil]:
+			schema_text += '\t\tcase Affiliation::{}:\n'.format(sanitize_constant(ta.names[0]))
+
+		schema_text += '\t\t\treturn Vector2{{amplifier_on_top ? static_cast<real_t>({}) : static_cast<real_t>({}), amplifier_on_top ? static_cast<real_t>({}) : static_cast<real_t>({})}};\n\t\t\tbreak;\n'.format(
+			affil.amplifier_offsets['top'][0], 
+			affil.amplifier_offsets['bottom'][0], 
+			affil.amplifier_offsets['top'][1], 
+			affil.amplifier_offsets['bottom'][1]
+		)
+	schema_text += '\t}\n}\n\n'
+
 	# Create the symbol set to dimension mapping
 	schema_text += 'static constexpr Dimension dimension_from_symbol_set(SymbolSet set) noexcept {\n'
 	schema_text += '\tswitch(set) {\n'
@@ -235,6 +254,17 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 	schema_text += f'\t\tdefault:\n\t\t\treturn {unknown_index};\n'
 
 	schema_text += '\t}\n}\n\n'
+
+	schema_text += 'static constexpr SymbolLayer get_amplifier_layer(Amplifier amplifier, Affiliation affiliation) {\n'
+	schema_text += f'\t\tconst auto MAP = mapbox::eternal::map<Amplifier, SymbolLayer>({{\n'
+	dim_entries = [f'\t\t{{Amplifier::{sanitize_constant(amplifier.names[0])}, {amplifier.cpp(output_style=None, schema=schema)}}}' for amplifier in schema.amplifiers.values()]
+	schema_text += ',\n'.join([f'\t{e}' for e in dim_entries])
+	schema_text += f'\n\t\t}});\n\n'
+	schema_text += '\t\tauto it = MAP.find(amplifier);\n'
+	schema_text += '\t\tif (it == MAP.end()) {\n\t\t\treturn SymbolLayer{};\n\t\t}\n\n'
+	schema_text += '\t\tVector2 offset = get_amplifier_offset(amplifier, affiliation);\n'
+	schema_text += '\t\treturn SymbolLayer{DrawCommand::translate(offset, it->second)};\n'
+	schema_text += '\t}\n\n'
 
 	# Create the master list of symbol sets
 	schema_text += "static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code, IconType symbol_type) {\n"

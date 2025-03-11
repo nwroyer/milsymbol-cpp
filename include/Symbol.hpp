@@ -52,18 +52,8 @@ struct Symbol {
      * @param echelon The echelon to set to
      * @return This same object, modified
      */
-    inline constexpr Symbol& with_echelon(Echelon echelon) noexcept {
-        this->echelon = echelon;
-        return *this;
-    }
-
-    /**
-     * @brief Helper function to set equipment mobility inline
-     * @param mobility The mobility to set to
-     * @return This same object, modified
-     */
-    inline constexpr Symbol& with_mobility(Mobility mobility) noexcept {
-        this->mobility = mobility;
+    inline constexpr Symbol& with_amplifier(Amplifier amplifier) noexcept {
+        this->amplifier = amplifier;
         return *this;
     }
 
@@ -189,18 +179,14 @@ struct Symbol {
         return (context != Context::REALITY && (affiliation == Affiliation::HOSTILE || affiliation == Affiliation::SUSPECT));
     }
 
-
     inline constexpr void set_affiliation(Affiliation affiliation) noexcept {this->affiliation = affiliation;} /// Setter for affiliation
     inline constexpr Affiliation get_affiliation() const noexcept {return affiliation;} /// Getter for affiliation
 
     inline constexpr void set_status(Status status) noexcept {this->status = status;} /// Setter for status
     inline constexpr Status get_status() const noexcept {return status;} /// Getter for status
 
-    inline constexpr void set_echelon(Echelon echelon) noexcept {this->echelon = echelon;} /// Setter for echelon
-    inline constexpr Echelon get_echelon() const noexcept {return echelon;} /// Getter for echelon
-
-    inline constexpr void set_mobility(Mobility mobility) noexcept {this->mobility = mobility;} /// Setter for mobility
-    inline constexpr Mobility get_mobility() const noexcept {return mobility;} /// Getter for mobility
+    inline constexpr void set_amplifier(Amplifier amplifier) noexcept {this->amplifier = amplifier;} /// Setter for echelon
+    inline constexpr Amplifier get_amplifier() const noexcept {return amplifier;} /// Getter for echelon
 
     inline constexpr void set_feint_or_dummy(bool feint_dummy) noexcept {this->feint_dummy = feint_dummy;} /// Setter for feint/dummy
     inline constexpr bool is_feint_or_dummy() const noexcept {return feint_dummy;} /// Getter for feint/dummy
@@ -236,8 +222,7 @@ private:
     Affiliation affiliation = Affiliation::UNKNOWN; /// The displayed affiliation. Defaults to unknown.
     Status status = Status::PRESENT; /// Which condition this icon is in, for equipment. Defaults to present (no particular status).
     Context context = Context::REALITY; /// The context of the symbol (reality, exercise, or simulation). Defaults to reality.
-    Echelon echelon = Echelon::UNDEFINED; /// The echelon of this symbol. Defaults to undefined (no echelon).
-    Mobility mobility = Mobility::UNDEFINED; /// The symbol mobility (for equipment)
+    Amplifier amplifier = Amplifier::UNDEFINED;
 
     bool feint_dummy = false; /// Whether this is a fake/dummy (true) or not (false)
     bool headquarters = false; /// Whether this is a headquarters (with a staff indicator)

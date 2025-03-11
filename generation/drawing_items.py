@@ -182,6 +182,8 @@ class SymbolElement:
 			ret.d = json['d']
 			if 'bbox' in json:
 				ret.bbox = tuple(json['bbox'])
+				if len(ret.bbox) != 4:
+					raise Exception(f'Invalid length of BBOX: {json}')
 			ret.parse_basics(json=json)
 			return ret
 

@@ -12,55 +12,6 @@ namespace milsymbol {
 
 using real_t = float;
 
-/**
- * @brief The echelon of a symbol. Alternate names for the Marine Corps or foreign
- * echelons (e.g. MEF instead of Corps) aren't provided here.
- */
-enum class Echelon {
-    UNDEFINED = -1,
-    TEAM = 0,
-    SQUAD,
-    SECTION,
-    PLATOON,
-    COMPANY,
-    BATTALION,
-    REGIMENT,
-    BRIGADE,
-    DIVISION,
-    CORPS,
-    ARMY,
-    ARMY_GROUP,
-    REGION,
-    COMMAND
-};
-
-/**
- * @brief Mobility for equipment. Occupies the same digits as echelon for equipment.
- */
-
-enum class Mobility{
-    UNDEFINED = 0,
-    WHEELED,
-    WHEELED_CROSS_COUNTRY,
-    TRACKED,
-    WHEELED_AND_TRACKED,
-    TOWED,
-    RAIL,
-    PACK_ANIMALS,
-
-    // On snow
-    OVER_SNOW,
-    SLED,
-
-    // On water
-    BARGE,
-    AMPHIBIOUS,
-
-    // Towed sonar
-    SHORT_TOWED_ARRAY,
-    LONG_TOWED_ARRAY
-};
-
 namespace _impl {
 static int hex_from_substring(const std::string_view string_view) noexcept {
     int result = 0;

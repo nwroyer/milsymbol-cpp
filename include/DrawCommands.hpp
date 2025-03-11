@@ -87,6 +87,8 @@ struct Style {
     }
 };
 
+class SymbolLayer;
+
 /**
  * @brief Base class for draw instruction data
  */
@@ -345,6 +347,10 @@ struct DrawCommand {
         ret.children = std::vector<DrawCommand>{args...};
         return ret;
     }
+
+    template<typename... Args>
+    static constexpr DrawCommand translate(const Vector2& delta, const SymbolLayer& layer);
+
 
     /// Creates a scale command
     template<typename... Args>
@@ -704,5 +710,13 @@ struct SymbolLayer {
         return ret;
     }
 };
+
+template<typename... Args>
+constexpr DrawCommand DrawCommand::translate(const Vector2& delta, const SymbolLayer& layer) {
+    DrawCommand ret;
+    ret.variant = DrawInstructionTranslate{delta};
+    ret.children = layer.draw_items;
+    return ret;
+}
 
 }

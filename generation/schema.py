@@ -61,6 +61,10 @@ class Affiliation:
 		self.has_civilian_variant:bool = True # Whether this affiliation allows civilian coloring
 		self.frame_id:str = ""                # The affiliation code to use the frames from. If not set this is assumed to be its own base
 		self.color_id:str = ""                # The affiliation code to use the colors from. If not set this is assumed to be its own base.
+		self.amplifier_offsets:dict = {
+			'top': 0, 
+			'bottom': 0
+		} # Offsets are "top", "bottom"
 
 	def __repr__(self):
 		ret = f"Affiliation {self.id_code}: (" + ', '.join([f'\"{f}\"' for f in self.names]) + ")"
@@ -95,6 +99,10 @@ class Affiliation:
 				return None
 
 			affiliation.colors = {color_id: json['colors'][color_id] for color_id in schema.color_modes}
+
+		if 'amplifier offsets' in json:
+			for key in affiliation.amplifier_offsets:
+				affiliation.amplifier_offsets[key] = json['amplifier offsets'].get(key, [0.0, 0.0])
 
 		return affiliation
 
@@ -248,6 +256,8 @@ class Amplifier:
 		self.names:list = [] # Amplifier names
 		self.category:str = "" # Category this applies to
 		self.applies_to:list = [] # List of dimensions this applies to
+		self.icon:list = []
+		self.side:str = 'top' # Should be 'top' or 'bottom'
 
 	@staticmethod
 	def from_dict(id_code:str, json:dict, schema):
@@ -269,7 +279,19 @@ class Amplifier:
 				print(f"Bad applies to dimension \"{apt}\" for amplifier {amplifier.id_code}", file=sys.stderr)
 				return None
 
+		amplifier.side = json.get('side', 'top')
+
+		amplifier.icon = []
+		if 'icon' in json:
+			for item in json['icon']:
+				amplifier.icon.extend(drawing_items.SymbolElement.parse_from_dict(item, full_items={}, affiliations=schema.get_base_affiliation_dict()))
+
 		return amplifier
+
+	def cpp(self, schema, output_style, with_bbox=False):
+		return 'SymbolLayer{{{}}}'.format(
+			', '.join([cmd.cpp(output_style=output_style, schema=schema, with_bbox=with_bbox) for cmd in self.icon]),
+		)
 
 
 """
