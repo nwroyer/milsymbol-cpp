@@ -189,15 +189,30 @@ inline static constexpr bool sidc_to_dummy(std::string_view strview) noexcept {
 }
 
 static constexpr HQTFD get_hqtfd(bool headquarters, bool task_force, bool dummy) noexcept {
-	else if() {return HQTFD::UNDEFINED;}
-	else if(dummy) {return HQTFD::FEINT;}
-	else if(headquarters) {return HQTFD::HEADQUARTERS;}
-	else if(headquarters && dummy) {return HQTFD::FEINT_HEADQUARTERS;}
-	else if(task_force) {return HQTFD::TASK_FORCE;}
-	else if(task_force && dummy) {return HQTFD::FEINT_TASK_FORCE;}
-	else if(headquarters && task_force) {return HQTFD::TASK_FORCE_HEADQUARTERS;}
-	else if(headquarters && task_force && dummy) {return HQTFD::FEINT_TASK_FORCE_HEADQUARTERS;}
-	else {return HQTFD::UNKNOWN;}
+	if (headquarters && task_force && dummy) {
+		return HQTFD::FEINT_TASK_FORCE_HEADQUARTERS;
+	}
+	else if (headquarters && task_force) {
+		return HQTFD::TASK_FORCE_HEADQUARTERS;
+	}
+	else if (task_force && dummy) {
+		return HQTFD::FEINT_TASK_FORCE;
+	}
+	else if (headquarters && dummy) {
+		return HQTFD::FEINT_HEADQUARTERS;
+	}
+	else if (task_force) {
+		return HQTFD::TASK_FORCE;
+	}
+	else if (headquarters) {
+		return HQTFD::HEADQUARTERS;
+	}
+	else if (dummy) {
+		return HQTFD::FEINT;
+	}
+	else  {
+		return HQTFD::UNDEFINED;
+	}
 };
 
 static constexpr const Entity sidc_to_entity(SymbolSet symbol_set, int hex_code) {
@@ -4731,6 +4746,8 @@ static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code
 	// Default to nothing
 	return {};
 }
+#define MILSYMBOL_HAS_SYMBOL_ENUMERATORS
+
 static constexpr std::vector<int32_t> get_available_symbols(SymbolSet symbol_set, IconType symbol_type) {
 	if (symbol_set == SymbolSet::AIR) {
 		if (symbol_type == IconType::ENTITY) {

@@ -1,8 +1,11 @@
 import os
 import re
 import json
-import drawing_items
 import sys
+import glob
+
+import drawing_items
+
 
 def is_valid_hex_key(key:str, required_length:int=-1) -> bool:
 	"""
@@ -223,6 +226,9 @@ class HQTFD:
 
 	def is_dashed(self) -> bool:
 		return self.dashed
+
+	def get_hqtfds(self) -> list:
+		return list([item for item in ['headquarters', 'task_force', 'dummy'] if getattr(self, item)])
 
 	@staticmethod
 	def from_dict(id_code:str, json:dict):
@@ -520,7 +526,7 @@ class Schema:
 	def get_base_affiliation_dict(self) -> list:
 		return {ret: ret.get_base_frame_affiliation(schema=self) for ret in self.affiliations.values()}
 
-	def parse_from_file(self, filepath:str):
+	def parse_constants_from_file(self, filepath:str):
 		"""
 		Parses a set of constants from a given filepath
 		"""
@@ -593,3 +599,32 @@ class Schema:
 
 		self.print_constants()
 		return True
+
+	@classmethod
+	def parse_from_directory(cls, directory:str):
+		"""
+		Parses the schema from a directory of files
+		"""
+
+		schema = cls()
+		files = glob.glob(os.path.join(directory, '*.json'))
+
+		# Parse the constant file
+		constant_files = [f for f in files if os.path.basename(f) == 'constants.json']
+		if len(constant_files) < 1:
+			print("No constant file \"constants.json\" found", file=sys.stderr)
+			return None
+
+		schema.parse_constants_from_file(filepath=constant_files[0])
+
+		# Parse all the JSON files
+		symbol_sets = []
+		for filename in [f for f in files if os.path.basename(f) != 'constants.json']:
+			print(f'Parsing "{filename}"...')
+			symbol_set:SymbolSet = SymbolSet.parse_from_file(filename, schema=schema)
+			if symbol_set is None:
+				print(f"Bad symbol set file \"{filename}\"", file=sys.stderr)
+				continue
+
+			schema.symbol_sets[symbol_set.id_code] = symbol_set		
+		return schema

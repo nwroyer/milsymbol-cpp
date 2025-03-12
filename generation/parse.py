@@ -5,6 +5,7 @@ import re
 import glob
 import argparse
 import copy
+import itertools
 
 from constants_parser import *
 from drawing_items import *
@@ -19,8 +20,13 @@ Generates the C++ headers for the combined symbol sets.
 `use_text_paths` indicates whether to replace all text elements with SVG paths,
 	which may be desirable for some use cases.
 """
-def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use_text_paths:bool=False,
-	text_path_font:str=DEFAULT_FONT_FILE, include_enumerator:bool=True, godot_filename:str = '') -> None:
+def create_schema(schema:Schema, 
+	schema_filename:str,                  ## The filename of the C++ file to generate the symbol schema itself in
+	constant_filename:str, 				  ## The filename of the C++ file to generate constants in
+	use_text_paths:bool=False, 			  ## Whether to convert all text objects to SVG paths
+	text_path_font:str=DEFAULT_FONT_FILE, ## A path to the font to use
+	include_enumerator:bool=True         ## Whether to include a list of available symbols retrievable with a function in the generated files
+	) -> None:
 	
 	if schema is None:
 		print('No schema provided', file=sys.stderr)
@@ -152,9 +158,11 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 		schema_text += f'\treturn sidc_to_{item}(_impl::hex_from_substring(strview));\n}}\n\n'
 
 	schema_text += f'static constexpr HQTFD get_hqtfd(bool headquarters, bool task_force, bool dummy) noexcept {{\n'
-	for hqtfd in schema.hqtfds.values():
-		schema_text += '\telse if(' + ' && '.join([item for item in HQTFD_COMPONENTS if getattr(hqtfd, item)]) + f') {{return HQTFD::{sanitize_constant(hqtfd.names[0])};}}\n'
-	schema_text += '\telse {return HQTFD::UNKNOWN;}\n'
+	hqtfd_options = list(reversed(sorted(schema.hqtfds.values(), key=lambda x: len(x.get_hqtfds()))))
+	for index, hqtfd in enumerate(hqtfd_options):
+		options = hqtfd.get_hqtfds()
+		schema_text += f'\t{"else " if index > 0 else ""}{'if (' if len(options) > 0 else ''}' + ' && '.join(options) + \
+			f'{')' if len(options) > 0 else ''} {{\n\t\treturn HQTFD::{sanitize_constant(hqtfd.names[0])};\n\t}}\n'
 	schema_text += f'}};\n\n'
 
 	# Get entity set
@@ -312,6 +320,7 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 
 	# Create the enumerator
 	if include_enumerator:
+		schema_text += '#define MILSYMBOL_HAS_SYMBOL_ENUMERATORS\n\n'
 		schema_text += "static constexpr std::vector<int32_t> get_available_symbols(SymbolSet symbol_set, IconType symbol_type) {\n"
 
 		for index, symbol_set in enumerate(symbol_sets):
@@ -341,31 +350,10 @@ def create_schema(schema:Schema, schema_filename:str, constant_filename:str, use
 
 
 def main() -> None:
+	directory=os.path.dirname(__file__)
+
 	# Gather the JSON files to parse - all .json files in this directory
-	cwd = os.path.dirname(__file__)
-	files = glob.glob(os.path.join(cwd, '*.json'))
-
-	# Parse the constant file
-	constant_files = [f for f in files if os.path.basename(f) == 'constants.json']
-	if len(constant_files) < 1:
-		print("No constant file \"constants.json\" found", file=sys.stderr)
-		return
-
-	schema = Schema()
-	schema.parse_from_file(filepath=constant_files[0])
-
-	# Parse all the JSON files
-	symbol_sets = []
-	for filename in [f for f in files if os.path.basename(f) != 'constants.json']:
-		print(f'Parsing "{filename}"...')
-		symbol_set:SymbolSet = SymbolSet.parse_from_file(filename, schema=schema)
-		if symbol_set is None:
-			print(f"Bad symbol set file \"{filename}\"", file=sys.stderr)
-			continue
-
-		schema.symbol_sets[symbol_set.id_code] = symbol_set
-	symbol_sets = sorted(symbol_sets)
-
+	schema = Schema.parse_from_directory(directory=directory)
 
 	# Parse command line options
 	parser = argparse.ArgumentParser('milymbol-build-helper', description='Milsymbol build helper')
@@ -383,9 +371,9 @@ def main() -> None:
 		schema=schema,
 		use_text_paths=arguments.use_text_paths,
 		text_path_font=arguments.text_path_font,
-		constant_filename=os.path.join(cwd, '..', 'include', 'Constants.hpp'),
-		schema_filename=os.path.join(cwd, '..', 'include', 'Schema.hpp'),
-		godot_filename = os.path.join(cwd, '..', 'include', 'SIDCConstants.gd'))
+		constant_filename=os.path.join(directory, '..', 'include', 'Constants.hpp'),
+		schema_filename=os.path.join(directory, '..', 'include', 'Schema.hpp')
+	)
 
 	if False:
 		# Generate examples

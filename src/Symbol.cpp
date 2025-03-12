@@ -488,6 +488,7 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     return result;
 }
 
+#ifdef MILSYMBOL_HAS_SYMBOL_ENUMERATORS
 std::vector<Symbol::entity_t> Symbol::get_all_entities(SymbolSet symbol_set) noexcept {
     return _impl::get_available_symbols(symbol_set, _impl::IconType::ENTITY);
 }
@@ -499,6 +500,7 @@ std::vector<Symbol::entity_t> Symbol::get_all_modifier_1s(SymbolSet symbol_set) 
 std::vector<Symbol::entity_t> Symbol::get_all_modifier_2s(SymbolSet symbol_set) noexcept {
     return _impl::get_available_symbols(symbol_set, _impl::IconType::MODIFIER_2);
 }
+#endif
 
 std::vector<Symbol::entity_t> Symbol::get_all_symbol_sets() noexcept {
     std::vector<Symbol::entity_t> ret;
