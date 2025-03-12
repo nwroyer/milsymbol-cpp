@@ -1,5 +1,7 @@
 # Specify filepatterns you want git to ignore.
 build
 generation/__pycache__
+python/__pycache__
 meson.build.user
 .cache
+cpp/build

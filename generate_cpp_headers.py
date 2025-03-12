@@ -7,9 +7,9 @@ import argparse
 import copy
 import itertools
 
-from constants_parser import *
-from drawing_items import *
-from schema import *
+from python.constants_parser import *
+from python.drawing_items import *
+from python.schema import *
 
 def _codify_hex(item):
 	return f'0x{item}' if is_valid_hex_key(item) else -1
@@ -377,17 +377,17 @@ def create_schema(schema:Schema,
 
 
 def main() -> None:
-	directory=os.path.dirname(__file__)
+	cwd = os.path.dirname(__file__)
 
 	# Gather the JSON files to parse - all .json files in this directory
-	schema = Schema.parse_from_directory(directory=directory)
+	schema = Schema.parse_from_directory(directory=os.path.join(cwd, 'schema'))
 
 	# Parse command line options
 	parser = argparse.ArgumentParser('milymbol-build-helper', description='Milsymbol build helper')
 	parser.add_argument('-p', '--text-paths', dest='use_text_paths', action='store_const', const=True, 
 		default=True, help='Use paths for SVGs instead of text elements; this can be useful for rendering in some applications')
 	parser.add_argument('-f', '--text-path-font', dest='text_path_font', action='store',
-		default=DEFAULT_FONT_FILE,
+		default="",
 		help='Font to use when creating a text path; only applicable when -p or --text-paths is passes as well')
 	parser.add_argument('-g', '--godot_file_name', dest='godot_file_name', action='store', default='')
 	arguments = parser.parse_args()
@@ -398,8 +398,8 @@ def main() -> None:
 		schema=schema,
 		use_text_paths=arguments.use_text_paths,
 		text_path_font=arguments.text_path_font,
-		constant_filename=os.path.join(directory, '..', 'include', 'Constants.hpp'),
-		schema_filename=os.path.join(directory, '..', 'include', 'Schema.hpp')
+		constant_filename=os.path.join(cwd, 'cpp', 'include', 'Constants.hpp'),
+		schema_filename=os.path.join(cwd, 'cpp', 'include', 'Schema.hpp')
 	)
 
 	if False:

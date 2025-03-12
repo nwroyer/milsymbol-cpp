@@ -4,7 +4,7 @@ import json
 import sys
 import glob
 
-import drawing_items
+from . import drawing_items
 
 def is_valid_hex_key(key:str, required_length:int=-1) -> bool:
 	"""

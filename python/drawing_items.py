@@ -1,6 +1,7 @@
-from font_rendering import Font
+from .font_rendering import Font
 import re
 import sys
+import os
 
 """
 The default stroke to use for symbols
@@ -10,7 +11,7 @@ DEFAULT_STROKE_WIDTH:float = 4.0
 """
 The default font file to use
 """
-DEFAULT_FONT_FILE:str = 'SimplySans-Bold.ttf'
+DEFAULT_FONT_FILE:str = os.path.join(os.path.dirname(__file__), 'SimplySans-Bold.ttf')
 
 """
 Converts a color to the appropriate C++ constant
