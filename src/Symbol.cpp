@@ -34,7 +34,7 @@ static constexpr real_t get_task_force_width(Amplifier amplifier) {
     // }
 }
 
-_impl::DrawCommand get_symbol_headquarters(Affiliation affiliation, Dimension dimension,
+_impl::DrawCommand get_symbol_headquarters(Affiliation affiliation, FrameShape frame_shape,
     real_t hq_staff_length, const BoundingBox& base_bbox, real_t frame_stroke_width,
     Vector2& staff_base)
 
@@ -45,15 +45,15 @@ _impl::DrawCommand get_symbol_headquarters(Affiliation affiliation, Dimension di
     // For air and ground friendly/neutral, and sea/subsurface neutral icons, we start the HQ staff
     // at the bottom left corner, so we adjust the starting point accordingly.
     if (
-        (dimension == Dimension::AIR && (affiliation == Affiliation::FRIEND || affiliation == Affiliation::NEUTRAL)) ||
-        (dimension == Dimension::LAND_UNIT && (affiliation == Affiliation::FRIEND || affiliation == Affiliation::NEUTRAL)) ||
-        ((dimension == Dimension::SEA_SURFACE || dimension == Dimension::SEA_SUBSURFACE) && affiliation == Affiliation::NEUTRAL)
+        (frame_shape == FrameShape::AIR && (affiliation == Affiliation::FRIEND || affiliation == Affiliation::NEUTRAL)) ||
+        (frame_shape == FrameShape::LAND_UNIT && (affiliation == Affiliation::FRIEND || affiliation == Affiliation::NEUTRAL)) ||
+        (frame_shape == FrameShape::LAND_EQUIPMENT_AND_SEA_SURFACE && affiliation == Affiliation::NEUTRAL)
         ) {
         y = base_bbox.y2;
     }
 
     // For friendly subsurface units, we start at the upper-left corner
-    if (dimension == Dimension::SEA_SUBSURFACE && affiliation == Affiliation::FRIEND) {
+    if (frame_shape == FrameShape::SEA_SUBSURFACE && affiliation == Affiliation::FRIEND) {
         y = base_bbox.y1;
     }
 
@@ -87,7 +87,7 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style,
                                     Vector2& staff_base) {
     BoundingBox base_bbox = base_bbox_raw;
     BoundingBox modifier_bbox = base_bbox;
-    Dimension dimension = _impl::dimension_from_symbol_set(symbol.get_symbol_set()); //.get_dimension();
+    FrameShape frame_shape = symbol.get_used_frame_shape(style);
 
     /*
      * Apply headquarters staff
@@ -95,7 +95,7 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style,
 
     if (symbol.is_headquarters()) {
         _impl::DrawCommand cmd = get_symbol_headquarters(symbol.get_affiliation(),
-                                                         dimension,
+                                                         frame_shape,
                                                          style.hq_staff_length,
                                                          base_bbox,
                                                          style.frame_stroke_width,
@@ -149,7 +149,7 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style,
         modifier_bbox.merge(cmd_bbox);
     }
 
-    _impl::SymbolLayer ret = _impl::get_amplifier_layer(symbol.get_amplifier(), symbol.get_affiliation());
+    _impl::SymbolLayer ret = _impl::get_amplifier_layer(symbol.get_amplifier(), symbol.get_affiliation(), frame_shape);
     for (const auto& item : ret.draw_items) {
         out.emplace_back(item);
         base_bbox.merge(item.get_bbox(symbol.get_affiliation()));
@@ -250,6 +250,10 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
     bool common_mod_1 = sidc.length() >= 30 ? (_impl::hex_from_substring(sidc.substr(20, 1)) != 0) : false;
     bool common_mod_2 = sidc.length() >= 30 ? (_impl::hex_from_substring(sidc.substr(21, 1)) != 0) : false;
 
+    if (sidc.length() >= 30) {
+        symbol.set_frame_shape_override(_impl::sidc_to_frame_shape(sidc.substr(22, 1)));
+    }
+
     // Execute on the common modifier
     symbol.modifier_1 = _impl::sidc_to_modifier_1(common_mod_1 ? SymbolSet::COMMON_MODIFIERS : symbol.symbol_set,
                                                   (common_mod_1 ? 0x100 : 0) + _impl::hex_from_substring(sidc.substr(16, 2)));
@@ -278,7 +282,7 @@ std::string Symbol::to_sidc() const noexcept {
     append_to_ss(ss, modifier_2 & 0xFF, 2);
     append_to_ss(ss, _impl::is_modifier_1_common(modifier_1) ? 1 : 0, 1);
     append_to_ss(ss, _impl::is_modifier_2_common(modifier_2) ? 1 : 0, 1);
-    append_to_ss(ss, 0, 1); // Frame shape
+    append_to_ss(ss, frame_shape_override, 1);
     append_to_ss(ss, 0, 4); // Reserved for future use
     append_to_ss(ss, 0, 3); // Country code
     return ss.str();
@@ -301,8 +305,6 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     using namespace _impl;
     static constexpr const char* SVG_NS = "http://w3.org/2000/svg";
 
-    bool position_only = (!style.use_entity_icon && !style.use_frame);
-
     SymbolSet symbol_set = get_symbol_set();
 
     _impl::SymbolLayer symbol_layer = _impl::get_symbol_layer(symbol_set, entity, IconType::ENTITY);
@@ -318,20 +320,12 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
 
     // Get base symbol_geometry
     BoundingBox base_bbox{100, 100, 100, 100};
-
-    SymbolLayer base = get_base_symbol_geometry(dimension_from_symbol_set(symbol_set),
-                                                get_frame_affiliation(affiliation, context),
-                                                context,
-                                                position_only);
-    if (base.empty()) {
-        std::cerr << "Undefined base with dimension " << static_cast<int>(dimension_from_symbol_set(symbol_set)) << " and affiliation " <<
-            static_cast<int>(get_frame_affiliation(affiliation, context)) << std::endl;
-        return {};
-    }
+    FrameShape used_frame_shape = get_used_frame_shape(style);
+    SymbolLayer base = get_base_symbol_geometry(used_frame_shape, get_frame_affiliation(affiliation, context));
 
     base_bbox = base.get_bbox(affiliation);
 
-    if (style.use_frame || position_only) {
+    if (style.use_frame || style.is_position_only()) {
 
         // Get base symbol
         // Set the width of the frame
@@ -366,10 +360,8 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     }
 
     // Handle various graphical modifiers
-    if (!position_only) {
-        if (style.use_amplifiers) {
-            apply_context(context, affiliation, dimension_from_symbol_set(symbol_set), base_bbox, components);
-        }
+    if (!style.is_position_only() && style.use_amplifiers) {
+        apply_context(context, affiliation, dimension_from_symbol_set(symbol_set), base_bbox, components);
     }
 
     /*
@@ -394,7 +386,7 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
      */
 
     Vector2 hq_staff_base;
-    if (!position_only && style.use_amplifiers) {
+    if (!style.is_position_only() && style.use_amplifiers) {
         bbox.merge(apply_amplifiers(style, *this, bbox, components, hq_staff_base));
     }
 
@@ -411,7 +403,7 @@ Symbol::RichOutput Symbol::get_svg(const SymbolStyle& style) const noexcept {
     }
 
     // Add modifiers
-    if (!position_only && style.use_entity_icon && style.use_modifiers) {
+    if (!style.is_position_only() && style.use_entity_icon && style.use_modifiers) {
         for (const auto& cmd : m1_layer.draw_items) {
             components.push_back(cmd);
         }

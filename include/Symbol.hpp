@@ -213,6 +213,21 @@ struct Symbol {
     inline constexpr void set_task_force(bool task_force) noexcept {this->task_force = task_force;} /// Setter for headquarters
     inline constexpr bool is_task_force() const noexcept {return task_force;} /// Getter for headquarters
 
+    inline constexpr void set_frame_shape_override(FrameShape frame_shape) noexcept {this->frame_shape_override = frame_shape;}
+    inline constexpr FrameShape get_frame_shape_override() const noexcept {return this->frame_shape_override;}
+
+    inline constexpr FrameShape get_used_frame_shape() const noexcept {
+        if (frame_shape_override != FrameShape::UNKNOWN) {
+            return frame_shape_override;
+        }
+
+        return _impl::get_frame_shape(_impl::dimension_from_symbol_set(get_symbol_set()));
+    }
+
+    inline constexpr FrameShape get_used_frame_shape(const SymbolStyle& style) const noexcept {
+        return style.is_position_only() ? FrameShape::POSITION_ONLY : get_used_frame_shape();
+    }
+
     inline constexpr void set_hqtfd(HQTFD hqtfd) noexcept {
         this->headquarters = _impl::sidc_to_headquarters(static_cast<int>(hqtfd));
         this->task_force = _impl::sidc_to_task_force(static_cast<int>(hqtfd));
@@ -259,6 +274,7 @@ private:
     entity_t entity = Entity::ENTITY_UNKNOWN;    /// The entity ID for the symbol. from 0-999999 inclusive
     Modifier1 modifier_1 = Modifier1::M1_UNKNOWN; /// Modifier 1 code, from 0-99 inclusive
     Modifier2 modifier_2 = Modifier2::M2_UNKNOWN; /// Modifier 2 code, from 0-99 inclusive
+    FrameShape frame_shape_override = FrameShape::UNKNOWN; /// The frame shape override
 
     /*
      * Positioning data

@@ -11,6 +11,9 @@ from constants_parser import *
 from drawing_items import *
 from schema import *
 
+def _codify_hex(item):
+	return f'0x{item}' if is_valid_hex_key(item) else -1
+
 """
 Generates the C++ headers for the combined symbol sets.
 
@@ -60,12 +63,13 @@ def create_schema(schema:Schema,
 		('Amplifier', 'amplifier', 'amplifiers', Amplifier),
 		('Status', 'status', 'statuses', Status), 
 		('HQTFD', 'hqtfd', 'hqtfds', HQTFD), 
-		('SymbolSet', 'symbol_set', 'symbol_sets', SymbolSet)
+		('SymbolSet', 'symbol_set', 'symbol_sets', SymbolSet),
+		('FrameShape', 'frame_shape', 'frame_shapes', FrameShape)
 	]
 
 	for enum_value, singular, plural, cls in CONSTANT_ITEMS:
 		const_text += f'enum class {enum_value} {{\n'
-		const_text += ',\n'.join([f'\t{sanitize_constant(item.names[0])} = 0x{item.id_code}' for item in getattr(schema, plural).values()])
+		const_text += ',\n'.join([f'\t{sanitize_constant(item.names[0])} = {_codify_hex(item.id_code)}' for item in getattr(schema, plural).values()])
 		const_text += '\n};\n\n'
 
 		if hasattr(cls, 'is_dashed') and len([i for i in getattr(schema, plural).values() if i.is_dashed()]) > 0:
@@ -136,7 +140,7 @@ def create_schema(schema:Schema,
 		schema_text += f'static constexpr {enum_value} sidc_to_{singular}(int hex_code) noexcept {{\n'
 		schema_text += f'\tconst auto MAP = mapbox::eternal::map<int, {enum_value}>({{\n'
 		schema_text += ',\n'.join([
-			f'\t\t{{0x{item.id_code}, {enum_value}::{sanitize_constant(item.names[0])}}}' for item in getattr(schema, plural).values() if \
+			f'\t\t{{{_codify_hex(item.id_code)}, {enum_value}::{sanitize_constant(item.names[0])}}}' for item in getattr(schema, plural).values() if \
 			not ('common' in dir(item) and item.common)
 		])
 		schema_text += '\n\t});\n'
@@ -205,47 +209,70 @@ def create_schema(schema:Schema,
 		schema_text += '\treturn ((static_cast<int>(modifier) & 0xF000) == 0xC000);\n'
 		schema_text += '}\n\n'
 
-	# Create base frame draw commands
-	schema_text += "static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension, Affiliation affiliation, Context context, bool position_only = false) {\n"
+	# Create frame shape draw commands
+	schema_text += "static constexpr const SymbolLayer get_base_symbol_geometry(FrameShape frame_shape, Affiliation affiliation) {\n"
 	schema_text += "\tAffiliation base_affiliation = get_frame_base_affiliation(affiliation);\n"
-	schema_text += "\tif (position_only) {dimension = Dimension::POSITION_MARKER;}\n\n"
 
 	for base in schema.get_base_affiliations():
 		schema_text += f'\tif (base_affiliation == Affiliation::{sanitize_constant(base.names[0])}) {{\n'
-		schema_text += f'\t\tconst auto ENTITY_MAP = mapbox::eternal::map<Dimension, SymbolLayer>({{\n'
+		schema_text += f'\t\tconst auto ENTITY_MAP = mapbox::eternal::map<FrameShape, SymbolLayer>({{\n'
 		dim_entries = []
 
-		for dimension in schema.dimensions.values():
-			draw_commands = dimension.frames[base.names[0]]
+		for frame_shape in [f for f in schema.frame_shapes.values() if len(f.frames) > 0]:
+			draw_commands = frame_shape.frames[base.names[0]]
 			draw_cmd = f'SymbolLayer{{{", ".join([cmd.cpp(schema=schema) for cmd in draw_commands])}}}'
-			dim_entries.append(f'{{Dimension::{sanitize_constant(dimension.id_code)}, {draw_cmd}}}')
+			dim_entries.append(f'{{FrameShape::{sanitize_constant(frame_shape.names[0])}, {draw_cmd}}}')
 
 		schema_text += ',\n'.join([f'\t\t\t{dim_entry}' for dim_entry in dim_entries])
 		schema_text += f'\n\t\t}});\n\n'
 
-		schema_text += '\t\tauto it = ENTITY_MAP.find(dimension);\n'
+		schema_text += '\t\tauto it = ENTITY_MAP.find(frame_shape);\n'
 		schema_text += '\t\treturn (it != ENTITY_MAP.end() ? it->second : SymbolLayer{});\n'
 		schema_text += f'\t}}\n\n'
 	
 	schema_text += '\treturn {};\n}\n\n'
 
-	schema_text += 'static constexpr Vector2 get_amplifier_offset(Amplifier amplifier, Affiliation affiliation) noexcept {\n'
+	schema_text += 'static constexpr const FrameShape get_frame_shape(Dimension dimension) {\n\tswitch(dimension) {\n'
+	for dimension in schema.dimensions.values():
+		schema_text += f'\t\tcase Dimension::{sanitize_constant(dimension.names[0])}:\n\t\t\treturn FrameShape::{sanitize_constant(dimension.frame_shape.names[0]) if dimension.frame_shape else 'UNKNOWN'};\n'
+	schema_text += f'\t\tdefault:\n\t\t\treturn FrameShape::LAND_UNIT;\n'
+	schema_text += '\t}\n}\n\n'
+
+
+
+	# Create base frame draw commands
+	schema_text += "static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension, Affiliation affiliation, bool position_only = false) {\n"
+	schema_text += "\tAffiliation base_affiliation = get_frame_base_affiliation(affiliation);\n"
+	schema_text += "\tFrameShape frame_shape = position_only ? FrameShape::POSITION_ONLY : get_frame_shape(dimension);\n"
+	schema_text += "\tif (position_only) {dimension = Dimension::POSITION_MARKER;}\n"	
+	schema_text += '\treturn get_base_symbol_geometry(frame_shape, affiliation);\n}\n\n'
+
+	# Get amplifier offset
+	schema_text += 'static constexpr Vector2 get_amplifier_offset(Amplifier amplifier, Affiliation affiliation, FrameShape frame_shape) noexcept {\n'
 	schema_text += '\taffiliation = get_frame_base_affiliation(affiliation);\n'
 	# Default amplifier to top
 	schema_text += '\tbool amplifier_on_top = !({});\n'.format(' || '.join([f'amplifier == Amplifier::{sanitize_constant(amp.names[0])}' for amp in schema.amplifiers.values() if amp.side == 'bottom']))
-	schema_text += '\tswitch (affiliation) {\n'
-	for affil in schema.get_base_affiliations():
-		
-		for ta in [a for a in schema.get_base_affiliation_dict() if schema.get_base_affiliation_dict()[a] == affil]:
-			schema_text += '\t\tcase Affiliation::{}:\n'.format(sanitize_constant(ta.names[0]))
+	schema_text += '\tswitch (frame_shape) {\n'
+	for frame_shape in schema.frame_shapes.values():
+		schema_text += '\t\tcase FrameShape::{}: {{\n'.format(sanitize_constant(frame_shape.names[0]))
+		schema_text += f'\t\t\tconst auto MAP = mapbox::eternal::map<Affiliation, std::pair<Vector2, Vector2> >({{\n'
+		for aindex, affil in enumerate(schema.get_base_affiliations()):
+			def v2(item):
+				return f'Vector2{{{item[0]}, {item[1]}}}'
 
-		schema_text += '\t\t\treturn Vector2{{amplifier_on_top ? static_cast<real_t>({}) : static_cast<real_t>({}), amplifier_on_top ? static_cast<real_t>({}) : static_cast<real_t>({})}};\n\t\t\tbreak;\n'.format(
-			affil.amplifier_offsets['top'][0], 
-			affil.amplifier_offsets['bottom'][0], 
-			affil.amplifier_offsets['top'][1], 
-			affil.amplifier_offsets['bottom'][1]
-		)
-	schema_text += '\t}\n}\n\n'
+			offsets = frame_shape.amplifier_offsets.get(affil.names[0], {'top': [0, 0], 'bottom': [0, 0]})
+			schema_text += '\t\t\t\t{{Affiliation::{}, std::pair<Vector2, Vector2>{{{}, {}}}}}{}\n'.format(
+				sanitize_constant(affil.names[0]),
+				v2(offsets['top']), v2(offsets['bottom']),
+				',' if aindex < len(schema.get_base_affiliations()) else ''
+			)
+		schema_text += f'\t\t\t}});\n'
+		schema_text += '\t\t\tauto it = MAP.find(affiliation);\n'
+		schema_text += '\t\t\treturn it == MAP.end() ? Vector2{} : (amplifier_on_top ? it->second.first : it->second.second);\n'
+		schema_text += '\t\t} break;\n'
+
+	schema_text += '\n\t}\n\n\treturn Vector2{};\n'
+	schema_text += '}\n\n'
 
 	# Create the symbol set to dimension mapping
 	schema_text += 'static constexpr Dimension dimension_from_symbol_set(SymbolSet set) noexcept {\n'
@@ -270,14 +297,14 @@ def create_schema(schema:Schema,
 
 	schema_text += '\t}\n}\n\n'
 
-	schema_text += 'static constexpr SymbolLayer get_amplifier_layer(Amplifier amplifier, Affiliation affiliation) {\n'
+	schema_text += 'static constexpr SymbolLayer get_amplifier_layer(Amplifier amplifier, Affiliation affiliation, FrameShape frame_shape) {\n'
 	schema_text += f'\t\tconst auto MAP = mapbox::eternal::map<Amplifier, SymbolLayer>({{\n'
 	dim_entries = [f'\t\t{{Amplifier::{sanitize_constant(amplifier.names[0])}, {amplifier.cpp(output_style=None, schema=schema)}}}' for amplifier in schema.amplifiers.values()]
 	schema_text += ',\n'.join([f'\t{e}' for e in dim_entries])
 	schema_text += f'\n\t\t}});\n\n'
 	schema_text += '\t\tauto it = MAP.find(amplifier);\n'
 	schema_text += '\t\tif (it == MAP.end()) {\n\t\t\treturn SymbolLayer{};\n\t\t}\n\n'
-	schema_text += '\t\tVector2 offset = get_amplifier_offset(amplifier, affiliation);\n'
+	schema_text += '\t\tVector2 offset = get_amplifier_offset(amplifier, affiliation, frame_shape);\n'
 	schema_text += '\t\treturn SymbolLayer{DrawCommand::translate(offset, it->second)};\n'
 	schema_text += '\t}\n\n'
 

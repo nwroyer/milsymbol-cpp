@@ -104,6 +104,10 @@ public:
         use_stroke_width_override = false;
         return *this;
     }
+
+    inline constexpr bool is_position_only() const noexcept {
+        return (!use_entity_icon && !use_frame);
+    }
 };
 
 }

@@ -6,7 +6,6 @@ import glob
 
 import drawing_items
 
-
 def is_valid_hex_key(key:str, required_length:int=-1) -> bool:
 	"""
 	Returns whether the given key is a valid hex key (string of only hex digits). If required_length is specified,
@@ -64,10 +63,6 @@ class Affiliation:
 		self.has_civilian_variant:bool = True # Whether this affiliation allows civilian coloring
 		self.frame_id:str = ""                # The affiliation code to use the frames from. If not set this is assumed to be its own base
 		self.color_id:str = ""                # The affiliation code to use the colors from. If not set this is assumed to be its own base.
-		self.amplifier_offsets:dict = {
-			'top': 0, 
-			'bottom': 0
-		} # Offsets are "top", "bottom"
 
 	def __repr__(self):
 		ret = f"Affiliation {self.id_code}: (" + ', '.join([f'\"{f}\"' for f in self.names]) + ")"
@@ -103,10 +98,6 @@ class Affiliation:
 
 			affiliation.colors = {color_id: json['colors'][color_id] for color_id in schema.color_modes}
 
-		if 'amplifier offsets' in json:
-			for key in affiliation.amplifier_offsets:
-				affiliation.amplifier_offsets[key] = json['amplifier offsets'].get(key, [0.0, 0.0])
-
 		return affiliation
 
 	def get_base_frame_affiliation(self, schema):
@@ -119,32 +110,45 @@ class Affiliation:
 
 		return schema.affiliations[self.frame_id]
 
+class FrameShape:
 
-class Dimension:
-	""" 
-	Represents a dimension, which sets the frame type
-	"""
+	DEFAULT_AMPLIFIER_OFFSETS:dict = {
+		'unknown': {'top': [0, 0], 'bottom': [0, 0]},
+		'friend': {'top': [0, 0], 'bottom': [0, 0]},
+		'neutral': {'top': [0, 0], 'bottom': [0, 0]},
+		'hostile': {'top': [0, 0], 'bottom': [0, 0]},
+	}
 
 	def __init__(self):
-		self.id_code:str = ""  # Human readable name for the dimension
+		self.id_code:str = ""  # Frame shape
+		self.names:list = []   # List of human-readable names
 		self.frames:dict = {}  # Dictionary of frames for IDs
+		self.amplifier_offsets:dict = self.DEFAULT_AMPLIFIER_OFFSETS
 
 	def __repr__(self):
-		return f'Dimension \"{self.id_code}\" {len(self.frames[list(self.frames.keys())[0]])}'
+		return f'Frame shape \"{self.id_code}\" {len(self.frames[list(self.frames.keys())[0]])}'
 
-	@staticmethod
-	def from_dict(id_code:str, json:dict, over_dict:dict):
-		dimension:Dimension = Dimension()
-		dimension.id_code = id_code
+	@classmethod
+	def from_dict(cls, id_code:str, json:dict, over_dict:dict):
+		frame_shape:frame_shape = cls()
+		frame_shape.id_code = id_code
+		frame_shape.names = json.get('names', [id_code])
 
 		def create_base_frames(json:dict, over_dict:dict, ret:dict = {}) -> dict:
+			amplifier_offsets = {}
+
 			if 'frame base' in json:
 				base_dim:str = json['frame base']
 				if base_dim not in over_dict:
-					raise Exception(f"No dimension \"{base_dim}\" defined")
+					raise Exception(f"No frame shape \"{base_dim}\" defined")
 					return None
 
-				ret = create_base_frames(json=over_dict[base_dim], over_dict=over_dict)
+				ret, amplifier_offsets = create_base_frames(json=over_dict[base_dim], over_dict=over_dict)
+
+
+			# Apply amplifier offsets
+			if 'amplifier offsets' in json:
+				amplifier_offsets = json['amplifier offsets']
 
 			# Apply base frame
 			for frame_key, frame_list in json.get("frames", {}).items():
@@ -157,20 +161,47 @@ class Dimension:
 				else:
 					ret[frame_key] = [f for f in frame_list]
 
-			return ret
+			return ret, amplifier_offsets
 
-
-		frames = create_base_frames(json=json, over_dict=over_dict['dimensions'])
+		frames, amplifier_offsets = create_base_frames(json=json, over_dict=over_dict)
+		
 		if frames is None:
-			raise Exception('Ex')
+			raise Exception(f'No frames in frame set {id_code}')
 			return None
 
-		dimension.frames = {}
+		frame_shape.frames = {}
 		for affil in frames:
 			frame = []
 			for item in frames[affil]:
 				frame += drawing_items.SymbolElement.parse_from_dict(item=item, full_items={}, affiliations={})
-			dimension.frames[affil] = frame
+			frame_shape.frames[affil] = frame
+
+		frame_shape.amplifier_offsets = amplifier_offsets
+		return frame_shape
+
+class Dimension:
+	""" 
+	Represents a dimension, which sets the frame type
+	"""
+
+	def __init__(self):
+		self.id_code:str = ""  # Human readable name for the dimension
+		self.names:list = []   # Human readable names
+		self.frame_shape:FrameShape = None
+
+	def __repr__(self):
+		return f'Dimension \"{self.id_code}\" {self.frame_shape}'
+
+	@classmethod
+	def from_dict(cls, id_code:str, json:dict, schema):
+		dimension = cls()
+		dimension.id_code = id_code
+		dimension.names = json.get('names', [id_code])
+		frame_shape_code:str = json.get('frame shape')
+		if schema is None or frame_shape_code not in schema.frame_shapes:
+			raise Exception(f"No frame shape \"{frame_shape_code}\" in schema for dimension {dimension.names[0]}")
+			return None
+		dimension.frame_shape = schema.frame_shapes[frame_shape_code]
 
 		return dimension
 
@@ -486,6 +517,8 @@ class Schema:
 		self.color_modes:list = []
 		## The order in which full frame symbols are expected (for C++)
 		self.full_frame_ordering:list = []
+		## The frame shapes in this schema
+		self.frame_shapes:dict = {}
 		## The dimensions this schema has
 		self.dimensions:dict = {}
 		## The contexts this schema has
@@ -574,9 +607,15 @@ class Schema:
 			index = [aff.names[0] for aff in base_affiliations].index(item)
 			self.full_frame_ordering.append(base_affiliations[index])
 
+		# Load frame shapes
+		for frame_shape_id, frame_shape_dict in json_dict["frame shapes"].items():
+			frame_shape = FrameShape.from_dict(id_code=frame_shape_id, json=frame_shape_dict, over_dict=json_dict['frame shapes'])
+			if frame_shape is not None:
+				self.frame_shapes[frame_shape.id_code] = frame_shape
+
 		# Load dimension
 		for dim_id, dim_dict in json_dict["dimensions"].items():
-			dimension = Dimension.from_dict(dim_id, dim_dict, json_dict)
+			dimension = Dimension.from_dict(id_code=dim_id, json=dim_dict, schema=self)
 			if dimension is not None:
 				self.dimensions[dimension.id_code] = dimension
 

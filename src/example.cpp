@@ -21,20 +21,13 @@ int main(int argc, const char** argv) {
     alt_style.use_modifiers = true;
     alt_style.color_mode = milsymbol::ColorMode::LIGHT;
 
-    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130310001411120021601000000000");
-    std::cout << "I " << "130310001411120021601000000000" << std::endl;
+    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130327007111022102151060000000");
+    std::cout << "I " << "130327007111022102151060000000" << std::endl;
 
     // 130310001411120021601000000000
     // 1303100014111200216010000000000
 
     milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
-    // std::cout << "Viewbox: " << results.svg_bounding_box.x1 << ", " << results.svg_bounding_box.y1 <<
-    //     " to " << results.svg_bounding_box.x2 << ", " << results.svg_bounding_box.y2 << std::endl;
-    // std::cout << "Symbol anchor: " << results.symbol_anchor.x << ", " << results.symbol_anchor.y <<
-    //     " (" <<
-    //         (results.symbol_anchor.x + results.svg_bounding_box.x1) << ", " <<
-    //         (results.symbol_anchor.y + results.svg_bounding_box.y1) << " in SVG space)" <<
-    //     std::endl;
 
     std::array array_item = {milsymbol::Affiliation::FRIEND, milsymbol::Affiliation::UNKNOWN, milsymbol::Affiliation::NEUTRAL, milsymbol::Affiliation::SUSPECT, milsymbol::Affiliation::HOSTILE};
     for (int i = 0; i < array_item.size(); i++) {

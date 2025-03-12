@@ -125,6 +125,21 @@ enum class SymbolSet {
 	AIR_MISSILE = 0x02
 };
 
+enum class FrameShape {
+	UNKNOWN = 0x0,
+	SPACE = 0x1,
+	AIR = 0x2,
+	LAND_UNIT = 0x3,
+	LAND_EQUIPMENT_AND_SEA_SURFACE = 0x4,
+	LAND_INSTALLATION = 0x5,
+	DISMOUNTED_INDIVIDUAL = 0x6,
+	SEA_SUBSURFACE = 0x7,
+	ACTIVITIES = 0x8,
+	CYBERSPACE = 0x9,
+	UNFRAMED = 0xA,
+	POSITION_ONLY = -1
+};
+
 static constexpr Affiliation get_frame_base_affiliation(Affiliation affiliation) noexcept {
 	switch(affiliation) {
 		case Affiliation::PENDING:
