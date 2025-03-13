@@ -67,19 +67,6 @@ _impl::DrawCommand get_symbol_headquarters(Affiliation affiliation, FrameShape f
     return _impl::DrawCommand::dynamic_path(std::move(ss.str()), hq_box).with_stroke_width(frame_stroke_width);
 }
 
-static void get_status_modifiers(const Symbol& symbol, const BoundingBox& bbox, std::vector<_impl::DrawCommand>& out) {
-    static constexpr std::array<Color, 4> CONDITION_COLORS = {
-        Color{0, 255, 0}, // Fully capable
-        Color{255, 255, 0}, // Damaged
-        Color{255, 0, 0}, // Destroyed
-        Color{0, 180, 240} // Full to capacity
-    };
-
-    if (symbol.get_status() != Status::PRESENT) {
-        // @TODO handle status modifiers
-    }
-}
-
 static BoundingBox apply_amplifiers(const SymbolStyle& style,
                                     const Symbol& symbol,
                                     const BoundingBox& base_bbox_raw,
@@ -149,10 +136,14 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style,
         modifier_bbox.merge(cmd_bbox);
     }
 
-    _impl::SymbolLayer ret = _impl::get_amplifier_layer(symbol.get_amplifier(), symbol.get_affiliation(), frame_shape);
-    for (const auto& item : ret.draw_items) {
-        out.emplace_back(item);
-        base_bbox.merge(item.get_bbox(symbol.get_affiliation()));
+    for (auto& ret : {
+        _impl::get_amplifier_layer(symbol.get_amplifier(), symbol.get_affiliation(), frame_shape, style.use_alternate_icons),
+        _impl::get_status_layer(symbol.get_status(), symbol.get_affiliation(), frame_shape, style.use_alternate_icons)
+    }) {
+        for (const auto& item : ret.draw_items) {
+            out.emplace_back(item);
+            base_bbox.merge(item.get_bbox(symbol.get_affiliation()));
+        }
     }
 
     base_bbox.merge(modifier_bbox);
@@ -234,12 +225,11 @@ Symbol Symbol::from_sidc(const std::string& sidc_raw) noexcept {
      * Parse standard identity
      */
 
-
     // Part 1: Parse standard identity
     symbol.context = _impl::sidc_to_context(sidc.substr(2, 1));
     symbol.affiliation = _impl::sidc_to_affiliation(sidc.substr(3, 1));
     symbol.symbol_set = _impl::sidc_to_symbol_set(sidc.substr(4, 2));
-    symbol.status = _impl::sidc_to_status(sidc.substr(4, 2));
+    symbol.status = _impl::sidc_to_status(sidc.substr(6, 1));
     symbol.headquarters = _impl::sidc_to_headquarters(sidc.substr(7, 1));
     symbol.task_force = _impl::sidc_to_task_force(sidc.substr(7, 1));
     symbol.task_force = _impl::sidc_to_task_force(sidc.substr(7, 1));

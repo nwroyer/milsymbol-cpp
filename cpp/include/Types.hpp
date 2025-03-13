@@ -13,6 +13,13 @@ namespace milsymbol {
 using real_t = float;
 
 namespace _impl {
+
+enum class IconSide {
+    MIDDLE = 0,
+    TOP,
+    BOTTOM
+};
+
 static int hex_from_substring(const std::string_view string_view) noexcept {
     int result = 0;
     std::size_t chars_consumed = 0;

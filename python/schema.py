@@ -215,6 +215,10 @@ class Status:
 		self.id_code:str = ""
 		self.names:list = []
 		self.dashed:bool = False
+		self.icon:list = []
+		self.alt_icon:list = []
+		self.icon_side:str = 'middle'
+		self.alt_icon_side:str = 'middle'
 
 	def __repr__(self):
 		return f"Status {self.id_code} ({' / '.join(self.names)})"
@@ -227,7 +231,7 @@ class Status:
 		return self.dashed
 
 	@staticmethod
-	def from_dict(id_code:str, json:dict):
+	def from_dict(id_code:str, json:dict, affiliations:dict):
 		if not is_valid_hex_key(id_code, 1):
 			print(f"Bad status {id_code}", file=sys.stderr)
 			return None			
@@ -236,8 +240,26 @@ class Status:
 		status.id_code = id_code
 		status.names = json.get('names', [])
 		status.dashed = json.get("dashed", False)
+
+		if 'icon' in json:
+			status.icon = drawing_items.SymbolElement.parse_list_from_json(json['icon'], full_items={}, affiliations=affiliations)
+		if 'alt icon' in json:
+			status.alt_icon = drawing_items.SymbolElement.parse_list_from_json(json['alt icon'], full_items={}, affiliations=affiliations)
+
+		status.icon_side = json.get('icon side', 'middle')
+		status.alt_icon_side = json.get('alt icon side', 'middle')
+
 		return status
 
+	def icon_cpp(self, schema, output_style, with_bbox=False):
+		return 'SymbolLayer{{{}}}'.format(
+			', '.join([cmd.cpp(output_style=output_style, schema=schema, with_bbox=with_bbox) for cmd in self.icon]),
+		)
+
+	def alt_icon_cpp(self, schema, output_style, with_bbox=False):
+		return 'SymbolLayer{{{}}}'.format(
+			', '.join([cmd.cpp(output_style=output_style, schema=schema, with_bbox=with_bbox) for cmd in self.alt_icon]),
+		)
 
 class HQTFD:
 	"""
@@ -294,7 +316,9 @@ class Amplifier:
 		self.category:str = "" # Category this applies to
 		self.applies_to:list = [] # List of dimensions this applies to
 		self.icon:list = []
-		self.side:str = 'top' # Should be 'top' or 'bottom'
+		self.icon_side:str = 'middle' # Should be 'top' or 'bottom' or 'middle'
+		self.alt_icon:list = []
+		self.alt_icon_side:str = 'middle'
 
 	@staticmethod
 	def from_dict(id_code:str, json:dict, schema):
@@ -316,17 +340,15 @@ class Amplifier:
 				print(f"Bad applies to dimension \"{apt}\" for amplifier {amplifier.id_code}", file=sys.stderr)
 				return None
 
-		amplifier.side = json.get('side', 'top')
+		amplifier.icon_side = json.get('icon side', 'middle')
 
 		amplifier.icon = []
 		if 'icon' in json:
-			for item in json['icon']:
-				amplifier.icon.extend(drawing_items.SymbolElement.parse_from_dict(item, full_items={}, affiliations=schema.get_base_affiliation_dict()))
+			amplifier.icon = drawing_items.SymbolElement.parse_list_from_json(item=json['icon'], full_items={}, affiliations=schema.get_base_affiliation_dict())
 
-		print(amplifier.icon)
 		return amplifier
 
-	def cpp(self, schema, output_style, with_bbox=False):
+	def icon_cpp(self, schema, output_style, with_bbox=False):
 		return 'SymbolLayer{{{}}}'.format(
 			', '.join([cmd.cpp(output_style=output_style, schema=schema, with_bbox=with_bbox) for cmd in self.icon]),
 		)
@@ -341,19 +363,27 @@ class SymbolLayer:
 		self.names:str = [] # Human-readable names
 		self.elements:list = [] # the symbol elements
 		self.civilian:bool = False # Whether this entity renders something a civilian item
+		self.icon:list = []
+		self.alt_icon:list = []
 		pass
 
 	def __repr__(self):
-		return '{{{}}} -> {}'.format(self.uid, self.elements)
+		return '{{{}}} {} -> {}'.format(self.id_code, ' / '.join(self.names), self.elements)
 
-	def cpp(self, schema, output_style, with_bbox=False):
+	def icon_cpp(self, schema, output_style, with_bbox=False):
 		return 'SymbolLayer{{{}}}{}'.format(
-			', '.join([cmd.cpp(output_style=output_style, schema=schema, with_bbox=with_bbox) for cmd in self.elements]),
+			', '.join([cmd.cpp(output_style=output_style, schema=schema, with_bbox=with_bbox) for cmd in self.icon]),
 			'.with_civilian_override(true)' if self.civilian else ''
 		)
 
-	@staticmethod
-	def parse_from_dict(id_code:str, json:dict, full_items:dict, schema):
+	def alt_icon_cpp(self, schema, output_style, with_bbox=False):
+		return 'SymbolLayer{{{}}}{}'.format(
+			', '.join([cmd.cpp(output_style=output_style, schema=schema, with_bbox=with_bbox) for cmd in self.alt_icon]),
+			'.with_civilian_override(true)' if self.civilian else ''
+		)
+
+	@classmethod
+	def parse_from_dict(cls, id_code:str, json:dict, full_items:dict, schema):
 		if 'icon' not in json or 'names' not in json:
 			print('No keys in {}'.format(uid))
 			return None
@@ -367,23 +397,9 @@ class SymbolLayer:
 		symbol_layer.names = json['names'] if 'names' in json else []
 		symbol_layer.civilian = json.get('civ', False)
 
-		item_icon = json['icon']
-		if type(item_icon) is not list:
-			print("Icons must all be lists", file=sys.stderr)
-			return None
+		symbol_layer.icon = drawing_items.SymbolElement.parse_list_from_json(item=json['icon'], full_items=full_items, affiliations=schema.get_base_affiliation_dict())
+		symbol_layer.alt_icon = drawing_items.SymbolElement.parse_list_from_json(item=json.get('alt icon', []), full_items=full_items, affiliations=schema.get_base_affiliation_dict())
 
-		for element in item_icon:
-			new_element_list:list = drawing_items.SymbolElement.parse_from_dict(element, full_items=full_items, affiliations=schema.get_base_affiliation_dict())
-			if new_element_list is not None:
-				symbol_layer.elements.extend(new_element_list)
-			else:
-				print('Error parsing symbol element', file=sys.stderr)
-				return None
-
-		if symbol_layer == None:
-			print(f"Bad symbol {uid}", file=sys.stderr)
-			return None
-		
 		return symbol_layer
 
 
@@ -393,6 +409,10 @@ class Entity(SymbolLayer):
 	"""
 	def __init__(self):
 		super().__init__()
+
+	@classmethod
+	def parse_from_dict(cls, id_code:str, json:dict, full_items:dict, schema):
+		return super().parse_from_dict(id_code=id_code, json=json, full_items=full_items, schema=schema)
 
 class Modifier(SymbolLayer):
 	"""
@@ -425,27 +445,10 @@ class SymbolSet:
 	@classmethod
 	def parse_from_file(cls, filepath:str, schema):
 		"""
-		Parse a JSON file representing a single symbol set. This file should
-		be of the form:
-
-		```
-		{
-			"set": "00",
-			"name": "example_set",
-			"IC": {
-				...
-			},
-			"M1": {
-				...
-			},
-			"M2": {
-				...
-			}
-		}
-		```
+		Parse a JSON file representing a single symbol set.
 		"""
 
-		ITEM_TYPES = ["IC", "M1", "M2"]
+		ITEM_TYPES = [("IC", Entity), ("M1", Modifier), ("M2", Modifier)]
 
 		if not os.path.exists(filepath):
 			print(f'No file "{filepath}"')
@@ -458,10 +461,9 @@ class SymbolSet:
 
 		json_dict = json.loads(json_str)
 
-
 		# Parse icon sets
 		ret:dict = {
-			it: {} for it in ITEM_TYPES
+			item_type: {} for item_type, ItemTypeClass in ITEM_TYPES
 		}
 
 		if not ('set' in json_dict):
@@ -480,7 +482,7 @@ class SymbolSet:
 
 		icon_set:str = json_dict['set']
 
-		for item_type in ITEM_TYPES:
+		for item_type, ItemTypeClass in ITEM_TYPES:
 			if not (item_type in json_dict):
 				continue
 
@@ -490,7 +492,7 @@ class SymbolSet:
 					print(f'Improper indices for {json_dict["set"]}:{item_type}:{item_code}')
 					return None
 
-				new_symbol_layer = SymbolLayer.parse_from_dict(id_code=item_code, json=item, full_items=json_dict[item_type], schema=schema)
+				new_symbol_layer = ItemTypeClass.parse_from_dict(id_code=item_code, json=item, full_items=json_dict[item_type], schema=schema)
 				if new_symbol_layer is not None:
 					ret[item_type][item_code] = new_symbol_layer
 				else:
@@ -499,7 +501,7 @@ class SymbolSet:
 
 		ret_set = cls()
 		ret_set.id_code = icon_set
-		ret_set.icons = {item: ret['IC'][item] for item in ret['IC'].keys() if item[0] != '.'} # Ignore utility symbols
+		ret_set.entities = {item: ret['IC'][item] for item in ret['IC'].keys() if item[0] != '.'} # Ignore utility symbols
 		ret_set.m1 = ret['M1']
 		ret_set.m2 = ret['M2']
 		ret_set.names = json_dict['names'] if 'names' in json_dict else [json_dict['name']]
@@ -621,7 +623,7 @@ class Schema:
 
 		# Load status
 		for status_id, status_dict in json_dict.get("statuses", {}).items():
-			status = Status.from_dict(status_id, status_dict)
+			status = Status.from_dict(id_code=status_id, json=status_dict, affiliations=self.get_base_affiliation_dict())
 			if status is not None:
 				self.statuses[status.id_code] = status
 

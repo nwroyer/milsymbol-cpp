@@ -20,9 +20,11 @@ int main(int argc, const char** argv) {
     milsymbol::SymbolStyle alt_style;
     alt_style.use_modifiers = true;
     alt_style.color_mode = milsymbol::ColorMode::LIGHT;
+    alt_style.use_alternate_icons = true;
 
-    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc("130327007111022102151060000000");
-    std::cout << "I " << "130327007111022102151060000000" << std::endl;
+    std::string code = "130310021316040007891000000000";
+    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc(code);
+    std::cout << "I " << code << std::endl;
 
     // 130310001411120021601000000000
     // 1303100014111200216010000000000
@@ -31,7 +33,6 @@ int main(int argc, const char** argv) {
 
     std::array array_item = {milsymbol::Affiliation::FRIEND, milsymbol::Affiliation::UNKNOWN, milsymbol::Affiliation::NEUTRAL, milsymbol::Affiliation::SUSPECT, milsymbol::Affiliation::HOSTILE};
     for (int i = 0; i < array_item.size(); i++) {
-
         milsymbol::Affiliation aff = array_item[i];
         symbol = symbol.with_affiliation(aff);
         std::cout << "O " << symbol.to_sidc() << std::endl;

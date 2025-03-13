@@ -19,7 +19,12 @@ enum class ColorType {
     MINE_DARK_GREEN,
     MINE_BRIGHT_GREEN,
     MINE_ORANGE,
-    MINE_YELLOW
+    MINE_YELLOW,
+
+    STATUS_GREEN,
+    STATUS_YELLOW,
+    STATUS_RED,
+    STATUS_BLUE
 };
 
 enum class ColorIndex {
@@ -222,6 +227,18 @@ static constexpr Color get_color(ColorType color_type,
         break;
     case ColorType::MINE_YELLOW:
         return Color{255, 255, 0};
+        break;
+    case ColorType::STATUS_GREEN:
+        return Color{0, 255, 0};
+        break;
+    case ColorType::STATUS_YELLOW:
+        return Color{255, 255, 0};
+        break;
+    case ColorType::STATUS_RED:
+        return Color{255, 0, 0};
+        break;
+    case ColorType::STATUS_BLUE:
+        return Color{0, 180, 240};
         break;
     case ColorType::NONE:
     default:

@@ -100,7 +100,7 @@ def create_schema(schema:Schema,
 
 	const_text += 'enum Entity : int32_t {\n'
 	const_text += '\tENTITY_UNKNOWN = 0,\n'
-	entities = [(ent, symset) for symset in symbol_sets for ent in symset.icons.values()]
+	entities = [(ent, symset) for symset in symbol_sets for ent in symset.entities.values()]
 	const_text += ',\n'.join([f'\t{sanitize_constant(f"{symset.names[0]}_{ent.names[0]}")} = 0x{int(symset.id_code)}{ent.id_code}' for (ent, symset) in entities]) + '\n'
 	const_text += '};\n\n'
 	
@@ -177,7 +177,7 @@ def create_schema(schema:Schema,
 
 		schema_text += f'\tif (symbol_set == SymbolSet::{sanitize_constant(symbol_set.names[0])}) {{\n'
 		schema_text += f'\t\tconst auto ENTITY_MAP = mapbox::eternal::map<int, Entity>({{\n'
-		dim_entries = [f'\t\t{{0x{entity_id}, Entity::{sanitize_constant(symbol_set.names[0])}_{sanitize_constant(entity.names[0])}}}' for (entity_id, entity) in symbol_set.icons.items()]
+		dim_entries = [f'\t\t{{0x{entity_id}, Entity::{sanitize_constant(symbol_set.names[0])}_{sanitize_constant(entity.names[0])}}}' for (entity_id, entity) in symbol_set.entities.items()]
 		schema_text += ',\n'.join([f'\t{e}' for e in dim_entries])
 		schema_text += f'\n\t\t}});\n\n'
 
@@ -248,31 +248,7 @@ def create_schema(schema:Schema,
 	schema_text += '\treturn get_base_symbol_geometry(frame_shape, affiliation);\n}\n\n'
 
 	# Get amplifier offset
-	schema_text += 'static constexpr Vector2 get_amplifier_offset(Amplifier amplifier, Affiliation affiliation, FrameShape frame_shape) noexcept {\n'
-	schema_text += '\taffiliation = get_frame_base_affiliation(affiliation);\n'
-	# Default amplifier to top
-	schema_text += '\tbool amplifier_on_top = !({});\n'.format(' || '.join([f'amplifier == Amplifier::{sanitize_constant(amp.names[0])}' for amp in schema.amplifiers.values() if amp.side == 'bottom']))
-	schema_text += '\tswitch (frame_shape) {\n'
-	for frame_shape in schema.frame_shapes.values():
-		schema_text += '\t\tcase FrameShape::{}: {{\n'.format(sanitize_constant(frame_shape.names[0]))
-		schema_text += f'\t\t\tconst auto MAP = mapbox::eternal::map<Affiliation, std::pair<Vector2, Vector2> >({{\n'
-		for aindex, affil in enumerate(schema.get_base_affiliations()):
-			def v2(item):
-				return f'Vector2{{{item[0]}, {item[1]}}}'
 
-			offsets = frame_shape.amplifier_offsets.get(affil.names[0], {'top': [0, 0], 'bottom': [0, 0]})
-			schema_text += '\t\t\t\t{{Affiliation::{}, std::pair<Vector2, Vector2>{{{}, {}}}}}{}\n'.format(
-				sanitize_constant(affil.names[0]),
-				v2(offsets['top']), v2(offsets['bottom']),
-				',' if aindex < len(schema.get_base_affiliations()) else ''
-			)
-		schema_text += f'\t\t\t}});\n'
-		schema_text += '\t\t\tauto it = MAP.find(affiliation);\n'
-		schema_text += '\t\t\treturn it == MAP.end() ? Vector2{} : (amplifier_on_top ? it->second.first : it->second.second);\n'
-		schema_text += '\t\t} break;\n'
-
-	schema_text += '\n\t}\n\n\treturn Vector2{};\n'
-	schema_text += '}\n\n'
 
 	# Create the symbol set to dimension mapping
 	schema_text += 'static constexpr Dimension dimension_from_symbol_set(SymbolSet set) noexcept {\n'
@@ -297,31 +273,84 @@ def create_schema(schema:Schema,
 
 	schema_text += '\t}\n}\n\n'
 
-	schema_text += 'static constexpr SymbolLayer get_amplifier_layer(Amplifier amplifier, Affiliation affiliation, FrameShape frame_shape) {\n'
-	schema_text += f'\t\tconst auto MAP = mapbox::eternal::map<Amplifier, SymbolLayer>({{\n'
-	dim_entries = [f'\t\t{{Amplifier::{sanitize_constant(amplifier.names[0])}, {amplifier.cpp(output_style=None, schema=schema)}}}' for amplifier in schema.amplifiers.values()]
-	schema_text += ',\n'.join([f'\t{e}' for e in dim_entries])
-	schema_text += f'\n\t\t}});\n\n'
-	schema_text += '\t\tauto it = MAP.find(amplifier);\n'
-	schema_text += '\t\tif (it == MAP.end()) {\n\t\t\treturn SymbolLayer{};\n\t\t}\n\n'
-	schema_text += '\t\tVector2 offset = get_amplifier_offset(amplifier, affiliation, frame_shape);\n'
-	schema_text += '\t\treturn SymbolLayer{DrawCommand::translate(offset, it->second)};\n'
-	schema_text += '\t}\n\n'
+	schema_text += f'static constexpr Vector2 get_amplifier_offset(IconSide icon_side, Affiliation affiliation, FrameShape frame_shape) noexcept {{\n'
+	schema_text += f'\tif (icon_side == IconSide::MIDDLE) {{\n\t\treturn {{}};\n\t}}\n\n'
+	schema_text += '\taffiliation = get_frame_base_affiliation(affiliation);\n'
+	schema_text += '\tswitch (frame_shape) {\n'
+	for frame_shape in schema.frame_shapes.values():
+		schema_text += '\t\tcase FrameShape::{}: {{\n'.format(sanitize_constant(frame_shape.names[0]))
+		schema_text += f'\t\t\tconst auto MAP = mapbox::eternal::map<Affiliation, std::pair<Vector2, Vector2> >({{\n'
+		for aindex, affil in enumerate(schema.get_base_affiliations()):
+			def v2(item):
+				return f'Vector2{{{item[0]}, {item[1]}}}'
+
+			offsets = frame_shape.amplifier_offsets.get(affil.names[0], {'top': [0, 0], 'bottom': [0, 0], 'middle': [0, 0]})
+			schema_text += '\t\t\t\t{{Affiliation::{}, std::pair<Vector2, Vector2>{{{}, {}}}}}{}\n'.format(
+				sanitize_constant(affil.names[0]),
+				v2(offsets['top']), v2(offsets['bottom']),
+				',' if aindex < len(schema.get_base_affiliations()) else ''
+			)
+		schema_text += f'\t\t\t}});\n'
+		schema_text += '\t\t\tauto it = MAP.find(affiliation);\n'
+		schema_text += f'\t\t\treturn it == MAP.end() ? Vector2{{}} : (icon_side == IconSide::TOP ? it->second.first : it->second.second);\n'
+		schema_text += '\t\t} break;\n'
+
+	schema_text += '\n\t}\n\n\treturn Vector2{};\n'
+	schema_text += '}\n\n'
+
+	for item_name, list_attr in [('amplifier', 'amplifiers'), ('status', 'statuses')]:
+		# Get symbol layer
+
+		schema_text += f'static constexpr SymbolLayer get_{item_name}_layer({item_name.capitalize()} {item_name}, Affiliation affiliation, FrameShape frame_shape, bool use_alternate_icons = false) {{\n'
+		alt_icons = [item for item in getattr(schema, list_attr).values() if hasattr(item, 'alt_icon') and item.alt_icon]		
+		
+		schema_text += f'\tstruct SymbolEntry {{\n\t\tSymbolLayer layer;\n\t\tIconSide icon_side = IconSide::MIDDLE;\n\t}};\n\n'
+
+		if alt_icons:
+			schema_text += f'\tconst auto ALT_MAP = mapbox::eternal::map<{item_name.capitalize()}, SymbolEntry >({{\n'			
+			schema_text += ',\n'.join(
+				[f'\t\t{{{item_name.capitalize()}::{sanitize_constant(item.names[0])}, {{{item.alt_icon_cpp(output_style=None, schema=schema)}, IconSide::{item.alt_icon_side.upper()}}}}}' for item in alt_icons]
+			)
+			schema_text += f'\n\t}});\n'
+		
+		schema_text += f'\tconst auto MAP = mapbox::eternal::map<{item_name.capitalize()}, SymbolEntry>({{\n'
+		dim_entries = [f'\t{{{item_name.capitalize()}::{sanitize_constant(item.names[0])}, {{{item.icon_cpp(output_style=None, schema=schema)}, IconSide::{item.icon_side.upper()}}}}}' for item in getattr(schema, list_attr).values()]
+		schema_text += ',\n'.join([f'\t{e}' for e in dim_entries])
+		schema_text += f'\n\t}});\n\n'
+
+		schema_text += '\tSymbolEntry ret;\n\n'
+		extra_plus = ''
+
+		if alt_icons:
+			schema_text += f'\tauto it = ALT_MAP.find({item_name});\n'
+			schema_text += '\tif (it != ALT_MAP.end()) {\n\t\tret = it->second;\n'
+			schema_text += '\t} else {\n'
+			extra_plus = '\t'
+		
+		schema_text += extra_plus + f'\tauto it = MAP.find({item_name});\n'
+		schema_text += extra_plus + f'\tif (it != MAP.end()) {{\n{extra_plus}\t\tret = it->second;\n{extra_plus}\t}}\n'
+		if alt_icons:
+			schema_text += '\t}\n\n'
+
+		schema_text += f'\tif (ret.layer.empty()) {{\n\t\treturn {{}};\n\t}}\n\n'
+
+		schema_text += f'\tVector2 offset = get_amplifier_offset(ret.icon_side, affiliation, frame_shape);\n'
+		schema_text += '\treturn SymbolLayer{DrawCommand::translate(offset, ret.layer)};\n'
+		schema_text += '}\n\n'
 
 	# Create the master list of symbol sets
 	schema_text += "static constexpr SymbolLayer get_symbol_layer(SymbolSet symbol_set, int32_t code, IconType symbol_type) {\n"
 
+	ICON_TYPES = [('ENTITY', 'Entity', ''), ('MODIFIER_1', 'Modifier1', 'M1_'), ('MODIFIER_2','Modifier2', 'M2_')]
+
 	for index, symbol_set in enumerate(symbol_sets):
 		schema_text += '\t{}if (symbol_set == SymbolSet::{}) {{\n'.format('else ' if index > 0 else '', sanitize_constant(symbol_set.names[0]))
 
-		SYMBOL_TYPE_HEADERS = ['ENTITY', 'MODIFIER_1', 'MODIFIER_2']
-
-		for symtype_index, sym_type in enumerate([symbol_set.icons, symbol_set.m1, symbol_set.m2]):
+		for symtype_index, sym_type in enumerate([symbol_set.entities, symbol_set.m1, symbol_set.m2]):
 			if len(sym_type) < 1:
 				continue
-			schema_text += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 and not symbol_set.common else '', SYMBOL_TYPE_HEADERS[symtype_index])
-
-			map_title:str = f'{SYMBOL_TYPE_HEADERS[symtype_index]}_MAP'
+			schema_text += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 and not symbol_set.common else '', ICON_TYPES[symtype_index][0])
+			map_title:str = 'MAP'
 
 			# Iterate through symbols
 			schema_text += '\t\t\tconst auto {} = mapbox::eternal::map<int32_t, SymbolLayer>({{\n'.format(map_title)
@@ -330,7 +359,7 @@ def create_schema(schema:Schema,
 			for sym_code, symbol in sym_type.items():
 				mod_code = f'M{symtype_index}_' if symtype_index > 0 else ''
 				sanitized_name = sanitize_constant(f"{symbol_set.names[0]}_{mod_code}{symbol.names[0]}")
-				out_symbols.append((sanitized_name, symbol.cpp(output_style=output_style, schema=schema, with_bbox=True), symbol.names[0]))
+				out_symbols.append((sanitized_name, symbol.icon_cpp(output_style=output_style, schema=schema, with_bbox=True), symbol.names[0]))
 
 			schema_text += ',\n'.join([f'\t\t\t\t{{static_cast<int32_t>({constant_name}), {draw_commands}}} /* {comment} */' for constant_name, draw_commands, comment in out_symbols]) + '\n'
 			schema_text += '\t\t\t});\n'
@@ -343,7 +372,33 @@ def create_schema(schema:Schema,
 		schema_text += '\t\telse {\n\t\t\treturn {};\n\t\t}\n'
 		schema_text += '\t}\n\n'
 
-	schema_text +=  "\n\t// Default to nothing\n\treturn {};\n" + "}\n"
+	schema_text +=  "\t// Default to nothing\n\treturn {};\n" + "}\n"
+
+	# Create alt icons
+	schema_text += "static constexpr SymbolLayer get_symbol_layer_alt_icon(SymbolSet symbol_set, int32_t code, IconType symbol_type) {\n"
+	for symtype_index, sym_type in enumerate(['entities', 'm1', 'm2']):
+		schema_text += '\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 else '', ICON_TYPES[symtype_index][0])
+		for index, symbol_set in enumerate(symbol_sets):
+			candidates = [item for item in getattr(symbol_set, sym_type).values() if len(item.alt_icon) > 0]
+			if len(candidates) < 1:
+				continue
+
+			schema_text += '\t\tif (symbol_set == SymbolSet::{}) {{\n'.format(sanitize_constant(symbol_set.names[0]))
+			schema_text += '\t\t\tconst auto MAP = mapbox::eternal::map<int32_t, SymbolLayer>({\n'
+			schema_text += ',\n'.join(['\t\t\t\t{{{}, {}}}'.format(
+					f'static_cast<int32_t>({ICON_TYPES[symtype_index][1]}::{sanitize_constant(symbol_set.names[0])}_{ICON_TYPES[symtype_index][2]}{sanitize_constant(item.names[0])})',
+					f'{item.alt_icon_cpp(output_style=output_style, schema=schema, with_bbox=True)}'
+				)  for item in candidates])
+
+			schema_text += '\n\t\t\t});\n\n'
+			schema_text += "\t\t\tauto it = MAP.find(code);\n"
+			schema_text += f"\t\t\tif (it != MAP.end()) {{\n\t\t\t\treturn it->second;\n\t\t\t}}\n"
+			schema_text += '\t\t}\n'
+
+			pass
+		schema_text += '\t}\n'
+	schema_text +=  "\n\t// Default to normal icon\n\treturn get_symbol_layer(symbol_set, code, symbol_type);\n" + "}\n\n"
+
 
 	# Create the enumerator
 	if include_enumerator:
@@ -355,7 +410,7 @@ def create_schema(schema:Schema,
 
 			SYMBOL_TYPE_HEADERS = ['ENTITY', 'MODIFIER_1', 'MODIFIER_2']
 
-			for symtype_index, sym_type in enumerate([symbol_set.icons, symbol_set.m1, symbol_set.m2]):
+			for symtype_index, sym_type in enumerate([symbol_set.entities, symbol_set.m1, symbol_set.m2]):
 				schema_text += '\t\t{}if (symbol_type == IconType::{}) {{\n'.format('else ' if symtype_index > 0 else '', SYMBOL_TYPE_HEADERS[symtype_index])
 
 				# Iterate through symbols
@@ -391,7 +446,6 @@ def main() -> None:
 		help='Font to use when creating a text path; only applicable when -p or --text-paths is passes as well')
 	parser.add_argument('-g', '--godot_file_name', dest='godot_file_name', action='store', default='')
 	arguments = parser.parse_args()
-
 
 	print(f"Outputting C++ headers, using {'path' if arguments.use_text_paths else 'text'} elements for text...")
 	create_schema(

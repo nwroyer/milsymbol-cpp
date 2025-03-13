@@ -29,7 +29,8 @@ yellow is only used for missile icons and chemical spills.
 COLORS:list = {
 	'icon', 'icon_fill', 'white', 'yellow',
 	"mine red", "mine dark green", "mine bright green",
-	'mine yellow', 'mine orange'
+	'mine yellow', 'mine orange',
+	'status green', 'status yellow', 'status red', 'status blue'
 }
 
 """
@@ -510,3 +511,13 @@ class SymbolElement:
 			return None
 
 		return [new_element]
+
+	@staticmethod
+	def parse_list_from_json(item:list, full_items:dict = {}, affiliations:dict = {}) -> list:
+		if type(item) != list:
+			raise Exception(f'Type of icon command list \"{item}\" is not a list')
+			
+		ret = []
+		for item_dict in item:
+			ret.extend(SymbolElement.parse_from_dict(item=item_dict, full_items=full_items, affiliations=affiliations))
+		return ret

@@ -24,11 +24,7 @@ public:
     inline constexpr bool uses_stroke_width_override() const noexcept {return use_stroke_width_override;}
     inline constexpr real_t get_stroke_width_override() const noexcept {return stroke_width_override;}
 
-    /**
-     * @brief 2525D lets you choose between MEDAL icons (true) and alternate MEDAL icons (false) for Mines; default is set to MEDAL.
-     * Since support for mine warfare icons isn't implemented yet, this doesn't do anything.
-     */
-    bool alternate_MEDAL = false;
+
 
     ColorMode color_mode = ColorMode::LIGHT; /// 2525C allows you to use Dark; Medium or Light colors. Unfilled is also included in here as a rendering option
     bool use_civilian_color = true; /// Whether to use a purple fill for friendly, neutral, and unknown civilian units
@@ -43,6 +39,7 @@ public:
     bool use_entity_icon = true; /// Whether to show the entity icon
     bool use_modifiers = true; /// Whether to show modifiers
     bool use_amplifiers = true; /// Whether to use graphical amplifiers
+    bool use_alternate_icons = false; /// Whether to use the alternate icons, if defined
 
     bool use_color_override = false; /// Whether to use a color override
     Color color_override; /// The color override to use
