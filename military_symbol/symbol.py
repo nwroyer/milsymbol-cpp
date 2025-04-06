@@ -2,6 +2,7 @@ from schema import *
 
 class Symbol():
 	def __init__(self):
+		self.schema:Schema = None
 		self.context:Context = None
 		self.affiliation:Affiliation = None
 		self.status:Status = None
@@ -14,12 +15,19 @@ class Symbol():
 
 		self.frame_shape_override = None
 
+	def is_valid(self):
+		return self.schema is not None
+
 	def __repr__(self):
 		ret = ', '.join([
 			'Symbol',
 			f'context = {self.context.names[0]}',
 			f'affiliation = {self.affiliation.names[0]} [{self.affiliation.id_code}]',
 			f'symbol set = {self.symbol_set.names[0]} [{self.symbol_set.id_code}]',
+			
+			f'dimension = {self.symbol_set.dimension.names[0]} [{self.symbol_set.dimension.id_code}]',
+			f'frame shape = {self.symbol_set.dimension.frame_shape.names[0]} [{self.symbol_set.dimension.frame_shape.id_code}]',
+			
 			f'status = {self.status.names[0]} [{self.status.id_code}]',
 			f'HQTFD = {self.hqtfd.names[0]} [{self.hqtfd.id_code}]',
 			f'amplifier = {self.amplifier.names[0]} [{self.amplifier.id_code}]',
@@ -39,6 +47,7 @@ class Symbol():
 			raise Exception('No schema supplied')
 
 		ret = cls()
+		ret.schema = schema
 		
 		# Digits 0,1 are version
 		
@@ -84,6 +93,8 @@ class Symbol():
 
 		if len(sidc) >= 23:
 			ret.frame_shape_override = schema.frame_shapes.get(sidc[22], None) # Digit 22 is the frame shape override
+			if ret.frame_shape_override is not None and ret.frame_shape_override.id_code == '0':
+				ret.frame_shape_override = None
 
 		ret.modifier_1 = mod_1_set.m1.get(sidc[16:18], None)
 		ret.modifier_2 = mod_2_set.m2.get(sidc[18:20], None)
@@ -94,11 +105,20 @@ class Symbol():
 		# Assemble elements
 		elements:list = []
 
+		# Add frame base
 		frame_to_use = self.frame_shape_override if self.frame_shape_override is not None else \
 			self.symbol_set.dimension.frame_shape
 
 		SVG_NAMESPACE:str = "http://w3.org/2000/svg";
 		elements += frame_to_use.frames[self.affiliation.frame_id]	
+
+		# Add amplfiiers
+		if self.amplifier.icon:
+			elements += self.amplifier.get_icon(self)
+			print('Amped')
+
+		print('\t' + '\n\t'.join([str(s) for s in elements]))
+
 
 		return ''
 
@@ -115,7 +135,7 @@ if __name__ == '__main__':
 
 	for sidc in TEST_SIDCS:
 		symbol = Symbol.from_sidc(sidc=sidc, schema=schema)
-		print(symbol)
+		print(symbol.entity.names[0].capitalize())
 		svg = symbol.get_svg()
 		
 

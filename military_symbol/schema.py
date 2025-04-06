@@ -172,7 +172,7 @@ class FrameShape:
 				if frame_key in ret:
 					ret[FrameShape.KEY_TRANSLATION[frame_key]] = ret[FrameShape.KEY_TRANSLATION[frame_key]] + frame_list
 				else:
-					ret[FrameShape.KEY_TRANSLATION[frame_key]] = [f for f in frame_list]
+					ret[FrameShape.KEY_TRANSLATION[frame_key]] += [f for f in frame_list]
 
 			return ret, amplifier_offsets
 
@@ -365,6 +365,9 @@ class Amplifier:
 		return 'SymbolLayer{{{}}}'.format(
 			', '.join([cmd.cpp(output_style=output_style, schema=schema, with_bbox=with_bbox) for cmd in self.icon]),
 		)
+
+	def icon_svg(self, symbol, schema):
+		return 
 
 
 """

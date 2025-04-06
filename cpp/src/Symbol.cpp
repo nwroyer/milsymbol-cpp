@@ -265,14 +265,19 @@ std::string Symbol::to_sidc() const noexcept {
     append_to_ss(ss, affiliation, 1);
     append_to_ss(ss, symbol_set, 2);
     append_to_ss(ss, status, 1);
-    append_to_ss(ss, 0, 1);
+    append_to_ss(ss, get_hqtfd(), 1);
     append_to_ss(ss, amplifier, 2);
     append_to_ss(ss, entity & 0xFFFFFF, 6);
     append_to_ss(ss, modifier_1 & 0xFF, 2);
     append_to_ss(ss, modifier_2 & 0xFF, 2);
     append_to_ss(ss, _impl::is_modifier_1_common(modifier_1) ? 1 : 0, 1);
     append_to_ss(ss, _impl::is_modifier_2_common(modifier_2) ? 1 : 0, 1);
-    append_to_ss(ss, frame_shape_override, 1);
+
+    using int_type = uint32_t;
+    int_type fso = static_cast<int_type>(frame_shape_override);
+    fso = fso > 0 && fso < 0x99 ? fso : 0;
+
+    append_to_ss(ss, fso, 1);
     append_to_ss(ss, 0, 4); // Reserved for future use
     append_to_ss(ss, 0, 3); // Country code
     return ss.str();

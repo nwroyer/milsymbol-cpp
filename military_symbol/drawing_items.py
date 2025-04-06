@@ -116,10 +116,6 @@ class SymbolElement:
 			if "strokedashed" in json:
 				self.stroke_dashed = json['strokedashed']
 
-	
-
-
-
 	"""
 	Full frame command
 	"""
@@ -166,6 +162,11 @@ class SymbolElement:
 			ret += ')'
 			return ret
 
+		def svg(self, schema, output_style=OutputStyle()) -> list:
+			assert(symbol is not None)
+			assert(symbol.is_valid())
+			return [element.svg(symbol=symbol, output_style=output_style) for element in self.elements(symbol.affiliation.frame_id)]
+
 	"""
 	Represents a path command
 	"""
@@ -204,6 +205,9 @@ class SymbolElement:
 
 			return ret
 
+		def svg(self, schema, output_style=OutputStyle()) -> list:
+			return [f'<path d="{self.d}" {self.base_params()} />']
+
 	"""
 	Represents a circle command
 	"""
@@ -217,6 +221,9 @@ class SymbolElement:
 
 		def __repr__(self):
 			return f'<circle cx="{self.pos[0]}" cy="{self.pos[1]}" radius="{self.radius}" {self.base_params()} />'
+
+		def svg(self, schema, output_style=OutputStyle()) -> list:
+			return [f'<circle cx="{self.pos[0]}" cy="{self.pos[1]}" radius="{self.radius}" {self.base_params()} />']
 
 		@classmethod
 		def parse_from_dict(cls, json:dict):
@@ -238,6 +245,9 @@ class SymbolElement:
 				ret += '.with_stroke_style(StrokeStyle::DASHED)'			
 			return ret
 
+		def icon_list(self, symbol, output_style=OutputStyle()) -> list:
+			return [self]
+
 	"""
 	Represents a text command
 	"""
@@ -252,10 +262,48 @@ class SymbolElement:
 			self.text_type:str = 'auto' # ['auto', 'manual', 'm1', 'm2']
 			self.fill_color = 'icon' # Default to filled text
 			self.stroke_color = None # Default to no stroke
-			self.text_type = 'manual' # ['normal', 'm1', 'm2', 'manual']
+			# self.text_type = 'manual' # ['normal', 'm1', 'm2', 'manual']
 
 		def __repr__(self):
 			return f'<text x="{self.pos[0]}" y="{self.pos[1]}" font-size="{self.font_size}" font-anchor="{self.align}" {self.base_params()}>{self.text}</text>'
+
+		@classmethod
+		def get_used_pos_and_size(cls, text:str, text_type:str = 'normal'):
+			size = 42
+			pos = (100, 110)
+
+			if text_type == 'normal':
+				size = 42
+				y = 115
+				if len(text) == 1:
+					size = 45
+					y = 115
+				elif len(text) == 3:
+					size = 35
+					y = 110
+				elif len(text) >= 4:
+					size = 32
+					y = 110
+				pos = (100, y)
+			elif text_type == 'm1':
+				pos = (100, 77)
+				size = 30
+				if len(text) == 3:
+					size = 25
+				elif len(text) >= 4:
+					size = 22
+			elif text_type == 'm2':
+				y = 145
+				size = 30
+				if len(text) == 3:
+					size = 25
+					y = 140
+				elif len(text) >= 4:
+					size = 22
+					y = 135
+				pos = (100, y)
+
+			return (pos, size)
 
 		@classmethod
 		def parse_from_dict(cls, json:dict):
@@ -263,24 +311,22 @@ class SymbolElement:
 			if 'textm1' in json:
 				# Parse text
 				ret.text = json['textm1']
-				ret.text_type = 'm1'
+				ret.pos, ret.font_size = cls.get_used_pos_and_size(text=ret.text, text_type = 'm1')
+				
 			elif 'textm2' in json:
 				# Parse text
 				ret.text = json['textm2']
-				ret.text_type = 'm2'	
+				ret.pos, ret.font_size = cls.get_used_pos_and_size(text=ret.text, text_type = 'm2')
 			else:
 				ret.text = json['text']
-				ret.text_type = 'normal'
+				ret.pos, ret.font_size = cls.get_used_pos_and_size(text=ret.text, text_type = 'normal')
 
 			if 'pos' in json:
 				ret.pos = tuple(json['pos'])
-				ret.text_type = 'manual'
 			if "fontsize" in json:
 				ret.font_size = float(json["fontsize"])
-				ret.text_type = 'manual'
 			elif 'size' in json:
 				ret.font_size = float(json["size"])
-				ret.text_type = 'manual'
 
 			ret.parse_basics(json=json)
 			return ret
@@ -294,47 +340,10 @@ class SymbolElement:
 			if output_style.use_text_paths:
 				font_face = font_rendering.Font(output_style.text_path_font, size = int(self.font_size))
 
-				pos = self.pos
-				size = self.font_size
-
-				if self.text_type == 'normal':
-					size = 42
-					y = 115
-					if len(self.text) == 1:
-						size = 45
-						y = 115
-					elif len(self.text) == 3:
-						size = 35
-						y = 110
-					elif len(self.text) >= 4:
-						size = 32
-						y = 110
-					pos = (100, y)
-				elif self.text_type == 'm1':
-					pos = (100, 77)
-					size = 30
-					if len(self.text) == 3:
-						size = 25
-					elif len(self.text) >= 4:
-						size = 22
-				elif self.text_type == 'm2':
-					y = 145
-					size = 30
-					if len(self.text) == 3:
-						size = 25
-						y = 140
-					elif len(self.text) >= 4:
-						size = 22
-						y = 135
-					pos = (100, y)
-				else:
-					pos = tuple(self.pos)
-					size = self.font_size
-
 				paths = font_face.render_text(
 					text = self.text, 
-					pos = pos,
-					fontsize = int(size),
+					pos = self.pos,
+					fontsize = int(self.font_size),
 					align = self.align)
 				
 				ret_path = ' '.join(paths)
@@ -346,14 +355,14 @@ class SymbolElement:
 
 			# Default text-as-text rendition
 			ret:str = ''
-			if self.text_type == 'normal':
-				ret = 'DrawCommand::autotext("{}")'.format(self.text)
-			elif self.text_type == 'm1':
-				ret = 'DrawCommand::textm1("{}")'.format(self.text)
-			elif self.text_type == 'm2':
-				ret = 'DrawCommand::textm2("{}")'.format(self.text)
-			else:
-				ret = 'DrawCommand::text("{}", Vector2{{{}, {}}}, {})'.format(self.text, self.pos[0], self.pos[1], self.font_size)
+			# if self.text_type == 'normal':
+			# 	ret = 'DrawCommand::autotext("{}")'.format(self.text)
+			# elif self.text_type == 'm1':
+			# 	ret = 'DrawCommand::textm1("{}")'.format(self.text)
+			# elif self.text_type == 'm2':
+			# 	ret = 'DrawCommand::textm2("{}")'.format(self.text)
+			# else:
+			ret = 'DrawCommand::text("{}", Vector2{{{}, {}}}, {})'.format(self.text, self.pos[0], self.pos[1], self.font_size)
 
 			if self.fill_color is None or self.fill_color != 'icon':
 				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
@@ -365,6 +374,9 @@ class SymbolElement:
 				ret += '.with_stroke_style(StrokeStyle::DASHED)'				
 
 			return ret
+
+		def icon_list(self, symbol, output_style=OutputStyle()) -> list:
+			return [self]
 
 	"""
 	Base class for transformation
@@ -402,7 +414,8 @@ class SymbolElement:
 			ret.parse_basics(json=json)
 			return ret
 
-
+		def icon_list(self, symbol, output_style=OutputStyle()) -> list:
+			return [self]
 
 	"""
 	Represents a scaling
@@ -429,6 +442,9 @@ class SymbolElement:
 				self.scale,
 				', '.join([x.cpp(schema=schema, output_style=output_style, with_bbox=with_bbox) for x in self.items])
 			)
+
+		def icon_list(self, symbol, output_style=OutputStyle()) -> list:
+			return [self]
 
 
 	@staticmethod

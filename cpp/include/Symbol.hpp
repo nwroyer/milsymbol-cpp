@@ -235,7 +235,7 @@ struct Symbol {
     }
 
     inline constexpr HQTFD get_hqtfd() const noexcept {
-        return HQTFD::UNDEFINED;
+        return _impl::get_hqtfd(is_headquarters(), is_task_force(), is_feint_or_dummy());
     }
 
     inline constexpr SymbolSet get_symbol_set() const noexcept {return symbol_set;}

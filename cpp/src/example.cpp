@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-/**
+/**0
  * @brief Examples of constructing and saving symbols as SVG.
  */
 int main(int argc, const char** argv) {
@@ -22,28 +22,38 @@ int main(int argc, const char** argv) {
     alt_style.color_mode = milsymbol::ColorMode::LIGHT;
     alt_style.use_alternate_icons = true;
 
-    std::string code = "130310021316040007891000000000";
-    milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc(code);
-    std::cout << "I " << code << std::endl;
+    std::array test_codes = {
+        "130560000011020008101100000000",
+        "130310021316040007891000000000"
+    };
 
-    // 130310001411120021601000000000
-    // 1303100014111200216010000000000
+    for (std::string code : test_codes) {
 
-    milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
-
-    std::array array_item = {milsymbol::Affiliation::FRIEND, milsymbol::Affiliation::UNKNOWN, milsymbol::Affiliation::NEUTRAL, milsymbol::Affiliation::SUSPECT, milsymbol::Affiliation::HOSTILE};
-    for (int i = 0; i < array_item.size(); i++) {
-        milsymbol::Affiliation aff = array_item[i];
-        symbol = symbol.with_affiliation(aff);
+        milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc(code);
+        std::cout << "I " << code << std::endl;
         std::cout << "O " << symbol.to_sidc() << std::endl;
+        assert(code == symbol.to_sidc());
+
+        // 130310001411120021601000000000
+        // 1303100014111200216010000000000
 
         milsymbol::Symbol::RichOutput results = symbol.get_svg(alt_style);
-        std::ofstream example_1_file;
-        std::stringstream name_stream;
-        name_stream << "example_" << (i + 1) << ".svg";
-        example_1_file.open(name_stream.str(), std::ios_base::out);
-        example_1_file << results.svg;
-        example_1_file.close();
+
+        std::array array_item = {milsymbol::Affiliation::FRIEND, milsymbol::Affiliation::ASSUMED_FRIEND, milsymbol::Affiliation::UNKNOWN, milsymbol::Affiliation::NEUTRAL, milsymbol::Affiliation::SUSPECT, milsymbol::Affiliation::HOSTILE};
+        for (int i = 0; i < array_item.size(); i++) {
+            milsymbol::Affiliation aff = array_item[i];
+            milsymbol::Symbol new_symbol = milsymbol::Symbol(symbol).with_affiliation(aff);
+
+
+            milsymbol::Symbol::RichOutput results = new_symbol.get_svg(alt_style);
+            std::ofstream example_1_file;
+            std::stringstream name_stream;
+
+            name_stream << "example_" << new_symbol.to_sidc() << ".svg";
+            example_1_file.open(name_stream.str(), std::ios_base::out);
+            example_1_file << results.svg;
+            example_1_file.close();
+        }
     }
 
     // /*
