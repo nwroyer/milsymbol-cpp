@@ -9,3 +9,5 @@ military_symbol/__pycache__
 __pycache__
 meson.build.user*
 test
+python/test
+*.svg

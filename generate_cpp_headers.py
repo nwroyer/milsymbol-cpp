@@ -7,10 +7,12 @@ import argparse
 import copy
 import itertools
 
-from military_symbol import constants_parser
-from military_symbol.drawing_items import *
-from military_symbol.schema import *
-from military_symbol.output_style import OutputStyle
+sys.path.append(os.path.join(os.path.dirname(__file__), 'python', 'src'))
+
+import military_symbol
+
+from schema import *
+from output_style import OutputStyle
 
 def _codify_hex(item):
 	return f'0x{item}' if is_valid_hex_key(item) else -1
@@ -436,7 +438,7 @@ def main() -> None:
 	cwd = os.path.dirname(__file__)
 
 	# Gather the JSON files to parse - all .json files in this directory
-	schema = Schema.parse_from_directory(directory=os.path.join(cwd, 'schema'))
+	schema = Schema.load_from_directory(directory=os.path.join(cwd, 'python', 'src', 'schema'))
 
 	# Parse command line options
 	parser = argparse.ArgumentParser('milymbol-build-helper', description='Milsymbol build helper')

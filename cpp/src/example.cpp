@@ -24,10 +24,11 @@ int main(int argc, const char** argv) {
 
     std::array test_codes = {
         "130560000011020008101100000000",
-        "130310021316040007891000000000"
+        "130310021316040007891000000000",
+        // "130410072313010300000000000000"
     };
 
-    for (std::string code : test_codes) {
+    for (const std::string& code : test_codes) {
 
         milsymbol::Symbol symbol = milsymbol::Symbol::from_sidc(code);
         std::cout << "I " << code << std::endl;

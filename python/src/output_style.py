@@ -8,7 +8,7 @@ class OutputStyle:
 
 	DEFAULT_STROKE_WIDTH:float = 4.0
 	DEFAULT_FILL_STYLE:str = 'light'
-	DEFAULT_FONT_FILE:str = os.path.join(os.path.dirname(__file__), '..', 'schema', 'Roboto.ttf')
+	DEFAULT_FONT_FILE:str = os.path.join(os.path.dirname(__file__), 'Roboto.ttf')
 	DEFAULT_PADDING:float = 3.0
 
 	def __init__(self, use_text_paths:bool = False):
@@ -17,3 +17,5 @@ class OutputStyle:
 		self.use_alternate_icons:bool = False
 		self.fill_style:str = OutputStyle.DEFAULT_FILL_STYLE
 		self.padding:str = OutputStyle.DEFAULT_PADDING
+		self.background_color:str = "#ffffff"
+		self.background_width:float = 0

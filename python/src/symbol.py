@@ -55,6 +55,20 @@ class Symbol():
 		)
 		return ret
 
+	def to_sidc(self) -> str:
+		ret = ''
+		ret += f'13{self.context.id_code if self.context else "0"}{self.affiliation.id_code if self.affiliation else '0'}' + \
+			f'{self.status.id_code if self.status else '0'}' + \
+			f'{self.hqtfd.id_code if self.hqtfd else '0'}' + \
+			f'{self.amplifier.id_code if self.amplifier else '00'}' + \
+			f'{self.symbol_set.id_code if self.symbol_set else '00'}' + \
+			f'{self.entity.id_code if self.entity else '000000'}' + \
+			f'{self.modifier_1.id_code if self.modifier_1 else '00'}' + \
+			f'{self.modifier_2.id_code if self.modifier_2 else '00'}' + \
+			f'{self.modifier_1.id_code[0] if self.modifier_1 and len(self.modifier_1.id_code) > 2 else '0'}' + \
+			f'{self.modifier_2.id_code[0] if self.modifier_2 and len(self.modifier_2.id_code) > 2 else '0'}' + \
+			'0000000'
+
 	@classmethod
 	def from_sidc(cls, sidc:str, schema:Schema):
 		if len(sidc) < 20:
@@ -132,6 +146,8 @@ class Symbol():
 		frame_to_use = self.frame_shape_override if self.frame_shape_override is not None else \
 			self.symbol_set.dimension.frame_shape
 
+		frame_commands = []
+
 		SVG_NAMESPACE:str = "http://w3.org/2000/svg";
 		if self.is_frame_dashed():
 			base_frame = frame_to_use.frames[self.affiliation.frame_id]
@@ -151,6 +167,7 @@ class Symbol():
 				elements += [base_frame[0].copy_with_fill(fill_color=None).svg(symbol=self, output_style=output_style)]
 				elements += [e.svg(symbol=self, output_style=output_style) for e in base_frame[1:]]
 		
+		frame_commands += [c for c in frame_to_use.frames[self.affiliation.frame_id]]
 
 		frame_bbox = BBox.merge_all([e.get_bbox(symbol=self, output_style=output_style) for e in frame_to_use.frames[self.affiliation.frame_id]])
 		ret_bbox.merge(frame_bbox)
@@ -158,6 +175,7 @@ class Symbol():
 		# Handle headquarters
 		if self.is_headquarters():
 			cmd = drawing_items.SymbolElement.Path(d=f"m {ret_bbox.x_min},100 l 0,100", bbox=BBox(ret_bbox.x_min, 100, ret_bbox.x_min, 200))
+			frame_commands += [cmd]
 			elements += [cmd.svg(symbol=self, output_style=output_style)]
 			ret_bbox.merge(cmd.get_bbox(symbol=self, output_style=output_style))
 
@@ -169,11 +187,13 @@ class Symbol():
 				amplifier_offset = tuple(frame_to_use.amplifier_offsets[self.affiliation.frame_id][self.amplifier.icon_side])
 
 				command = drawing_items.SymbolElement.Translate(delta=amplifier_offset, items=self.amplifier.icon)
+				frame_commands += [command]
 				elements += [command.svg(symbol=self, output_style=output_style)]
 				ret_bbox.merge(command.get_bbox(symbol=self, output_style=output_style))
 				amplifier_bbox.merge(command.get_bbox(symbol=self, output_style=output_style))
 			else:
 				elements += [e.svg(symbol=self, output_style=output_style) for e in self.amplifier.icon]
+				frame_commands += [e for e in self.amplifier.icon]
 				amp_bbox = BBox.merge_all([e.get_bbox(symbol=self, output_style=output_style) for e in self.amplifier.icon])
 				ret_bbox.merge(amp_bbox)
 				amplifier_bbox.merge(amp_bbox)
@@ -187,6 +207,7 @@ class Symbol():
 			tf_height = 100 if not has_amps else bounds.height()
 
 			cmd = drawing_items.SymbolElement.Path(d=f"M {bounds.x_min},{bounds.y_max} l 0,-{tf_height} l {tf_width},0 l 0,{tf_height}", bbox=bounds)
+			frame_commands += [cmd]
 			ret_bbox.merge(bounds)
 			amplifier_bbox.merge(bounds)
 			elements += [cmd.svg(symbol=self, output_style=output_style)]
@@ -199,6 +220,7 @@ class Symbol():
 				bbox=BBox(x_min=origin[0], y_min=origin[1] - height, x_max = origin[1] + (2*half_width), y_max = origin[1]),
 				stroke_dashed=True)
 
+			frame_commands += [cmd]
 			ret_bbox.merge(cmd.get_bbox(symbol=symbol, output_style=output_style))
 			amplifier_bbox.merge(cmd.get_bbox(symbol=symbol, output_style=output_style))
 			elements += [cmd.svg(symbol=self, output_style=output_style)]
@@ -210,16 +232,24 @@ class Symbol():
 			icon_side = self.status.alt_icon_side if use_alt else self.status.icon_side
 
 			if icon_to_use:
-
 				if icon_side != 'middle':
 					amplifier_offset = tuple(frame_to_use.amplifier_offsets[self.affiliation.frame_id][icon_side])
 					command = drawing_items.SymbolElement.Translate(delta=amplifier_offset, items=icon_to_use)
+					frame_commands += [command]
 					elements += [command.svg(symbol=self, output_style=output_style)]
 					ret_bbox.merge(command.get_bbox(symbol=self, output_style=output_style))
 				else:
 					elements += [e.svg(symbol=self, output_style=output_style) for e in icon_to_use]
+					frame_commands += [e for e in icon_to_use]
 					status_bbox = BBox.merge_all([e.get_bbox(symbol=self, output_style=output_style) for e in icon_to_use])
 					ret_bbox.merge(status_bbox)
+
+		if output_style.background_width > 0.01:
+			bg_color = output_style.background_color
+			if not bg_color.startswith('#'):
+				bg_color = f'#{bg_color}'
+
+			elements = [cmd.copy_with_stroke(stroke_color=f'{bg_color}', stroke_width=output_style.background_width*2).svg(symbol=self, output_style=output_style) for cmd in frame_commands] + elements
 
 		# Handle entities and modifiers
 		for entmod in [self.entity, self.modifier_1, self.modifier_2]:
@@ -231,6 +261,10 @@ class Symbol():
 
 		# Create the SVGs
 		ret_bbox.expand(padding=output_style.padding)
+
+		if output_style.background_width > 0.01:
+			ret_bbox.expand(padding=output_style.background_width)
+
 		svg_content = f'<svg width="{ret_bbox.width()}" height="{ret_bbox.height()}" ' + \
 			f'viewBox="{ret_bbox.x_min} {ret_bbox.y_min} {ret_bbox.width()} {ret_bbox.height()}">\n' + \
 			'\n'.join(elements) + \
@@ -276,7 +310,7 @@ if __name__ == '__main__':
 		'130320400011030007201100000000'
 	]
 
-	schema = Schema.parse_from_directory(os.path.join(os.path.dirname(__file__), '..', 'schema'))
+	schema = Schema.load_from_directory()
 
 	test_dir = os.path.join(os.path.dirname(__file__), '..', 'test')
 	os.makedirs(test_dir, exist_ok=True)
@@ -284,7 +318,6 @@ if __name__ == '__main__':
 	output_style=OutputStyle()
 	output_style.use_text_paths = True
 	output_style.use_alternate_icons = True
-	output_style.fill_style = 'dark'
 
 	for sidc_raw in TEST_SIDCS:
 		for affil in ['1', '3', '4', '5', '6']:

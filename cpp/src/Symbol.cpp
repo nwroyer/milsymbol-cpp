@@ -131,8 +131,7 @@ static BoundingBox apply_amplifiers(const SymbolStyle& style,
             (base_bbox.y1 - 0);
 
         BoundingBox cmd_bbox{base_bbox.x1, top_point, base_bbox.x2, base_bbox.y1};
-        out.push_back(_impl::DrawCommand::dynamic_path(std::move(ss.str()), cmd_bbox)
-                          .with_stroke_style(_impl::StrokeStyle::DASHED));
+        out.push_back(_impl::DrawCommand::dynamic_path(std::move(ss.str()), cmd_bbox).with_stroke_style(_impl::StrokeStyle::DASHED));
         modifier_bbox.merge(cmd_bbox);
     }
 

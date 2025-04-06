@@ -739,7 +739,7 @@ class Schema:
 		return ret
 
 	@classmethod
-	def parse_from_directory(cls, directory:str=os.path.join(os.path.dirname(__file__), '..', 'schema'), verbose:bool = False):
+	def load_from_directory(cls, directory:str=os.path.join(os.path.dirname(__file__), 'schema'), verbose:bool = False):
 		"""
 		Parses the schema from a directory of files
 		"""

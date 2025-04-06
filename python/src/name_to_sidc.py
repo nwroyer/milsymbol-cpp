@@ -339,7 +339,7 @@ if __name__ == '__main__':
         "hostile wheeled x MLRS artillery battalion"
     ]
 
-    schema = Schema.parse_from_directory()
+    schema = Schema.load_from_directory()
 
     test_dir = os.path.join(os.path.dirname(__file__), '..', 'test')
     os.makedirs(test_dir, exist_ok=True)

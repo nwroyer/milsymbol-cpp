@@ -106,7 +106,7 @@ class SymbolElement:
 			self.fill_color:str = None
 			self.stroke_color:str = "icon"
 			self.stroke_width:float = OutputStyle.DEFAULT_STROKE_WIDTH
-			self.stroke_dashed:str = stroke_dashed
+			self.stroke_dashed:bool = stroke_dashed
 
 		def with_stroke(self, stroke_width=None, stroke_color=None, stroke_dashed=None):
 			if stroke_width is not None:
@@ -119,6 +119,10 @@ class SymbolElement:
 
 		def copy_with_stroke(self, stroke_width=None, stroke_color=None, stroke_dashed=None):
 			ret = copy.copy(self)
+			
+			if hasattr(self, 'items'):
+				setattr(ret, 'items', [e.copy_with_stroke(stroke_width=stroke_width, stroke_color=stroke_color, stroke_dashed=stroke_dashed) for e in getattr(ret, 'items')])
+
 			return ret.with_stroke(stroke_width=stroke_width, stroke_color=stroke_color, stroke_dashed=stroke_dashed)
 
 		def with_fill(self, fill_color=None):
@@ -263,7 +267,7 @@ class SymbolElement:
 				ret += '.with_stroke({})'.format(color_type_to_cpp(self.stroke_color))
 			if self.stroke_width != OutputStyle.DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
 				ret += '.with_stroke_width({})'.format(self.stroke_width)
-			if self.stroke_dashed is not None:
+			if self.stroke_dashed:
 				ret += '.with_stroke_style(StrokeStyle::DASHED)'
 
 			return ret
