@@ -1,11 +1,12 @@
 import re
 import sys
 import os
+import copy
 
 sys.path.append(os.path.dirname(__file__))
 
 from symbol import Symbol
-from schema import Schema
+from schema import Schema, SymbolSet
 from thefuzz import fuzz
 from functools import cmp_to_key
 
@@ -100,20 +101,20 @@ def fuzzy_match(schema, name_string, candidate_list, match_longest=True, verbose
 
     return matches[0][1], name_string.replace(matches[0][0], '').strip().replace('  ', ' ')
 
-# def symbol_set_from_name(symbol_schema, item, verbose:bool=False) -> SymbolSchema.SymbolSet:
-#     if item is None or symbol_schema is None:
-#         return None
-#     if isinstance(item, SymbolSchema.SymbolSet):
-#         return item
+def symbol_set_from_name(schema, item, verbose:bool=False) -> SymbolSet:
+    if item is None or schema is None:
+        return None
+    if isinstance(item, SymbolSet):
+        return item
 
-#     if not isinstance(item, str):
-#         print(f"Can't parse symbol set from item {item}", file=sys.stderr)
-#         return None
+    if not isinstance(item, str):
+        print(f"Can't parse symbol set from item {item}", file=sys.stderr)
+        return None
 
-#     # Guess from names
-#     sym_set_candidates = symbol_schema.symbol_sets.values()
-#     sym_set, sym_set_name = fuzzy_match(symbol_schema, item, sym_set_candidates, verbose=verbose)
-#     return sym_set
+    # Guess from names
+    sym_set_candidates = schema.symbol_sets.values()
+    sym_set, sym_set_name = fuzzy_match(schema, item, sym_set_candidates, verbose=verbose)
+    return sym_set
 
 
 def name_to_symbol(name: str, schema:Schema, verbose: bool = False, limit_to_symbol_sets=[]) -> Symbol:
@@ -126,31 +127,33 @@ def name_to_symbol(name: str, schema:Schema, verbose: bool = False, limit_to_sym
     :return:
     """
 
+    limit_to_symbol_sets = copy.copy(limit_to_symbol_sets)
+
     proc_name_string = name
 
     # Handle symbol categories
-#     symbol_set_tags = re.findall(r"\[([\w\d\s]+)\]", proc_name_string)
-#     if len(symbol_set_tags) > 0:
-#         if limit_to_symbol_sets is not None:
-#             limit_to_symbol_sets.extend([d.lower() for d in symbol_set_tags])
-#         else:
-#             limit_to_symbol_sets = list([d.lower() for d in symbol_set_tags])
+    symbol_set_tags = re.findall(r"\[([\w\d\s]+)\]", proc_name_string)
+    if len(symbol_set_tags) > 0:
+        if limit_to_symbol_sets is not None:
+            limit_to_symbol_sets.extend([d.lower() for d in symbol_set_tags])
+        else:
+            limit_to_symbol_sets = list([d.lower() for d in symbol_set_tags])
 
-#     # Remove category tags
-#     proc_name_string = re.sub(r"\[([\w\d\s]+)\]", "", proc_name_string)
-#     proc_name_string = re.sub(r"\s+", " ", proc_name_string)
+    # Remove category tags
+    proc_name_string = re.sub(r"\[([\w\d\s]+)\]", "", proc_name_string)
+    proc_name_string = re.sub(r"\s+", " ", proc_name_string)
 
-#     if verbose and len(symbol_set_tags) > 0:
-#         print('\tIdentified tags ' + ", ".join([f'\"{d}\"' for d in symbol_set_tags]) + f" -> {proc_name_string}")
+    if verbose and len(symbol_set_tags) > 0:
+        print('\tIdentified tags ' + ", ".join([f'\"{d}\"' for d in symbol_set_tags]) + f" -> {proc_name_string}")
 
-#     # Handle restricting to specific symbol sets
-#     if limit_to_symbol_sets is not None and isinstance(limit_to_symbol_sets, list) and len(limit_to_symbol_sets) > 0:
-#         limit_to_symbol_sets = [symbol_set_from_name(symbol_schema, item) for item in limit_to_symbol_sets if symbol_set_from_name(symbol_schema, item) is not None]
-#     else:
-#         limit_to_symbol_sets = None
+    # Handle restricting to specific symbol sets
+    if limit_to_symbol_sets is not None and isinstance(limit_to_symbol_sets, list) and len(limit_to_symbol_sets) > 0:
+        limit_to_symbol_sets = [symbol_set_from_name(schema, item) for item in limit_to_symbol_sets if symbol_set_from_name(schema, item) is not None]
+    else:
+        limit_to_symbol_sets = None
 
-#     if verbose:
-#         print(f'\tLimiting to symbol sets {limit_to_symbol_sets}')
+    if verbose and limit_to_symbol_sets is not None:
+        print(f'\tLimiting to symbol sets {[e.names[0] for e in limit_to_symbol_sets]}')
     
     # Sanitize string
     proc_name_string = proc_name_string.lower()
@@ -173,7 +176,6 @@ def name_to_symbol(name: str, schema:Schema, verbose: bool = False, limit_to_sym
 #     else:
 #         ret_symbol = MilitarySymbol(symbol_schema)
 
-    
     template = None
     ret_symbol = Symbol()
     ret_symbol.schema = schema
@@ -181,7 +183,7 @@ def name_to_symbol(name: str, schema:Schema, verbose: bool = False, limit_to_sym
     # Step 1: Detect standard identity
     if template is None or not template.standard_identity_fixed:
         affiliation, new_name_string = fuzzy_match(schema, proc_name_string.lower(), schema.affiliations.values(), match_longest=True)
-        
+
         if affiliation is None:
             print("\tUnable to determine standard identity; assuming unknown")
             affiliation = [si for si in symbol_schema.standard_identities.values() if si.name == 'unknown'][0]
@@ -203,8 +205,8 @@ def name_to_symbol(name: str, schema:Schema, verbose: bool = False, limit_to_sym
         candidate_amplifiers = [amp for amp in schema.amplifiers.values() if amp.prerun]
 
         # Limit to given symbol sets
-        # if limit_to_symbol_sets is not None:
-        #     candidate_amplifiers = [amp for amp in candidate_amplifiers if amp.applies_to_any_in_symbol_sets(limit_to_symbol_sets)]
+        if limit_to_symbol_sets is not None:
+            candidate_amplifiers = [amp for amp in candidate_amplifiers if amp.applies_to_any_in_symbol_sets(limit_to_symbol_sets)]
 
         amplifier, new_name_string = fuzzy_match(schema, proc_name_string, candidate_amplifiers, match_longest=True)
         if amplifier is not None:
@@ -221,23 +223,26 @@ def name_to_symbol(name: str, schema:Schema, verbose: bool = False, limit_to_sym
         candidates = schema.get_flat_entities()
 
         # Limit to symbol sets
-        # if limit_to_symbol_sets is not None:
-        #     candidates = [c for c in candidates if c.is_in_any_of_symbol_sets(limit_to_symbol_sets)]
+        if limit_to_symbol_sets is not None:
+            candidates = [c for c in candidates if c.is_in_any_of_symbol_sets(limit_to_symbol_sets)]
 
-        # if ret_symbol.amplifier is not None:
-        #     candidates = [c for c in candidates if ret_symbol.amplifier.applies_to_entity(c)]
+        # Limit by amplifiers TODO
+        if ret_symbol.amplifier is not None:
+            if verbose:
+                print(f"\tLimiting to symbol sets \"{[e.names[0] for e in ret_symbol.amplifier.get_applicable_symbol_sets(schema)]}\" due to amplifier \"{ret_symbol.amplifier.names[0]}\"")
+            candidates = [c for c in candidates if ret_symbol.amplifier.applies_to_entity(c)]
 
         entity_type, new_name_string = fuzzy_match(schema, proc_name_string, candidates, match_longest=True, verbose=verbose)
 
         symbol_set = None
         if entity_type is None:
-            print(f"\tWARNING: Unable to determine entity type from string \"{name_string}\"; defaulting to land unit")
+            print(f"\tWARNING: Unable to determine entity type from string \"{proc_name_string}\"; defaulting to land unit")
             if limit_to_symbol_sets is None or len(limit_to_symbol_sets) < 1:
                 symbol_set = [set for set in symbol_schema.symbol_sets.values() if set.names[0] == 'land unit'][0]
             else:
                 symbol_set = limit_to_symbol_sets[0]
 
-            ret_symbol.entity = symbol_set.get_entity("000000")
+            ret_symbol.entity = symbol_set.entities.get('000000', None)
             ret_symbol.symbol_set = symbol_set
         else:
             symbol_set = entity_type.symbol_set
@@ -328,7 +333,10 @@ if __name__ == '__main__':
         "joker network",
         "neutral MILCO general",
         "enemy attack planetary lander",
-        "assumed friend space station"
+        "assumed friend space station",
+        "friendly military base [land installation]",
+        "neutral infantry battalion HQ unit",
+        "hostile wheeled x MLRS artillery battalion"
     ]
 
     schema = Schema.parse_from_directory()

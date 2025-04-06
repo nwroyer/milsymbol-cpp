@@ -355,10 +355,25 @@ class Amplifier:
 		self.prerun:bool = False
 		self.match_name:bool = True
 
-	def applies_to_symbol_set(self, symbol_set) -> bool:
+	def applies_to_dimension(self, dimension) -> bool:
 		if symbol_set is None:
 			return False
-		return True
+
+		return dimension in self.applies_to
+
+	def applies_to_symbol_set(self, symbol_set) -> bool:
+		if symbol_set is None or symbol_set.dimension is None:
+			return False
+
+		return self.applies_to_dimension(symbol_set.dimension)
+
+	def applies_to_entity(self, entity) -> bool:
+		if entity is None or entity.symbol_set is None:
+			return False
+		return self.applies_to_symbol_set(entity.symbol_set)
+
+	def get_applicable_symbol_sets(self, schema) -> bool:
+		return [ss for ss in schema.symbol_sets.values() if self.applies_to_symbol_set(ss)]
 
 	@staticmethod
 	def from_dict(id_code:str, json:dict, schema):
@@ -374,11 +389,12 @@ class Amplifier:
 			return None
 
 		amplifier.category = json.get("category", "")
-		amplifier.applies_to = json.get("applies to", [])
-		for apt in amplifier.applies_to:
+		amplifier.applies_to = [] 
+		for apt in json.get("applies to", []):
 			if apt not in schema.dimensions:
 				print(f"Bad applies to dimension \"{apt}\" for amplifier {amplifier.id_code}", file=sys.stderr)
 				return None
+			amplifier.applies_to.append(schema.dimensions[apt])
 
 		amplifier.icon_side = json.get('icon side', 'middle')
 
@@ -389,6 +405,22 @@ class Amplifier:
 		amplifier.prerun = bool(json.get('prerun', False))
 
 		return amplifier
+
+	def applies_to_dimension(self, dimension) -> bool:
+		if dimension is None:
+			return False
+		return dimension in self.applies_to
+
+	def applies_to_symbol_set(self, symbol_set) -> bool:
+		if symbol_set is None or symbol_set.dimension is None:
+			return False
+		return self.applies_to_dimension(dimension=symbol_set.dimension)
+
+	def applies_to_any_in_symbol_sets(self, symbol_sets) -> bool:
+		for symbol_set in symbol_sets:
+			if self.applies_to_symbol_set(symbol_set=symbol_set):
+				return True
+		return False
 
 	def icon_cpp(self, schema, output_style, with_bbox=False):
 		return 'SymbolLayer{{{}}}'.format(
@@ -428,6 +460,9 @@ class SymbolLayer:
 			', '.join([cmd.cpp(output_style=output_style, schema=schema, with_bbox=with_bbox) for cmd in self.alt_icon]),
 			'.with_civilian_override(true)' if self.civilian else ''
 		)
+
+	def is_in_any_of_symbol_sets(self, symbol_sets):
+		return self.symbol_set in symbol_sets
 
 	@classmethod
 	def parse_from_dict(cls, id_code:str, json:dict, full_items:dict, schema, symbol_set = None):
@@ -484,6 +519,7 @@ class SymbolSet:
 		self.entities:dict = {} # A map of the entities in this symbol set
 		self.m1:dict = {}
 		self.m2:dict = {}
+		self.match_name:bool = True
 		
 	def __lt__(self, other) -> bool:
 		if self.common != other.common:
@@ -531,6 +567,8 @@ class SymbolSet:
 
 		icon_set:str = json_dict['set']
 		ret_set = cls()
+
+		ret_set.match_name = json_dict.get('match name', True)
 
 		for item_type, ItemTypeClass in ITEM_TYPES:
 			if not (item_type in json_dict):
