@@ -7,9 +7,9 @@ import argparse
 import copy
 import itertools
 
-from python.constants_parser import *
-from python.drawing_items import *
-from python.schema import *
+from military_symbol import constants_parser
+from military_symbol.drawing_items import *
+from military_symbol.schema import *
 
 def _codify_hex(item):
 	return f'0x{item}' if is_valid_hex_key(item) else -1
@@ -219,7 +219,7 @@ def create_schema(schema:Schema,
 		dim_entries = []
 
 		for frame_shape in [f for f in schema.frame_shapes.values() if len(f.frames) > 0]:
-			draw_commands = frame_shape.frames[base.names[0]]
+			draw_commands = frame_shape.frames[base.id_code]
 			draw_cmd = f'SymbolLayer{{{", ".join([cmd.cpp(schema=schema) for cmd in draw_commands])}}}'
 			dim_entries.append(f'{{FrameShape::{sanitize_constant(frame_shape.names[0])}, {draw_cmd}}}')
 

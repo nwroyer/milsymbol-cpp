@@ -1,7 +1,9 @@
-from .font_rendering import Font
 import re
 import sys
 import os
+
+sys.path.append(os.path.dirname(__file__))
+import font_rendering
 
 """
 The default stroke to use for symbols
@@ -290,7 +292,7 @@ class SymbolElement:
 			then return
 			"""
 			if output_style.use_text_paths:
-				font_face = Font(output_style.text_path_font, size = int(self.font_size))
+				font_face = font_rendering.Font(output_style.text_path_font, size = int(self.font_size))
 
 				pos = self.pos
 				size = self.font_size

@@ -81,7 +81,8 @@
 
 	"frame shapes": {
 		"0": {
-			"names": ["unknown"], "frames": {}
+			"names": ["unknown"],
+			"frames": {}
 		},
 		"1": {
 			"names": ["space"],

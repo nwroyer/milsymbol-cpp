@@ -3,8 +3,9 @@ import re
 import json
 import sys
 import glob
+sys.path.append(os.path.dirname(__file__))
 
-from . import drawing_items
+import drawing_items
 
 def is_valid_hex_key(key:str, required_length:int=-1) -> bool:
 	"""
@@ -98,6 +99,11 @@ class Affiliation:
 
 			affiliation.colors = {color_id: json['colors'][color_id] for color_id in schema.color_modes}
 
+		if not affiliation.frame_id:
+			affiliation.frame_id = affiliation.id_code
+		if not affiliation.color_id:
+			affiliation.color_id = affiliation.id_code
+
 		return affiliation
 
 	def get_base_frame_affiliation(self, schema):
@@ -113,10 +119,17 @@ class Affiliation:
 class FrameShape:
 
 	DEFAULT_AMPLIFIER_OFFSETS:dict = {
-		'unknown': {'top': [0, 0], 'bottom': [0, 0]},
-		'friend': {'top': [0, 0], 'bottom': [0, 0]},
-		'neutral': {'top': [0, 0], 'bottom': [0, 0]},
-		'hostile': {'top': [0, 0], 'bottom': [0, 0]},
+		'1': {'top': [0, 0], 'bottom': [0, 0]},
+		'3': {'top': [0, 0], 'bottom': [0, 0]},
+		'4': {'top': [0, 0], 'bottom': [0, 0]},
+		'6': {'top': [0, 0], 'bottom': [0, 0]},
+	}
+
+	KEY_TRANSLATION:dict = {
+		'unknown': '1',
+		'friend': '3',
+		'neutral': '4',
+		'hostile': '6'
 	}
 
 	def __init__(self):
@@ -126,7 +139,7 @@ class FrameShape:
 		self.amplifier_offsets:dict = self.DEFAULT_AMPLIFIER_OFFSETS
 
 	def __repr__(self):
-		return f'Frame shape \"{self.id_code}\" {len(self.frames[list(self.frames.keys())[0]])}'
+		return f'Frame shape \"{self.id_code}\" ({len(self.frames[list(self.frames.keys())[0]])} elements)'
 
 	@classmethod
 	def from_dict(cls, id_code:str, json:dict, over_dict:dict):
@@ -152,14 +165,14 @@ class FrameShape:
 
 			# Apply base frame
 			for frame_key, frame_list in json.get("frames", {}).items():
-				ret[frame_key] = [f for f in frame_list]
+				ret[FrameShape.KEY_TRANSLATION[frame_key]] = [f for f in frame_list]
 
 			# Apply frame decorators
 			for frame_key, frame_list in json.get("decorators", {}).items():
 				if frame_key in ret:
-					ret[frame_key] = ret[frame_key] + frame_list
+					ret[FrameShape.KEY_TRANSLATION[frame_key]] = ret[FrameShape.KEY_TRANSLATION[frame_key]] + frame_list
 				else:
-					ret[frame_key] = [f for f in frame_list]
+					ret[FrameShape.KEY_TRANSLATION[frame_key]] = [f for f in frame_list]
 
 			return ret, amplifier_offsets
 
@@ -330,7 +343,7 @@ class Amplifier:
 		amplifier.id_code = id_code
 		amplifier.names = json.get("names", [])
 		if len(amplifier.names) < 1:
-			print(f"No names for amplifier {self.id_code}")
+			print(f"No names for amplifier {self.id_code}", file=sys.stderr)
 			return None
 
 		amplifier.category = json.get("category", "")
@@ -385,7 +398,7 @@ class SymbolLayer:
 	@classmethod
 	def parse_from_dict(cls, id_code:str, json:dict, full_items:dict, schema):
 		if 'icon' not in json or 'names' not in json:
-			print('No keys in {}'.format(uid))
+			print('No keys in {}'.format(uid), file=sys.stderr)
 			return None
 
 		# if not is_valid_hex_key(id_code):
@@ -443,7 +456,7 @@ class SymbolSet:
 		return int(self.id_code) < int(other.id_code)
 
 	@classmethod
-	def parse_from_file(cls, filepath:str, schema):
+	def parse_from_file(cls, filepath:str, schema, verbose:bool=False):
 		"""
 		Parse a JSON file representing a single symbol set.
 		"""
@@ -451,7 +464,7 @@ class SymbolSet:
 		ITEM_TYPES = [("IC", Entity), ("M1", Modifier), ("M2", Modifier)]
 
 		if not os.path.exists(filepath):
-			print(f'No file "{filepath}"')
+			print(f'No file "{filepath}" in parsing SymbolSet', file=sys.stderr)
 			return None
 
 		json_str:str = ''
@@ -489,7 +502,7 @@ class SymbolSet:
 			for item_code, item in json_dict[item_type].items():
 				# print(f'Loading {json_dict["set"]}:{item_type}:{item_code}')
 				if not(('names' in item or 'name' in item) and 'icon' in item):
-					print(f'Improper indices for {json_dict["set"]}:{item_type}:{item_code}')
+					print(f'Improper indices for {json_dict["set"]}:{item_type}:{item_code}', file=sys.stderr)
 					return None
 
 				new_symbol_layer = ItemTypeClass.parse_from_dict(id_code=item_code, json=item, full_items=json_dict[item_type], schema=schema)
@@ -519,6 +532,8 @@ class Schema:
 		self.color_modes:list = []
 		## The order in which full frame symbols are expected (for C++)
 		self.full_frame_ordering:list = []
+
+		
 		## The frame shapes in this schema
 		self.frame_shapes:dict = {}
 		## The dimensions this schema has
@@ -561,13 +576,13 @@ class Schema:
 	def get_base_affiliation_dict(self) -> list:
 		return {ret: ret.get_base_frame_affiliation(schema=self) for ret in self.affiliations.values()}
 
-	def parse_constants_from_file(self, filepath:str):
+	def parse_constants_from_file(self, filepath:str, verbose:bool=False):
 		"""
 		Parses a set of constants from a given filepath
 		"""
 
 		if not os.path.exists(filepath):
-			print(f'No constant file "{filepath}"')
+			print(f'No constant file "{filepath}"', file=sys.stderr)
 			return None
 
 		json_str:str = ''
@@ -577,7 +592,8 @@ class Schema:
 
 		json_dict = json.loads(json_str)
 
-		print(f'Parsing constant file \"{filepath}\"')
+		if verbose:
+			print(f'Parsing constant file \"{filepath}\"')
 			
 		# Validate required keys
 		REQUIRED_KEYS:list = ['contexts', 'affiliations', 'color modes', 'dimensions', 'full frame ordering']
@@ -638,11 +654,12 @@ class Schema:
 			if hqtfd is not None:
 				self.hqtfds[hqtfd.id_code] = hqtfd
 
-		self.print_constants()
+		if verbose:
+			self.print_constants()
 		return True
 
 	@classmethod
-	def parse_from_directory(cls, directory:str):
+	def parse_from_directory(cls, directory:str, verbose:bool = False):
 		"""
 		Parses the schema from a directory of files
 		"""
@@ -661,8 +678,9 @@ class Schema:
 		# Parse all the JSON files
 		symbol_sets = []
 		for filename in [f for f in files if os.path.basename(f) != 'constants.json']:
-			print(f'Parsing "{filename}"...')
-			symbol_set:SymbolSet = SymbolSet.parse_from_file(filename, schema=schema)
+			if verbose:
+				print(f'Parsing "{filename}"...')
+			symbol_set:SymbolSet = SymbolSet.parse_from_file(filename, schema=schema, verbose=verbose)
 			if symbol_set is None:
 				print(f"Bad symbol set file \"{filename}\"", file=sys.stderr)
 				continue

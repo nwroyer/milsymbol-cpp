@@ -128,21 +128,21 @@ inline static constexpr HQTFD sidc_to_hqtfd(std::string_view strview) noexcept {
 
 static constexpr SymbolSet sidc_to_symbol_set(int hex_code) noexcept {
 	const auto MAP = mapbox::eternal::map<int, SymbolSet>({
-		{0x06, SymbolSet::SPACE_MISSILE},
-		{0x11, SymbolSet::LAND_CIVILIAN_UNIT_ORGANIZATION},
-		{0x15, SymbolSet::LAND_EQUIPMENT},
-		{0x50, SymbolSet::SIGNALS_INTELLIGENCE},
-		{0x10, SymbolSet::LAND_UNIT},
-		{0x40, SymbolSet::ACTIVITIES},
-		{0x36, SymbolSet::MINE_WARFARE},
-		{0x20, SymbolSet::LAND_INSTALLATION},
-		{0x60, SymbolSet::CYBERSPACE},
-		{0x30, SymbolSet::SEA_SURFACE},
 		{0x05, SymbolSet::SPACE},
-		{0x27, SymbolSet::DISMOUNTED_INDIVIDUAL},
-		{0x01, SymbolSet::AIR},
+		{0x40, SymbolSet::ACTIVITIES},
+		{0x50, SymbolSet::SIGNALS_INTELLIGENCE},
 		{0x35, SymbolSet::SEA_SUBSURFACE},
-		{0x02, SymbolSet::AIR_MISSILE}
+		{0x36, SymbolSet::MINE_WARFARE},
+		{0x60, SymbolSet::CYBERSPACE},
+		{0x10, SymbolSet::LAND_UNIT},
+		{0x15, SymbolSet::LAND_EQUIPMENT},
+		{0x02, SymbolSet::AIR_MISSILE},
+		{0x30, SymbolSet::SEA_SURFACE},
+		{0x01, SymbolSet::AIR},
+		{0x20, SymbolSet::LAND_INSTALLATION},
+		{0x27, SymbolSet::DISMOUNTED_INDIVIDUAL},
+		{0x11, SymbolSet::LAND_CIVILIAN_UNIT_ORGANIZATION},
+		{0x06, SymbolSet::SPACE_MISSILE}
 	});
 	auto it = MAP.find(hex_code);
 	return (it != MAP.end() ? it->second : SymbolSet{});
@@ -2414,15 +2414,15 @@ static constexpr const SymbolLayer get_base_symbol_geometry(FrameShape frame_sha
 	Affiliation base_affiliation = get_frame_base_affiliation(affiliation);
 	if (base_affiliation == Affiliation::UNKNOWN) {
 		const auto ENTITY_MAP = mapbox::eternal::map<FrameShape, SymbolLayer>({
-			{FrameShape::SPACE, SymbolLayer{DrawCommand::path("M 65,150 c -55,0 -50,-90 0,-90 0,-50 70,-50 70,0 50,0 55,90 0,90", BoundingBox(45, 20, 155, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 100 22.5 C 85 22.5 70 31.669211 66 50 L 134 50 C 130 31.669204 115 22.5 100 22.5 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::SPACE, SymbolLayer{DrawCommand::path("M 100 22.5 C 85 22.5 70 31.669211 66 50 L 134 50 C 130 31.669204 115 22.5 100 22.5 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{FrameShape::AIR, SymbolLayer{DrawCommand::path("M 65,150 c -55,0 -50,-90 0,-90 0,-50 70,-50 70,0 50,0 55,90 0,90", BoundingBox(45, 20, 155, 150)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::LAND_UNIT, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::LAND_EQUIPMENT_AND_SEA_SURFACE, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
-			{FrameShape::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M85,30.75 85,20.75 115,20.75 115,30.75 100,26.75 Z", BoundingBox(85, 20.75, 115, 30.75)).with_fill(ColorType::ICON)}},
+			{FrameShape::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M85,30.75 85,20.75 115,20.75 115,30.75 100,26.75 Z", BoundingBox(85, 20.75, 115, 30.75)).with_fill(ColorType::ICON)}},
 			{FrameShape::DISMOUNTED_INDIVIDUAL, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::SEA_SUBSURFACE, SymbolLayer{DrawCommand::path("m 65,50 c -55,0 -50,90 0,90 0,50 70,50 70,0 50,0 55,-90 0,-90", BoundingBox(25, 50, 175, 180)).with_fill(ColorType::ICON_FILL)}},
-			{FrameShape::ACTIVITIES, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 107.96875 31.46875 L 92.03125 31.71875 L 92.03125 46.4375 L 107.71875 46.4375 L 107.96875 31.46875 z M 47.03125 92.5 L 31.09375 92.75 L 31.09375 107.5 L 46.78125 107.5 L 47.03125 92.5 z M 168.4375 92.5 L 152.5 92.75 L 152.5 107.5 L 168.1875 107.5 L 168.4375 92.5 z M 107.96875 153.5625 L 92.03125 153.8125 L 92.03125 168.53125 L 107.71875 168.53125 L 107.96875 153.5625 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
-			{FrameShape::CYBERSPACE, SymbolLayer{DrawCommand::path("M63,63 C63,20 137,20 137,63 C180,63 180,137 137,137 C137,180 63,180 63,137 C20,137 20,63 63,63 Z", BoundingBox(30.75, 30.75, 169.25, 169.25)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 150 65.7 L 150 134 C 176 123 176 77.2 150 65.7 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::ACTIVITIES, SymbolLayer{DrawCommand::path("M 107.96875 31.46875 L 92.03125 31.71875 L 92.03125 46.4375 L 107.71875 46.4375 L 107.96875 31.46875 z M 47.03125 92.5 L 31.09375 92.75 L 31.09375 107.5 L 46.78125 107.5 L 47.03125 92.5 z M 168.4375 92.5 L 152.5 92.75 L 152.5 107.5 L 168.1875 107.5 L 168.4375 92.5 z M 107.96875 153.5625 L 92.03125 153.8125 L 92.03125 168.53125 L 107.71875 168.53125 L 107.96875 153.5625 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::CYBERSPACE, SymbolLayer{DrawCommand::path("M 150 65.7 L 150 134 C 176 123 176 77.2 150 65.7 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{FrameShape::POSITION_ONLY, SymbolLayer{DrawCommand::circle(Vector2{100, 100}, 15).with_fill(ColorType::ICON_FILL)}}
 		});
 
@@ -2432,15 +2432,15 @@ static constexpr const SymbolLayer get_base_symbol_geometry(FrameShape frame_sha
 
 	if (base_affiliation == Affiliation::FRIEND) {
 		const auto ENTITY_MAP = mapbox::eternal::map<FrameShape, SymbolLayer>({
-			{FrameShape::SPACE, SymbolLayer{DrawCommand::path("M 155,150 C 155,50 115,30 100,30 85,30 45,50 45,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 100,30 C 90,30 80,35 68.65625,50 l 62.6875,0 C 120,35 110,30 100,30", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::SPACE, SymbolLayer{DrawCommand::path("M 100,30 C 90,30 80,35 68.65625,50 l 62.6875,0 C 120,35 110,30 100,30", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{FrameShape::AIR, SymbolLayer{DrawCommand::path("M 155,150 C 155,50 115,30 100,30 85,30 45,50 45,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::LAND_UNIT, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::LAND_EQUIPMENT_AND_SEA_SURFACE, SymbolLayer{DrawCommand::circle(Vector2{100, 100}, 60).with_fill(ColorType::ICON_FILL)}},
-			{FrameShape::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M85,48 85,40 115,40 115,48 100,46 Z", BoundingBox(85, 40, 115, 48)).with_fill(ColorType::ICON)}},
+			{FrameShape::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M85,48 85,40 115,40 115,48 100,46 Z", BoundingBox(85, 40, 115, 48)).with_fill(ColorType::ICON)}},
 			{FrameShape::DISMOUNTED_INDIVIDUAL, SymbolLayer{DrawCommand::path("m 100,45 55,25 0,60 -55,25 -55,-25 0,-60 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::SEA_SUBSURFACE, SymbolLayer{DrawCommand::path("m 45,50 c 0,100 40,120 55,120 15,0 55,-20 55,-120", BoundingBox(45, 50, 155, 170)).with_fill(ColorType::ICON_FILL)}},
-			{FrameShape::ACTIVITIES, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("m 160,135 0,15 15,0 0,-15 z m -135,0 15,0 0,15 -15,0 z m 135,-85 0,15 15,0 0,-15 z m -135,0 15,0 0,15 -15,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
-			{FrameShape::CYBERSPACE, SymbolLayer{DrawCommand::path("M25,50 l150,0 0,100 -150,0 z", BoundingBox(25, 50, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("m 135,150 40,-40 0,40 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::ACTIVITIES, SymbolLayer{DrawCommand::path("m 160,135 0,15 15,0 0,-15 z m -135,0 15,0 0,15 -15,0 z m 135,-85 0,15 15,0 0,-15 z m -135,0 15,0 0,15 -15,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::CYBERSPACE, SymbolLayer{DrawCommand::path("m 135,150 40,-40 0,40 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{FrameShape::POSITION_ONLY, SymbolLayer{DrawCommand::circle(Vector2{100, 100}, 15).with_fill(ColorType::ICON_FILL)}}
 		});
 
@@ -2450,15 +2450,15 @@ static constexpr const SymbolLayer get_base_symbol_geometry(FrameShape frame_sha
 
 	if (base_affiliation == Affiliation::NEUTRAL) {
 		const auto ENTITY_MAP = mapbox::eternal::map<FrameShape, SymbolLayer>({
-			{FrameShape::SPACE, SymbolLayer{DrawCommand::path("M 45,150 L 45,30,155,30,155,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M45,50 l0,-20 110,0 0,20 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::SPACE, SymbolLayer{DrawCommand::path("M45,50 l0,-20 110,0 0,20 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{FrameShape::AIR, SymbolLayer{DrawCommand::path("M 45,150 L 45,30,155,30,155,150", BoundingBox(45, 30, 155, 150)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::LAND_UNIT, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::LAND_EQUIPMENT_AND_SEA_SURFACE, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
-			{FrameShape::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M85,43 85,35 115,35 115,43 100,41 Z", BoundingBox(85, 35, 115, 43)).with_fill(ColorType::ICON)}},
+			{FrameShape::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M85,43 85,35 115,35 115,43 100,41 Z", BoundingBox(85, 35, 115, 43)).with_fill(ColorType::ICON)}},
 			{FrameShape::DISMOUNTED_INDIVIDUAL, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::SEA_SUBSURFACE, SymbolLayer{DrawCommand::path("M45,50 L45,170 155,170 155,50", BoundingBox(45, 50, 155, 170)).with_fill(ColorType::ICON_FILL)}},
-			{FrameShape::ACTIVITIES, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL), DrawCommand::path("m 140,140 15,0 0,15 -15,0 z m -80,0 0,15 -15,0 0,-15 z m 80,-80 0,-15 15,0 0,15 z m -80,0 -15,0 0,-15 15,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
-			{FrameShape::CYBERSPACE, SymbolLayer{DrawCommand::path("M45,45 l110,0 0,110 -110,0 z", BoundingBox(45, 45, 155, 155)).with_fill(ColorType::ICON_FILL), DrawCommand::path("m 115,155 40,-40 0,40 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::ACTIVITIES, SymbolLayer{DrawCommand::path("m 140,140 15,0 0,15 -15,0 z m -80,0 0,15 -15,0 0,-15 z m 80,-80 0,-15 15,0 0,15 z m -80,0 -15,0 0,-15 15,0 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::CYBERSPACE, SymbolLayer{DrawCommand::path("m 115,155 40,-40 0,40 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{FrameShape::POSITION_ONLY, SymbolLayer{DrawCommand::circle(Vector2{100, 100}, 15).with_fill(ColorType::ICON_FILL)}}
 		});
 
@@ -2468,15 +2468,15 @@ static constexpr const SymbolLayer get_base_symbol_geometry(FrameShape frame_sha
 
 	if (base_affiliation == Affiliation::HOSTILE) {
 		const auto ENTITY_MAP = mapbox::eternal::map<FrameShape, SymbolLayer>({
-			{FrameShape::SPACE, SymbolLayer{DrawCommand::path("M 45,150 L45,70 100,20 155,70 155,150", BoundingBox(25, 20, 175, 150)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M67,50 L100,20 133,50 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::SPACE, SymbolLayer{DrawCommand::path("M67,50 L100,20 133,50 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{FrameShape::AIR, SymbolLayer{DrawCommand::path("M 45,150 L45,70 100,20 155,70 155,150", BoundingBox(25, 20, 175, 150)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::LAND_UNIT, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::LAND_EQUIPMENT_AND_SEA_SURFACE, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},
-			{FrameShape::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M85,40 85,18 115,18 115,40 100,24 Z", BoundingBox(85, 18, 115, 40)).with_fill(ColorType::ICON)}},
+			{FrameShape::LAND_INSTALLATION, SymbolLayer{DrawCommand::path("M85,40 85,18 115,18 115,40 100,24 Z", BoundingBox(85, 18, 115, 40)).with_fill(ColorType::ICON)}},
 			{FrameShape::DISMOUNTED_INDIVIDUAL, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL)}},
 			{FrameShape::SEA_SUBSURFACE, SymbolLayer{DrawCommand::path("M45,50 L45,130 100,180 155,130 155,50", BoundingBox(45, 50, 155, 180)).with_fill(ColorType::ICON_FILL)}},
-			{FrameShape::ACTIVITIES, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL), DrawCommand::path("M 100 28 L 89.40625 38.59375 L 100 49.21875 L 110.59375 38.59375 L 100 28 z M 38.6875 89.3125 L 28.0625 99.9375 L 38.6875 110.53125 L 49.28125 99.9375 L 38.6875 89.3125 z M 161.40625 89.40625 L 150.78125 100 L 161.40625 110.59375 L 172 100 L 161.40625 89.40625 z M 99.9375 150.71875 L 89.3125 161.3125 L 99.9375 171.9375 L 110.53125 161.3125 L 99.9375 150.71875", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
-			{FrameShape::CYBERSPACE, SymbolLayer{DrawCommand::path("M 100,28 L172,100 100,172 28,100 100,28 Z", BoundingBox(28, 28, 172, 172)).with_fill(ColorType::ICON_FILL), DrawCommand::path("m 150,78 0,44 22,-22 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::ACTIVITIES, SymbolLayer{DrawCommand::path("M 100 28 L 89.40625 38.59375 L 100 49.21875 L 110.59375 38.59375 L 100 28 z M 38.6875 89.3125 L 28.0625 99.9375 L 38.6875 110.53125 L 49.28125 99.9375 L 38.6875 89.3125 z M 161.40625 89.40625 L 150.78125 100 L 161.40625 110.59375 L 172 100 L 161.40625 89.40625 z M 99.9375 150.71875 L 89.3125 161.3125 L 99.9375 171.9375 L 110.53125 161.3125 L 99.9375 150.71875", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
+			{FrameShape::CYBERSPACE, SymbolLayer{DrawCommand::path("m 150,78 0,44 22,-22 z", BoundingBox(100, 100, 100, 100)).with_fill(ColorType::ICON).with_stroke(ColorType::NONE)}},
 			{FrameShape::POSITION_ONLY, SymbolLayer{DrawCommand::circle(Vector2{100, 100}, 15).with_fill(ColorType::ICON_FILL)}}
 		});
 
