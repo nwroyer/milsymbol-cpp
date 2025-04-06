@@ -161,7 +161,9 @@ class FrameShape:
 
 			# Apply amplifier offsets
 			if 'amplifier offsets' in json:
-				amplifier_offsets = json['amplifier offsets']
+				amplifier_offsets = {}
+				for key, value in json['amplifier offsets'].items():
+					amplifier_offsets[FrameShape.KEY_TRANSLATION[key]] = value
 
 			# Apply base frame
 			for frame_key, frame_list in json.get("frames", {}).items():

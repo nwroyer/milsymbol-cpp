@@ -41,7 +41,7 @@
 			"names": ["friend", "friendly"],
 			"has civilian variant": true,
 			"colors": {
-				"light":    [128, 255, 255],
+				"light":    [128, 224, 255],
 				"medium":   [  0, 168, 220],
 				"dark":     [  0, 107, 140],
 				"unfilled": [  0, 255, 255]
@@ -290,12 +290,12 @@
 			"icon side": "middle",
 			"icon": [{"d": "M150,20 L50,180", "strokewidth": 8, "stroke": true, "fill": false, "bbox": [50, 20, 150, 180]}],
 			"alt icon side": "bottom",
-			"alt icon": [{"d": "M 40,185 l 120,0 0,25 -120,0 z", "stroke": true, "fill": "status red", "bbox": [40, 185, 160, 170]}]
+			"alt icon": [{"d": "M25,155 l150,0 0,25 -150,0 z", "stroke": true, "fill": "status red", "bbox": [25, 155, 175, 180]}]
 		},
 		"5": {
 			"names": ["full to capacity"],
 			"alt icon side": "bottom",
-			"alt icon": [{"d": "M 40,185 l 120,0 0,25 -120,0 z", "stroke": true, "fill": "status blue", "bbox": [40, 185, 160, 170]}]
+			"alt icon": [{"d": "M25,155 l150,0 0,25 -150,0 z", "stroke": true, "fill": "status blue", "bbox": [25, 155, 175, 180]}]
 		}
 	},
 

@@ -1,19 +1,11 @@
 import re
 import sys
 import os
+import copy
 
 sys.path.append(os.path.dirname(__file__))
 import font_rendering
-
-"""
-The default stroke to use for symbols
-"""
-DEFAULT_STROKE_WIDTH:float = 4.0
-
-"""
-The default font file to use
-"""
-DEFAULT_FONT_FILE:str = os.path.join(os.path.dirname(__file__), 'SimplySans-Bold.ttf')
+from output_style import OutputStyle
 
 """
 Converts a color to the appropriate C++ constant
@@ -23,6 +15,9 @@ def color_type_to_cpp(color_type) -> str:
 		return 'ColorType::NONE'
 	else:
 		return f'ColorType::{re.sub(r'[\s-]+', '_', color_type.upper())}'
+
+def svgify_name(text:str) -> str:
+	return re.sub('_', '-', text)
 
 """
 Acceptable values for colors in the JSON schema. Right now
@@ -52,13 +47,51 @@ def convert_color(item):
 		print(f"Bad color: {item}", file=sys.stderr)
 		return None
 
-"""
-Class for defining an output style for the generated C++ code
-"""
-class OutputStyle:
-	def __init__(self, use_text_paths:bool = False):
-		self.use_text_paths = use_text_paths
-		self.text_path_font = DEFAULT_FONT_FILE
+class BBox():
+	def __init__(self, x_min:float=100, y_min:float=100, x_max:float=100, y_max:float=100):
+		self.x_min = x_min
+		self.y_min = y_min
+		self.x_max = x_max
+		self.y_max = y_max
+
+	def __repr__(self) -> str:
+		return f'BBox({self.x_min}, {self.y_min} to {self.x_max}, {self.y_max})'
+
+	@classmethod 
+	def from_list(cls, list_items):
+		if len(list_items) != 4:
+			raise Exception(f"Can't create BBox from value \"{list_items}\"")
+		return BBox(x_min=list_items[0], y_min=list_items[1], x_max=list_items[2], y_max=list_items[3])
+
+	def width(self):
+		return abs(self.x_max - self.x_min)
+
+	def height(self):
+		return abs(self.y_max - self.y_min)
+
+	def merge(self, other):
+		self.x_min = min(self.x_min, other.x_min)
+		self.y_min = min(self.y_min, other.y_min)
+		self.x_max = max(self.x_max, other.x_max)
+		self.y_max = max(self.y_max, other.y_max)
+
+	@classmethod
+	def merge_all(cls, box_list):
+		boxes = [copy.copy(box) for box in box_list]
+		if len(boxes) < 1:
+			return None
+		ret = boxes[0]
+		for box in boxes[1:]:
+			ret.merge(box)
+		return ret
+
+	def expand(self, padding:float):
+		self.x_min -= padding
+		self.y_min -= padding
+		self.x_max += padding
+		self.y_max += padding
+		return self
+
 
 """
 A basic symbol element
@@ -69,17 +102,18 @@ class SymbolElement:
 	Base class that contains styling elements
 	"""
 	class Base:
-		def __init__(self):
+		def __init__(self, stroke_dashed:bool=False):
 			self.fill_color:str = None
 			self.stroke_color:str = "icon"
-			self.stroke_width:float = DEFAULT_STROKE_WIDTH
-			self.stroke_dashed:str = None
+			self.stroke_width:float = OutputStyle.DEFAULT_STROKE_WIDTH
+			self.stroke_dashed:str = stroke_dashed
 
 		def base_params(self) -> str:
-			return 'fill="{}" stroke="{}"{}'.format(
+			return 'fill="{}" stroke="{}"{}{}'.format(
 				self.fill_color if self.fill_color is not None and self.fill_color != '' else 'none',
 				self.stroke_color if self.stroke_color is not None and self.fill_color != '' else 'none',
-				f' stroke_width="{self.stroke_width}"' if self.stroke_color is not None and self.stroke_color != '' else ''
+				f' stroke-width="{self.stroke_width}"' if self.stroke_color is not None and self.stroke_color != '' else '',
+				f' stroke-dasharray="8 8"' if self.stroke_dashed and self.stroke_color is not None else ''
 			)
 
 		def element_to_color_type(self, element):
@@ -162,19 +196,23 @@ class SymbolElement:
 			ret += ')'
 			return ret
 
-		def svg(self, schema, output_style=OutputStyle()) -> list:
+		def get_bbox(self, symbol, output_style=OutputStyle()) -> BBox:
+			return BBox.merge_all([element.get_bbox(symbol=symbol, output_style=output_style) for element in self.elements[symbol.affiliation.frame_id]])
+
+
+		def svg(self, symbol, output_style=OutputStyle()) -> str:
 			assert(symbol is not None)
 			assert(symbol.is_valid())
-			return [element.svg(symbol=symbol, output_style=output_style) for element in self.elements(symbol.affiliation.frame_id)]
+			return ''.join([element.svg(symbol=symbol, output_style=output_style) for element in self.elements[symbol.affiliation.frame_id]])
 
 	"""
 	Represents a path command
 	"""
 	class Path(Base):
-		def __init__(self):
-			super().__init__()
-			self.d:str = '' # The SVG path
-			self.bbox:tuple = (100, 100, 100, 100)
+		def __init__(self, d:str = '', bbox:BBox = BBox(), stroke_dashed:bool=False):
+			super().__init__(stroke_dashed=stroke_dashed)
+			self.d:str = d # The SVG path
+			self.bbox:BBox = bbox
 			self.fill_color = None # Default to an unfilled path
 			self.stroke_color = "icon" # Default to a filled stroke
 
@@ -186,27 +224,31 @@ class SymbolElement:
 			ret = cls()
 			ret.d = json['d']
 			if 'bbox' in json:
-				ret.bbox = tuple(json['bbox'])
-				if len(ret.bbox) != 4:
+				bbox_list = list(json['bbox'])
+				if len(bbox_list) != 4:
 					raise Exception(f'Invalid length of BBOX: {json}')
+				ret.bbox = BBox.from_list(bbox_list)
 			ret.parse_basics(json=json)
 			return ret
 
+		def get_bbox(self, symbol, output_style=OutputStyle()) -> BBox:
+			return copy.copy(self.bbox)
+
 		def cpp(self, schema, output_style=OutputStyle(), with_bbox=False) -> str:
-			ret:str = 'DrawCommand::path(\"{}\", BoundingBox({}, {}, {}, {}))'.format(self.d, *self.bbox)
+			ret:str = 'DrawCommand::path(\"{}\", BoundingBox({}, {}, {}, {}))'.format(self.d, self.bbox.x_min, self.bbox.y_min, self.bbox.x_max, self.bbox.y_max)
 			if self.fill_color is not None:
 				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
 			if self.stroke_color is None or self.stroke_color != 'icon':
 				ret += '.with_stroke({})'.format(color_type_to_cpp(self.stroke_color))
-			if self.stroke_width != DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
+			if self.stroke_width != OutputStyle.DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
 				ret += '.with_stroke_width({})'.format(self.stroke_width)
 			if self.stroke_dashed is not None:
 				ret += '.with_stroke_style(StrokeStyle::DASHED)'
 
 			return ret
 
-		def svg(self, schema, output_style=OutputStyle()) -> list:
-			return [f'<path d="{self.d}" {self.base_params()} />']
+		def svg(self, symbol, output_style=OutputStyle()) -> list:
+			return self.__repr__()
 
 	"""
 	Represents a circle command
@@ -220,10 +262,18 @@ class SymbolElement:
 			self.stroke_color = "icon"
 
 		def __repr__(self):
-			return f'<circle cx="{self.pos[0]}" cy="{self.pos[1]}" radius="{self.radius}" {self.base_params()} />'
+			return f'<circle cx="{self.pos[0]}" cy="{self.pos[1]}" r="{self.radius}" {self.base_params()} />'
 
-		def svg(self, schema, output_style=OutputStyle()) -> list:
-			return [f'<circle cx="{self.pos[0]}" cy="{self.pos[1]}" radius="{self.radius}" {self.base_params()} />']
+		def svg(self, symbol, output_style=OutputStyle()) -> list:
+			return self.__repr__()
+
+		def get_bbox(self, symbol, output_style=OutputStyle()) -> BBox:
+			return BBox(
+				x_min = self.pos[0] - self.radius, 
+				y_min = self.pos[1] - self.radius,
+				x_max = self.pos[0] + self.radius,
+				y_max = self.pos[1] + self.radius
+			)
 
 		@classmethod
 		def parse_from_dict(cls, json:dict):
@@ -239,14 +289,12 @@ class SymbolElement:
 				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
 			if self.stroke_color is None or self.stroke_color != 'icon':
 				ret += '.with_stroke({})'.format(color_type_to_cpp(self.stroke_color))
-			if self.stroke_width != DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
+			if self.stroke_width != OutputStyle.DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
 				ret += '.with_stroke_width({})'.format(self.stroke_width)
 			if self.stroke_dashed is not None:
 				ret += '.with_stroke_style(StrokeStyle::DASHED)'			
 			return ret
 
-		def icon_list(self, symbol, output_style=OutputStyle()) -> list:
-			return [self]
 
 	"""
 	Represents a text command
@@ -265,7 +313,30 @@ class SymbolElement:
 			# self.text_type = 'manual' # ['normal', 'm1', 'm2', 'manual']
 
 		def __repr__(self):
-			return f'<text x="{self.pos[0]}" y="{self.pos[1]}" font-size="{self.font_size}" font-anchor="{self.align}" {self.base_params()}>{self.text}</text>'
+			return f'<text x="{self.pos[0]}" y="{self.pos[1]}" font-size="{self.font_size}" text-anchor="{self.align}" {self.base_params()}>{self.text}</text>'
+
+		def svg(self, symbol, output_style=OutputStyle()) -> list:
+			if output_style.use_text_paths:
+				print(output_style.text_path_font)
+				font_face = font_rendering.Font(output_style.text_path_font, size = int(self.font_size))
+
+				paths = font_face.render_text(
+					text = self.text, 
+					pos = self.pos,
+					fontsize = int(self.font_size),
+					align = self.align)
+				
+				ret_path = ' '.join(paths)
+				path_el = SymbolElement.Path()
+				path_el.fill_color = self.fill_color
+				path_el.stroke_color = self.stroke_color
+				path_el.d = ret_path
+				return path_el.svg(symbol=symbol, output_style=output_style)
+
+			return self.__repr__()
+
+		def get_bbox(self, symbol, output_style=OutputStyle()) -> BBox:
+			return BBox()
 
 		@classmethod
 		def get_used_pos_and_size(cls, text:str, text_type:str = 'normal'):
@@ -312,7 +383,6 @@ class SymbolElement:
 				# Parse text
 				ret.text = json['textm1']
 				ret.pos, ret.font_size = cls.get_used_pos_and_size(text=ret.text, text_type = 'm1')
-				
 			elif 'textm2' in json:
 				# Parse text
 				ret.text = json['textm2']
@@ -368,31 +438,31 @@ class SymbolElement:
 				ret += '.with_fill({})'.format(color_type_to_cpp(self.fill_color))
 			if self.stroke_color is not None:
 				ret += '.with_stroke({})'.format(color_type_to_cpp(self.stroke_color))
-			if self.stroke_width != DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
+			if self.stroke_width != OutputStyle.DEFAULT_STROKE_WIDTH and self.stroke_color is not None:
 				ret += '.with_stroke_width({})'.format(self.stroke_width)
 			if self.stroke_dashed is not None:
 				ret += '.with_stroke_style(StrokeStyle::DASHED)'				
 
 			return ret
 
-		def icon_list(self, symbol, output_style=OutputStyle()) -> list:
-			return [self]
-
 	"""
 	Base class for transformation
 	"""
 	class Transformation(Base):
-		def __init__(self):
+		def __init__(self, items:list = []):
 			super().__init__()
-			self.items:list = []
+			self.items:list = copy.copy(items)
+
+		def get_children_bbox(self, symbol, output_style=OutputStyle()):
+			return BBox.merge_all([item.get_bbox(symbol=symbol, output_style=output_style) for item in self.items])
 
 	"""
 	Represents a translation
 	"""
 	class Translate(Transformation):
-		def __init__(self):
-			super().__init__()
-			self.delta:tuple = (0, 0)
+		def __init__(self, delta:tuple=(0, 0), items:list = []):
+			super().__init__(items=items)
+			self.delta:tuple = copy.copy(delta)
 
 		def __repr__(self):
 			return '<g transform=\"translate({} {})\">{}</g>'.format(
@@ -400,6 +470,21 @@ class SymbolElement:
 				self.delta[1],
 				' '.join([str(item) for item in self.items])
 			)
+
+		def svg(self, symbol, output_style=OutputStyle()) -> list:
+			return '<g transform=\"translate({} {})\">{}</g>'.format(
+				self.delta[0],
+				self.delta[1],
+				' '.join([item.svg(symbol=symbol, output_style=output_style) for item in self.items])
+			)
+
+		def get_bbox(self, symbol, output_style=OutputStyle()) -> BBox:
+			child_box = self.get_children_bbox(symbol=symbol, output_style=output_style)
+			child_box.x_min += self.delta[0]
+			child_box.x_max += self.delta[0]
+			child_box.y_min += self.delta[1]
+			child_box.y_max += self.delta[1]
+			return child_box
 
 		def cpp(self, schema, output_style=OutputStyle(), with_bbox=False) -> str:
 			return 'DrawCommand::translate(Vector2{{{}, {}}}, {})'.format(
@@ -421,14 +506,20 @@ class SymbolElement:
 	Represents a scaling
 	"""
 	class Scale(Transformation):
-		def __init__(self):
+		def __init__(self, scale:float = 1.0):
 			super().__init__()
-			self.scale:float = 1.0
+			self.scale:float = scale
 
 		def __repr__(self):
 			return '<g transform=\"scale({})\">{}</g>'.format(
 				self.scale,
 				' '.join([str(item) for item in self.items])
+			)
+
+		def svg(self, symbol, output_style=OutputStyle()) -> list:
+			return '<g transform=\"scale({})\">{}</g>'.format(
+				self.scale,
+				' '.join([item.svg(symbol=symbol, output_style=output_style) for item in self.items])
 			)
 
 		@classmethod
@@ -443,8 +534,13 @@ class SymbolElement:
 				', '.join([x.cpp(schema=schema, output_style=output_style, with_bbox=with_bbox) for x in self.items])
 			)
 
-		def icon_list(self, symbol, output_style=OutputStyle()) -> list:
-			return [self]
+		def get_bbox(self, symbol, output_style=OutputStyle()) -> BBox:
+			child_box = self.get_children_bbox(symbol=symbol, output_style=output_style)
+			child_box.x_min = 100 + ((child_box.x_min - 100) * self.scale)
+			child_box.y_min = 100 + ((child_box.y_min - 100) * self.scale)
+			child_box.x_max = 100 + ((child_box.x_max - 100) * self.scale)
+			child_box.y_max = 100 + ((child_box.y_max - 100) * self.scale)
+			return child_box
 
 
 	@staticmethod

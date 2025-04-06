@@ -15,11 +15,11 @@
 		},
 		"110200": {
 			"names": ["national mission team"],
-			"icon": [{"text": "CMT"}]
+			"icon": [{"text": "NMT"}]
 		},
 		"110100": {
 			"names": ["cyber protection team"],
-			"icon": [{"text": "C{T"}]
+			"icon": [{"text": "CPT"}]
 		},
 		"110600": {
 			"names": ["defensive cyberspace operation", "defensive cyber operation", "DCO"],

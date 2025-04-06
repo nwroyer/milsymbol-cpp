@@ -1,4 +1,9 @@
 from schema import *
+from output_style import OutputStyle
+import re
+import os
+from drawing_items import BBox
+import math
 
 class Symbol():
 	def __init__(self):
@@ -18,6 +23,15 @@ class Symbol():
 	def is_valid(self):
 		return self.schema is not None
 
+	def is_headquarters(self):
+		return self.hqtfd is not None and self.hqtfd.headquarters
+
+	def is_task_force(self):
+		return self.hqtfd is not None and self.hqtfd.task_force
+
+	def is_dummy(self):
+		return self.hqtfd is not None and self.hqtfd.dummy
+
 	def __repr__(self):
 		ret = ', '.join([
 			'Symbol',
@@ -34,8 +48,8 @@ class Symbol():
 			f'entity = {self.entity.names[0]} [{self.entity.id_code}]' if self.entity is not None else 'entity = none',
 		] 
 			+ ([] if self.frame_shape_override is None else [f'frame shape override = {self.frame_shape_override.names[0]}'])
-			+ ([] if self.modifier_1 is None else [f'modifier 1 = {self.modifier_1.names[0]}'])
-			+ ([] if self.modifier_2 is None else [f'modifier 2 = {self.modifier_2.names[0]}'])
+			+ (['m1 = none'] if self.modifier_1 is None else [f'm1 = {self.modifier_1.names[0]}'])
+			+ (['m2 = none'] if self.modifier_2 is None else [f'm2 = {self.modifier_2.names[0]}'])
 		)
 		return ret
 
@@ -82,61 +96,189 @@ class Symbol():
 
 			print(f'Entity "{entity_code}" not found in symbol set "{ret.symbol_set.names[0]}"; falling back to {fallbacks[code_index + 1] if code_index < 2 else '000000'}', file=sys.stderr)			
 
+		mod_1_prefix, mod_2_prefix = '', ''
 		mod_1_set:SymbolSet = ret.symbol_set
 		mod_2_set:SymbolSet = ret.symbol_set
 
 		if len(sidc) >= 22:
 			if bool(int(sidc[20])): # Digit 20 indicates the sector 1 modifier is common
 				mod_1_set = schema.symbol_sets.get('C', mod_1_set)
+				mod_1_prefix += sidc[20]
 			if bool(int(sidc[21])): # Digit 21 indicates the sector 2 modifier is common
 				mod_2_set = schema.symbol_sets.get('C', mod_2_set)
+				mod_2_prefix += sidc[21]
 
 		if len(sidc) >= 23:
 			ret.frame_shape_override = schema.frame_shapes.get(sidc[22], None) # Digit 22 is the frame shape override
 			if ret.frame_shape_override is not None and ret.frame_shape_override.id_code == '0':
 				ret.frame_shape_override = None
 
-		ret.modifier_1 = mod_1_set.m1.get(sidc[16:18], None)
-		ret.modifier_2 = mod_2_set.m2.get(sidc[18:20], None)
+		ret.modifier_1 = mod_1_set.m1.get(mod_1_prefix + sidc[16:18], None)
+		ret.modifier_2 = mod_2_set.m2.get(mod_2_prefix + sidc[18:20], None)
 
 		return ret
 
-	def get_svg(self, style:str = 'light') -> str:
+	def get_svg(self, output_style=OutputStyle()) -> str:
+		if not self.is_valid():
+			return None
+
 		# Assemble elements
 		elements:list = []
+		ret_bbox = BBox()
 
 		# Add frame base
 		frame_to_use = self.frame_shape_override if self.frame_shape_override is not None else \
 			self.symbol_set.dimension.frame_shape
 
+
+
 		SVG_NAMESPACE:str = "http://w3.org/2000/svg";
-		elements += frame_to_use.frames[self.affiliation.frame_id]	
+		elements += [e.svg(symbol=self, output_style=output_style) for e in frame_to_use.frames[self.affiliation.frame_id]]
+		frame_bbox = BBox.merge_all([e.get_bbox(symbol=self, output_style=output_style) for e in frame_to_use.frames[self.affiliation.frame_id]])
+		ret_bbox.merge(frame_bbox)
+
+		# Handle headquarters
+		if self.is_headquarters():
+			cmd = drawing_items.SymbolElement.Path(d=f"m {ret_bbox.x_min},100 l 0,100", bbox=BBox(ret_bbox.x_min, 100, ret_bbox.x_min, 200))
+			elements += [cmd.svg(symbol=symbol, output_style=output_style)]
+			ret_bbox.merge(cmd.get_bbox(symbol=symbol, output_style=output_style))
 
 		# Add amplfiiers
+		amplifier_bbox = BBox()
+		has_amps:bool = self.amplifier is not None and self.amplifier.icon and self.amplifier.icon_side == 'top'
 		if self.amplifier.icon:
-			elements += self.amplifier.get_icon(self)
-			print('Amped')
+			if self.amplifier.icon_side != 'middle':
+				amplifier_offset = tuple(frame_to_use.amplifier_offsets[self.affiliation.frame_id][self.amplifier.icon_side])
 
-		print('\t' + '\n\t'.join([str(s) for s in elements]))
+				command = drawing_items.SymbolElement.Translate(delta=amplifier_offset, items=self.amplifier.icon)
+				elements += [command.svg(symbol=self, output_style=output_style)]
+				ret_bbox.merge(command.get_bbox(symbol=self, output_style=output_style))
+				amplifier_bbox.merge(command.get_bbox(symbol=self, output_style=output_style))
+			else:
+				elements += [e.svg(symbol=self, output_style=output_style) for e in self.amplifier.icon]
+				amp_bbox = BBox.merge_all([e.get_bbox(symbol=self, output_style=output_style) for e in self.amplifier.icon])
+				ret_bbox.merge(amp_bbox)
+				amplifier_bbox.merge(amp_bbox)
 
+		if self.is_task_force():
+			bounds = amplifier_bbox.expand(10) if has_amps else BBox(x_min=100 - (tf_width / 2), x_max = 100 + (tf_width / 2), y_min = frame_bbox.y_min - tf_height, y_max = frame_bbox.y_min)
+			bounds.y_min = bounds.y_min - 5
+			bounds.y_max = frame_bbox.y_min
 
-		return ''
+			tf_width = 100 if not has_amps else bounds.width()
+			tf_height = 100 if not has_amps else bounds.height()
+
+			print(f'Bounds: {bounds} / {has_amps}')
+			cmd = drawing_items.SymbolElement.Path(d=f"M {bounds.x_min},{bounds.y_max} l 0,-{tf_height} l {tf_width},0 l 0,{tf_height}", bbox=bounds)
+			ret_bbox.merge(bounds)
+			amplifier_bbox.merge(bounds)
+			elements += [cmd.svg(symbol=self, output_style=output_style)]
+			
+		if self.is_dummy():
+			half_width = frame_bbox.width() * 0.5
+			height = round(half_width * math.tan(math.pi / 4), 6)
+			origin = (frame_bbox.x_min, amplifier_bbox.y_min - 3)
+			cmd = drawing_items.SymbolElement.Path(d=f"M {origin[0]},{origin[1]} l {half_width},-{height} l {half_width},{height}", 
+				bbox=BBox(x_min=origin[0], y_min=origin[1] - height, x_max = origin[1] + (2*half_width), y_max = origin[1]),
+				stroke_dashed=True)
+
+			ret_bbox.merge(cmd.get_bbox(symbol=symbol, output_style=output_style))
+			amplifier_bbox.merge(cmd.get_bbox(symbol=symbol, output_style=output_style))
+			elements += [cmd.svg(symbol=self, output_style=output_style)]
+
+		# Add status
+		if self.status and self.status.icon:
+			use_alt:bool = output_style.use_alternate_icons and self.status.alt_icon
+			icon_to_use = self.status.alt_icon if use_alt else self.status.icon
+			icon_side = self.status.alt_icon_side if use_alt else self.status.icon_side
+
+			if icon_to_use:
+
+				if icon_side != 'middle':
+					amplifier_offset = tuple(frame_to_use.amplifier_offsets[self.affiliation.frame_id][icon_side])
+					print(f'Icon side on {icon_side}: {amplifier_offset}')
+
+					command = drawing_items.SymbolElement.Translate(delta=amplifier_offset, items=icon_to_use)
+					elements += [command.svg(symbol=self, output_style=output_style)]
+					ret_bbox.merge(command.get_bbox(symbol=self, output_style=output_style))
+				else:
+					elements += [e.svg(symbol=self, output_style=output_style) for e in icon_to_use]
+					status_bbox = BBox.merge_all([e.get_bbox(symbol=self, output_style=output_style) for e in icon_to_use])
+					ret_bbox.merge(status_bbox)
+
+		# Handle entities and modifiers
+		for entmod in [self.entity, self.modifier_1, self.modifier_2]:
+			if not entmod:
+				continue
+			icon_to_use = entmod.alt_icon if output_style.use_alternate_icons and entmod.alt_icon else entmod.icon
+			#print(f'{type(entmod).__name__} {entmod.names[0]}: {entmod.icon}')
+			elements += [e.svg(symbol=self, output_style=output_style) for e in icon_to_use]
+
+		# Create the SVGs
+		ret_bbox.expand(padding=output_style.padding)
+		svg_content = f'<svg width="{ret_bbox.width()}" height="{ret_bbox.height()}" ' + \
+			f'viewBox="{ret_bbox.x_min} {ret_bbox.y_min} {ret_bbox.width()} {ret_bbox.height()}">\n' + \
+			'\n'.join(elements) + \
+			'\n</svg>'
+
+		# Determine proper coloration
+		icon_fill_color = self.schema.affiliations[self.affiliation.color_id].colors.get(output_style.fill_style, OutputStyle.DEFAULT_FILL_STYLE)
+
+		COLOR_DICT = {
+			'icon': (0, 0, 0),
+			'icon_fill': (icon_fill_color[0], icon_fill_color[1], icon_fill_color[2]),
+			'status yellow': (255, 255, 0),
+			'status red': (255, 0, 0),
+			'status blue': (0, 180, 240),
+			'status green': (0, 255, 0),
+			'mine yellow': (255, 255, 0),
+			'mine orange': (255, 141, 42),
+			'mine bright green': (0, 255, 0),
+			'mine dark green': (0, 130, 24),
+			'mine dark green': (0, 130, 24),
+			'mine red': (255, 0, 0),
+			'white': (255, 255, 255),
+			'yellow': (255, 255, 128)
+		}
+
+		for color_type in ['stroke', 'fill']:
+			for key, replacement in COLOR_DICT.items():
+				svg_content = re.sub(f'{color_type}="{key}"', f'{color_type}="rgb({replacement[0]}, {replacement[1]}, {replacement[2]})"', svg_content)
+			pass
+
+		return svg_content
 
 
 if __name__ == '__main__':
 	TEST_SIDCS:list = [
 		'130310001411060000600000000000',
 		'130310000011092000600000000000',
-		'130560000011020000000000000000',
-		'130310021316040007891000000000'
+		'130560000011020008101100000000',
+		'130310021316040007891000000000',
+		'130515003211010300000000000000',
+		'130310071213010300000000000000',
+		'130310072313010300000000000000',
+		'130320400011030007201100000000'
 	]
 
 	schema = Schema.parse_from_directory(os.path.join(os.path.dirname(__file__), '..', 'schema'))
 
-	for sidc in TEST_SIDCS:
-		symbol = Symbol.from_sidc(sidc=sidc, schema=schema)
-		print(symbol.entity.names[0].capitalize())
-		svg = symbol.get_svg()
+	test_dir = os.path.join(os.path.dirname(__file__), '..', 'test')
+	os.makedirs(test_dir, exist_ok=True)
+
+	output_style=OutputStyle()
+	output_style.use_text_paths = True
+	output_style.use_alternate_icons = True
+
+	for sidc_raw in TEST_SIDCS:
+		for affil in ['1', '3', '4', '5', '6']:
+			sidc = sidc_raw[:3] + affil + sidc_raw[4:]
+			symbol = Symbol.from_sidc(sidc=sidc, schema=schema)
+			print(symbol)
+			svg = symbol.get_svg(output_style=output_style)
+			with open(os.path.join(test_dir, f'{sidc}.svg'), 'w') as out_file:
+				out_file.write(svg)
+			#print(svg)
 		
 
 

@@ -10,6 +10,7 @@ import itertools
 from military_symbol import constants_parser
 from military_symbol.drawing_items import *
 from military_symbol.schema import *
+from military_symbol.output_style import OutputStyle
 
 def _codify_hex(item):
 	return f'0x{item}' if is_valid_hex_key(item) else -1
@@ -27,7 +28,7 @@ def create_schema(schema:Schema,
 	schema_filename:str,                  ## The filename of the C++ file to generate the symbol schema itself in
 	constant_filename:str, 				  ## The filename of the C++ file to generate constants in
 	use_text_paths:bool=False, 			  ## Whether to convert all text objects to SVG paths
-	text_path_font:str=DEFAULT_FONT_FILE, ## A path to the font to use
+	text_path_font:str=OutputStyle.DEFAULT_FONT_FILE, ## A path to the font to use
 	include_enumerator:bool=True         ## Whether to include a list of available symbols retrievable with a function in the generated files
 	) -> None:
 	
@@ -284,7 +285,7 @@ def create_schema(schema:Schema,
 			def v2(item):
 				return f'Vector2{{{item[0]}, {item[1]}}}'
 
-			offsets = frame_shape.amplifier_offsets.get(affil.names[0], {'top': [0, 0], 'bottom': [0, 0], 'middle': [0, 0]})
+			offsets = frame_shape.amplifier_offsets.get(affil.id_code, {'top': [0, 0], 'bottom': [0, 0], 'middle': [0, 0]})
 			schema_text += '\t\t\t\t{{Affiliation::{}, std::pair<Vector2, Vector2>{{{}, {}}}}}{}\n'.format(
 				sanitize_constant(affil.names[0]),
 				v2(offsets['top']), v2(offsets['bottom']),
