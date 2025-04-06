@@ -108,6 +108,27 @@ class SymbolElement:
 			self.stroke_width:float = OutputStyle.DEFAULT_STROKE_WIDTH
 			self.stroke_dashed:str = stroke_dashed
 
+		def with_stroke(self, stroke_width=None, stroke_color=None, stroke_dashed=None):
+			if stroke_width is not None:
+				self.stroke_width = stroke_width
+			if stroke_color is not None:
+				self.stroke_color = stroke_color
+			if stroke_dashed is not None:
+				self.stroke_dashed = stroke_dashed
+			return self
+
+		def copy_with_stroke(self, stroke_width=None, stroke_color=None, stroke_dashed=None):
+			ret = copy.copy(self)
+			return ret.with_stroke(stroke_width=stroke_width, stroke_color=stroke_color, stroke_dashed=stroke_dashed)
+
+		def with_fill(self, fill_color=None):
+			self.fill_color = fill_color
+			return self
+
+		def copy_with_fill(self, fill_color=None):
+			ret = copy.copy(self)
+			return ret.with_fill(fill_color=fill_color)
+
 		def base_params(self) -> str:
 			return 'fill="{}" stroke="{}"{}{}'.format(
 				self.fill_color if self.fill_color is not None and self.fill_color != '' else 'none',
@@ -317,7 +338,6 @@ class SymbolElement:
 
 		def svg(self, symbol, output_style=OutputStyle()) -> list:
 			if output_style.use_text_paths:
-				print(output_style.text_path_font)
 				font_face = font_rendering.Font(output_style.text_path_font, size = int(self.font_size))
 
 				paths = font_face.render_text(

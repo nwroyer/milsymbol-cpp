@@ -31,6 +31,8 @@ class Context:
 		self.id_code:str = ""      # The ID code of the context, a 1-digit hexadecimal 
 		self.names:list  = []      # The names of the context
 		self.base_context:str = "" # The base context this belongs to (reality, exercise, or simulation)
+		self.match_name:bool = True
+		self.dashed:bool = False
 
 	def __repr__(self):
 		return f"Context {self.id_code} [{self.base_context}]: (" + ', '.join([f'\"{f}\"' for f in self.names]) + ")"
@@ -64,6 +66,7 @@ class Affiliation:
 		self.has_civilian_variant:bool = True # Whether this affiliation allows civilian coloring
 		self.frame_id:str = ""                # The affiliation code to use the frames from. If not set this is assumed to be its own base
 		self.color_id:str = ""                # The affiliation code to use the colors from. If not set this is assumed to be its own base.
+		self.match_name:bool = True
 
 	def __repr__(self):
 		ret = f"Affiliation {self.id_code}: (" + ', '.join([f'\"{f}\"' for f in self.names]) + ")"
@@ -234,6 +237,7 @@ class Status:
 		self.alt_icon:list = []
 		self.icon_side:str = 'middle'
 		self.alt_icon_side:str = 'middle'
+		self.match_name:bool = True
 
 	def __repr__(self):
 		return f"Status {self.id_code} ({' / '.join(self.names)})"
@@ -288,6 +292,8 @@ class HQTFD:
 		self.headquarters:bool = False
 		self.task_force:bool = False
 		self.dummy:bool = False
+		self.blacklist:list = []
+		self.match_name:bool = True
 
 	def __repr__(self) -> str:
 		return f"HQTFD {self.id_code} ({self.names[0]})"
@@ -297,6 +303,16 @@ class HQTFD:
 
 	def get_hqtfds(self) -> list:
 		return list([item for item in ['headquarters', 'task_force', 'dummy'] if getattr(self, item)])
+
+	def applies_to_symbol_set(self, symbol_set) -> bool:
+		return symbol_set is not None and symbol_set.id_code == '10'
+
+	def matches_blacklist(self, name_string):
+		test_string = name_string.lower()
+		for b in self.blacklist:
+			if b.lower() in test_string:
+				return True
+		return False
 
 	@staticmethod
 	def from_dict(id_code:str, json:dict):
@@ -317,6 +333,8 @@ class HQTFD:
 		hqtfd.task_force = 'hqtfd' in json and 'task force' in json['hqtfd']
 		hqtfd.dummy = 'hqtfd' in json and 'dummy' in json['hqtfd']
 
+		hqtfd.blacklist = json.get('blacklist', [])
+
 		return hqtfd
 
 
@@ -334,6 +352,13 @@ class Amplifier:
 		self.icon_side:str = 'middle' # Should be 'top' or 'bottom' or 'middle'
 		self.alt_icon:list = []
 		self.alt_icon_side:str = 'middle'
+		self.prerun:bool = False
+		self.match_name:bool = True
+
+	def applies_to_symbol_set(self, symbol_set) -> bool:
+		if symbol_set is None:
+			return False
+		return True
 
 	@staticmethod
 	def from_dict(id_code:str, json:dict, schema):
@@ -361,6 +386,8 @@ class Amplifier:
 		if 'icon' in json:
 			amplifier.icon = drawing_items.SymbolElement.parse_list_from_json(item=json['icon'], full_items={}, affiliations=schema.get_base_affiliation_dict())
 
+		amplifier.prerun = bool(json.get('prerun', False))
+
 		return amplifier
 
 	def icon_cpp(self, schema, output_style, with_bbox=False):
@@ -383,6 +410,8 @@ class SymbolLayer:
 		self.civilian:bool = False # Whether this entity renders something a civilian item
 		self.icon:list = []
 		self.alt_icon:list = []
+		self.symbol_set = None
+		self.match_name:bool = True
 		pass
 
 	def __repr__(self):
@@ -401,7 +430,7 @@ class SymbolLayer:
 		)
 
 	@classmethod
-	def parse_from_dict(cls, id_code:str, json:dict, full_items:dict, schema):
+	def parse_from_dict(cls, id_code:str, json:dict, full_items:dict, schema, symbol_set = None):
 		if 'icon' not in json or 'names' not in json:
 			print('No keys in {}'.format(uid), file=sys.stderr)
 			return None
@@ -417,6 +446,8 @@ class SymbolLayer:
 
 		symbol_layer.icon = drawing_items.SymbolElement.parse_list_from_json(item=json['icon'], full_items=full_items, affiliations=schema.get_base_affiliation_dict())
 		symbol_layer.alt_icon = drawing_items.SymbolElement.parse_list_from_json(item=json.get('alt icon', []), full_items=full_items, affiliations=schema.get_base_affiliation_dict())
+		symbol_layer.symbol_set = symbol_set
+		symbol_layer.match_name = json.get('match name', True)
 
 		return symbol_layer
 
@@ -429,8 +460,8 @@ class Entity(SymbolLayer):
 		super().__init__()
 
 	@classmethod
-	def parse_from_dict(cls, id_code:str, json:dict, full_items:dict, schema):
-		return super().parse_from_dict(id_code=id_code, json=json, full_items=full_items, schema=schema)
+	def parse_from_dict(cls, id_code:str, json:dict, full_items:dict, schema, symbol_set=None):
+		return super().parse_from_dict(id_code=id_code, json=json, full_items=full_items, schema=schema, symbol_set=symbol_set)
 
 class Modifier(SymbolLayer):
 	"""
@@ -499,6 +530,7 @@ class SymbolSet:
 			return None
 
 		icon_set:str = json_dict['set']
+		ret_set = cls()
 
 		for item_type, ItemTypeClass in ITEM_TYPES:
 			if not (item_type in json_dict):
@@ -510,14 +542,13 @@ class SymbolSet:
 					print(f'Improper indices for {json_dict["set"]}:{item_type}:{item_code}', file=sys.stderr)
 					return None
 
-				new_symbol_layer = ItemTypeClass.parse_from_dict(id_code=item_code, json=item, full_items=json_dict[item_type], schema=schema)
+				new_symbol_layer = ItemTypeClass.parse_from_dict(id_code=item_code, json=item, full_items=json_dict[item_type], schema=schema, symbol_set=ret_set)
 				if new_symbol_layer is not None:
 					ret[item_type][item_code] = new_symbol_layer
 				else:
 					print(f'Unable to process item {json_dict["set"]}:{item_type}:{item_code}: {item["names"]}', file=sys.stderr)
 					return 
 
-		ret_set = cls()
 		ret_set.id_code = icon_set
 		ret_set.entities = {item: ret['IC'][item] for item in ret['IC'].keys() if item[0] != '.'} # Ignore utility symbols
 		ret_set.m1 = ret['M1']
@@ -663,8 +694,14 @@ class Schema:
 			self.print_constants()
 		return True
 
+	def get_flat_entities(self) -> list:
+		ret = []
+		for symbol_set in self.symbol_sets.values():
+			ret += list(symbol_set.entities.values())
+		return ret
+
 	@classmethod
-	def parse_from_directory(cls, directory:str, verbose:bool = False):
+	def parse_from_directory(cls, directory:str=os.path.join(os.path.dirname(__file__), '..', 'schema'), verbose:bool = False):
 		"""
 		Parses the schema from a directory of files
 		"""

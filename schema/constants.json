@@ -310,13 +310,29 @@
 		},
 		"2": {
 			"names": ["headquarters", "HQ"],
-			"hqtfd": ["headquarters"]
+			"hqtfd": ["headquarters"],
+			"blacklist": [
+				"headquarters unit",
+				"headquarters element",
+				"HQ unit",
+				"HQ element",
+				"head quarters unit",
+				"head quarters element"
+			]
 		},
 
 		"3": {
 			"names": ["feint headquarters", "feint HQ", "decoy headquarters", "decoy HQ", "dummy headquarters", "dummy HQ"], 
 			"dashed": true,
-			"hqtfd": ["headquarters", "dummy"]
+			"hqtfd": ["headquarters", "dummy"],
+			"blacklist": [
+				"headquarters unit",
+				"headquarters element",
+				"HQ unit",
+				"HQ element",
+				"head quarters unit",
+				"head quarters element"
+			]
 		},
 		"4": {
 			"names": ["task force", "TF"],
@@ -329,7 +345,15 @@
 		},
 		"6": {
 			"names": ["task force headquarters", "task force HQ", "TF headquarters", "TF HQ"],
-			"hqtfd": ["task force", "headquarters"]
+			"hqtfd": ["task force", "headquarters"],
+			"blacklist": [
+				"headquarters unit",
+				"headquarters element",
+				"HQ unit",
+				"HQ element",
+				"head quarters unit",
+				"head quarters element"
+			]
 		},
 		"7": {
 			"names": [
@@ -338,7 +362,15 @@
 				"dummy task force headquarters", "dummy task force HQ", "dummy TF headquarters", "dummy TF HQ"
 			],
 			"dashed": true,
-			"hqtfd": ["headquarters", "task force", "dummy"]
+			"hqtfd": ["headquarters", "task force", "dummy"],
+			"blacklist": [
+				"headquarters unit",
+				"headquarters element",
+				"HQ unit",
+				"HQ element",
+				"head quarters unit",
+				"head quarters element"
+			]
 		}
 	},
 
@@ -349,14 +381,16 @@
 			"type": "echelon", 
 			"applies to": ["land unit"],
 			"icon side": "top",
-			"icon": [{"r": 15, "pos": [100, -20]}, {"d": "M80,-10 L120,-30", "bbox": [80, -10, 120, -30]}]
+			"icon": [{"r": 15, "pos": [100, -20]}, {"d": "M80,-10 L120,-30", "bbox": [80, -10, 120, -30]}],
+			"prerun": true
 		}, 
 		"12": {
 			"names": ["squad"], 
 			"type": "echelon", 
 			"applies to": ["land unit"],
 			"icon side": "top",
-			"icon": [{"pos": [100, 30], "r": 9, "fill": true, "stroke": false}]
+			"icon": [{"pos": [100, 30], "r": 9, "fill": true, "stroke": false}],
+			"prerun": true
 		},
 		"13": {
 			"names": ["section"], 
@@ -366,7 +400,8 @@
 			"icon": [
 				{"pos": [85, 30], "r": 9, "fill": true, "stroke": false},
 				{"pos": [115, 30], "r": 9, "fill": true, "stroke": false}
-			]
+			],
+			"prerun": true
 		},
 		"14": {
 			"names": ["platoon", "detachment"], 
@@ -377,7 +412,8 @@
 				{"pos": [70, 30], "r": 9, "fill": true, "stroke": false},
 				{"pos": [100, 30], "r": 9, "fill": true, "stroke": false},
 				{"pos": [130, 30], "r": 9, "fill": true, "stroke": false}
-			]
+			],
+			"prerun": true
 		},
 		"15": {
 			"names": ["company", "battery", "troop"], 
@@ -386,7 +422,8 @@
 			"icon side": "top",
 			"icon": [
 				{"strokewidth": 4, "d": "M100,40L100,15", "stroke": true, "fill": false, "bbox": [99, 15, 101, 40]}
-			]
+			],
+			"prerun": true
 		},
 		"16": {
 			"names": ["battalion", "squadron"], 
@@ -396,7 +433,8 @@
 			"icon": [
 				{"strokewidth": 4, "d": "M90,40L90,15", "stroke": true, "fill": false, "bbox": [89, 14, 91, 40]},
 				{"strokewidth": 4, "d": "M110,40L110,15", "stroke": true, "fill": false, "bbox": [109, 15, 111, 40]}
-			]
+			],
+			"prerun": true
 		},
 		"17": {
 			"names": ["regiment", "group"], 
@@ -407,7 +445,8 @@
 				{"strokewidth": 4, "d": "M100,40L100,15", "stroke": true, "fill": false, "bbox": [99, 15, 101, 40]},
 				{"strokewidth": 4, "d": "M120,40L120,15", "stroke": true, "fill": false, "bbox": [119, 15, 121, 40]},
 				{"strokewidth": 4, "d": "M80,40L80,15", "stroke": true, "fill": false, "bbox": [79, 15, 81, 40]}
-			]
+			],
+			"prerun": true
 		},
 		"18": {
 			"names": ["brigade"], 
@@ -416,7 +455,8 @@
 			"icon side": "top",
 			"icon": [
 				{"strokewidth": 4, "d": "M87.5,40 l25,-25 m0,25 l-25,-25", "stroke": true, "fill": false, "bbox": [87.5, 15, 112.5, 40]}
-			]
+			],
+			"prerun": true
 		},
 		"21": {
 			"names": ["division"], 
@@ -425,7 +465,8 @@
 			"icon side": "top",
 			"icon": [
 				{"strokewidth": 4, "d": "M70,40 l25,-25 m0,25 l-25,-25   M105,40 l25,-25 m0,25 l-25,-25", "stroke": true, "fill": false, "bbox": [70, 15, 130, 40]}
-			]
+			],
+			"prerun": true
 		},
 		"22": {
 			"names": ["corps", "MEB"], 
@@ -437,7 +478,8 @@
 					"strokewidth": 4, "d": "M52.5,40 l25,-25 m0,25 l-25,-25    M87.5,40 l25,-25 m0,25 l-25,-25    M122.5,40 l25,-25 m0,25 l-25,-25", 
 					"stroke": true, "fill": false, "bbox": [52.5, 15, 147.5, 40]
 				}
-			]
+			],
+			"prerun": true
 		},
 		"23": {
 			"names": ["army"], 
@@ -447,7 +489,8 @@
 			"icon": [{
 				"d": "M35,40 l25,-25 m0,25 l-25,-25   M70,40 l25,-25 m0,25 l-25,-25   M105,40 l25,-25 m0,25 l-25,-25    M140,40 l25,-25 m0,25 l-25,-25",
 				"strokewidth": 4, "stroke": true, "fill": true, "bbox": [35, 15, 165, 40]
-			}]
+			}],
+			"prerun": true
 		},
 		"24": {
 			"names": ["army group", "front"], 
@@ -457,7 +500,8 @@
 			"icon": [{
 				"d": "M17.5,40 l25,-25 m0,25 l-25,-25    M52.5,40 l25,-25 m0,25 l-25,-25    M87.5,40 l25,-25 m0,25 l-25,-25    M122.5,40 l25,-25 m0,25 l-25,-25       M157.5,40 l25,-25 m0,25 l-25,-25",
 				"strokewidth": 4, "stroke": true, "fill": true, "bbox": [17.5, 15, 165, 40]
-			}]
+			}],
+			"prerun": true
 		},
 		"25": {
 			"names": ["region", "theater"], 
@@ -467,7 +511,8 @@
 			"icon": [{
 				"d": "M0,40 l25,-25 m0,25 l-25,-25   M35,40 l25,-25 m0,25 l-25,-25   M70,40 l25,-25 m0,25 l-25,-25   M105,40 l25,-25 m0,25 l-25,-25    M140,40 l25,-25 m0,25 l-25,-25     M175,40 l25,-25 m0,25 l-25,-25",
 				"strokewidth": 4, "stroke": true, "fill": true, "bbox": [0, 15, 200, 40]
-			}]
+			}],
+			"prerun": true
 		},
 		"26": {
 			"names": ["command"], 
@@ -477,7 +522,8 @@
 			"icon": [{
 				"d": "M70,27.5 l25,0 m-12.5,12.5 l0,-25   M105,27.5 l25,0 m-12.5,12.5 l0,-25",
 				"strokewidth": 4, "stroke": true, "fill": true, "bbox": [40, 15, 130, 40]
-			}]
+			}],
+			"prerun": true
 		},
 
 		"31": {
