@@ -10,4 +10,5 @@ __pycache__
 meson.build.user*
 test
 python/test
+python/dist
 *.svg
