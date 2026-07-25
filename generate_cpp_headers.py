@@ -438,7 +438,7 @@ def main() -> None:
 	cwd = os.path.dirname(__file__)
 
 	# Gather the JSON files to parse - all .json files in this directory
-	schema = Schema.load_from_directory(directory=os.path.join(cwd, 'python', 'src', 'schema'))
+	schema = Schema.load_from_directory(directory=os.path.join(cwd, 'python', 'src', 'military_symbol', 'schema'))
 
 	# Parse command line options
 	parser = argparse.ArgumentParser('milymbol-build-helper', description='Milsymbol build helper')
