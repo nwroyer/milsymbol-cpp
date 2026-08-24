@@ -7,7 +7,7 @@ import argparse
 import copy
 import itertools
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'python', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'python', 'src'))
 
 import military_symbol
 
@@ -240,8 +240,6 @@ def create_schema(schema:Schema,
 		schema_text += f'\t\tcase Dimension::{sanitize_constant(dimension.names[0])}:\n\t\t\treturn FrameShape::{sanitize_constant(dimension.frame_shape.names[0]) if dimension.frame_shape else 'UNKNOWN'};\n'
 	schema_text += f'\t\tdefault:\n\t\t\treturn FrameShape::LAND_UNIT;\n'
 	schema_text += '\t}\n}\n\n'
-
-
 
 	# Create base frame draw commands
 	schema_text += "static constexpr const SymbolLayer get_base_symbol_geometry(Dimension dimension, Affiliation affiliation, bool position_only = false) {\n"
